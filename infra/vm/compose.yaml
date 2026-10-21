@@ -1,0 +1,58 @@
+# Runs on the game VM from /opt/landwar. deploy.sh writes .env (image, domain)
+# and app.env (server env and secrets) next to this file.
+
+x-logging: &logging
+  driver: gcplogs
+
+services:
+  caddy:
+    image: caddy:2.10
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DOMAIN: ${DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - app
+    logging: *logging
+
+  app:
+    image: ${LANDWAR_IMAGE}
+    restart: unless-stopped
+    env_file: ./app.env
+    expose:
+      - "80"
+    # In-flight games get this long to see the shutdown before they are cut.
+    stop_grace_period: 20s
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    depends_on:
+      cloudsql-proxy:
+        condition: service_started
+        required: false
+    logging: *logging
+
+  cloudsql-proxy:
+    image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.14.3
+    profiles: ["cloudsql"]
+    restart: unless-stopped
+    command:
+      - "--address=0.0.0.0"
+      - "--port=5432"
+      - "${CLOUDSQL_CONNECTION}"
+    logging: *logging
+
+volumes:
+  caddy-data:
+  caddy-config:

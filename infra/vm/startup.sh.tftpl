@@ -1,0 +1,41 @@
+#!/bin/bash
+# GCE startup script (Terraform template; infra/terraform/vm.tf). Runs at
+# every boot: installs Docker once, writes the files from infra/vm/, and
+# restarts the last deployed image.
+set -euo pipefail
+
+if ! command -v docker > /dev/null; then
+    apt-get update
+    apt-get install -y ca-certificates curl gnupg
+    install -m 0755 -d /etc/apt/keyrings
+    curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+    chmod a+r /etc/apt/keyrings/docker.asc
+    . /etc/os-release
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian $VERSION_CODENAME stable" \
+        > /etc/apt/sources.list.d/docker.list
+    apt-get update
+    apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+    systemctl enable --now docker
+fi
+
+mkdir -p /opt/landwar
+cd /opt/landwar
+
+cat > compose.yaml << 'LANDWAR_EOF'
+${compose_yaml}
+LANDWAR_EOF
+
+cat > Caddyfile << 'LANDWAR_EOF'
+${caddyfile}
+LANDWAR_EOF
+
+cat > deploy.sh << 'LANDWAR_EOF'
+${deploy_sh}
+LANDWAR_EOF
+chmod 755 deploy.sh
+
+REGISTRY="$(curl -fsS -H "Metadata-Flavor: Google" \
+    http://metadata.google.internal/computeMetadata/v1/instance/attributes/landwar-registry-host)"
+gcloud auth configure-docker "$REGISTRY" --quiet
+
+./deploy.sh

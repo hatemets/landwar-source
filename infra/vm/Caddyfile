@@ -1,0 +1,10 @@
+# TLS with automatic Let's Encrypt certificates. Caddy sends X-Forwarded-For
+# and X-Forwarded-Proto; nginx in the app container passes them on.
+{
+	email {$ACME_EMAIL}
+}
+
+{$DOMAIN} {
+	encode zstd gzip
+	reverse_proxy app:80
+}

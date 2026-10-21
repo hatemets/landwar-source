@@ -1,0 +1,20 @@
+# Copy to terraform.tfvars (git-ignored) and fill in.
+project_id = "landwar-prod"
+domain     = "landwar.example"
+acme_email = "you@example.com"
+
+# Google OAuth client (APIs & Services > Credentials). Redirect URI:
+# https://landwar.example/api/auth/google/callback
+google_client_id     = "1234567890-abc.apps.googleusercontent.com"
+google_client_secret = "GOCSPX-..."
+
+# Cheapest: an external Postgres such as Neon (free tier).
+database              = "external"
+external_database_url = "postgres://user:pass@ep-xyz.eu-central-1.aws.neon.tech/landwar?sslmode=require"
+
+# Or keep everything in GCP (about 10 USD a month more):
+# database = "cloudsql"
+
+# machine_type = "e2-small"
+# num_workers  = 2
+# extra_env    = { TURNSTILE_SITE_KEY = "0x4AAAA..." }

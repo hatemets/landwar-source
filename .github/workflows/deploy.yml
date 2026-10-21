@@ -1,0 +1,80 @@
+name: 🚀 Deploy
+
+# Builds the image, pushes it to Artifact Registry, and restarts the game VM
+# on it. Runs after CI passes on main, or by hand. Setup: docs/Deploy.md.
+
+on:
+  workflow_run:
+    workflows: ["🧪 CI"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: ${{ vars.GCP_PROJECT_ID != '' && (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success') }}
+    name: Deploy to production
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    env:
+      SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.SHA }}
+          submodules: false
+
+      # The main menu links this snapshot. See scripts/publish-source.sh.
+      - name: Publish the source (AGPL-3.0)
+        run: |
+          eval "$(ssh-agent -s)"
+          ssh-add - <<< "$SOURCE_DEPLOY_KEY"
+          scripts/publish-source.sh "$SHA" "$SHA"
+        env:
+          SOURCE_DEPLOY_KEY: ${{ secrets.SOURCE_DEPLOY_KEY }}
+          SOURCE_REMOTE: git@github.com:hatemets/landwar-source.git
+
+      - uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SA }}
+
+      - uses: google-github-actions/setup-gcloud@v3
+
+      - name: Log in to Artifact Registry
+        run: gcloud auth configure-docker "${GCP_IMAGE%%/*}" --quiet
+        env:
+          GCP_IMAGE: ${{ vars.GCP_IMAGE }}
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ vars.GCP_IMAGE }}:${{ env.SHA }}
+          build-args: GIT_COMMIT=${{ env.SHA }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Restart the VM on the new image
+        run: |
+          gcloud compute ssh "$GCP_VM_NAME" \
+            --project "$GCP_PROJECT_ID" \
+            --zone "$GCP_ZONE" \
+            --tunnel-through-iap \
+            --quiet \
+            --command "sudo /opt/landwar/deploy.sh $SHA"
+        env:
+          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+          GCP_ZONE: ${{ vars.GCP_ZONE }}
+          GCP_VM_NAME: ${{ vars.GCP_VM_NAME }}
