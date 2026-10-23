@@ -4,7 +4,6 @@ import { ClientEnv } from "../ClientEnv";
 const PLAYER_PROFILE_TABS: readonly string[] = [
   "stats",
   "games",
-  "clans",
   "progression",
 ];
 

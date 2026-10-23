@@ -214,14 +214,12 @@ export class LangSelector extends LitElement {
       "player-stats",
       "team-stats",
       "leaderboard-player-list",
-      "leaderboard-clan-table",
       "build-menu",
       "win-modal",
       "game-starting-modal",
       "top-bar",
       "player-panel",
       "replay-panel",
-      "help-modal",
       "settings-modal",
       "username-input",
       "game-mode-selector",
@@ -243,7 +241,6 @@ export class LangSelector extends LitElement {
       "level-badge",
       "game-xp-panel",
       "past-game-xp-card",
-      "news-modal",
       "account-modal",
       "game-stats-modal",
       "player-profile-modal",
@@ -256,7 +253,7 @@ export class LangSelector extends LitElement {
       "steam-wishlist",
       "steam-wishlist-button",
       "streaming-now",
-      "tutorial-panel",
+      "play-page",
     ];
 
     document.title = this.translateText("main.title") ?? document.title;

@@ -9,7 +9,6 @@ import {
   claimIcon,
   factoryIcon,
   goldCoinIcon,
-  guildIcon,
   missileSiloIcon,
   portIcon,
   profileIcon,
@@ -47,7 +46,6 @@ export type ColumnAlignment = "start" | "center" | "end";
 export interface ColumnRow {
   readonly position: number;
   readonly name: string;
-  readonly clanTag?: string | null;
   readonly value: number;
 }
 
@@ -118,16 +116,6 @@ export const COLUMN_DEFS: readonly ColumnDef[] = [
     align: "center",
     isHideable: false,
     cell: (row) => String(row.position),
-  }),
-  defineColumn({
-    id: "clan",
-    labelKey: "leaderboard.clan",
-    headerVisual: { kind: "icon", src: guildIcon },
-    // Fits "WWWWW" — the widest 5-character tag — in the row font.
-    width: "80px",
-    align: "center",
-    kinds: ["player"],
-    cell: (row) => row.clanTag ?? "",
   }),
   defineColumn({
     id: "player",

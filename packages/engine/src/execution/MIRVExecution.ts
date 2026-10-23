@@ -158,6 +158,8 @@ export class MirvExecution implements Execution {
         .find((silo) => silo.tile() === spawn);
       if (silo) {
         silo.launch();
+        // The MIRV departs now, so the next nuke from this silo trails it.
+        silo.reserveNukeDeparture();
       }
     }
 

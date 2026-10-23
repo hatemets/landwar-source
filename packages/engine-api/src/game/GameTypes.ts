@@ -172,6 +172,10 @@ export interface PublicGameModifiers {
 // schemas' max). Also the length of BuildableUnit.upgradeCosts.
 export const MAX_UPGRADE_AMOUNT = 50;
 
+// Hard cap on levels one max_upgrade intent buys. It only binds when upgrades
+// are free (infinite gold), where "max" has no end.
+export const MAX_BULK_UPGRADE_LEVELS = 10_000;
+
 export interface UnitInfo {
   maxHealth?: number;
   damage?: number;
@@ -206,6 +210,15 @@ export enum UnitType {
   Train = "Train",
   Factory = "Factory",
 }
+
+// Structures the max_upgrade intent spends gold on, in HUD order.
+export const BULK_UPGRADE_TYPES = [
+  UnitType.City,
+  UnitType.Port,
+  UnitType.Factory,
+  UnitType.SAMLauncher,
+  UnitType.MissileSilo,
+] as const;
 
 export enum TrainType {
   Engine = "Engine",

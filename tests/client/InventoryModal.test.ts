@@ -287,7 +287,8 @@ function activeSlot(modal: InventoryModal): string | null {
   return active?.dataset.loadoutSlot ?? null;
 }
 
-describe("InventoryModal", () => {
+// Heavy jsdom renders; under full-suite load they exceed the 5s default.
+describe("InventoryModal", { timeout: 20_000 }, () => {
   let modal: InventoryModal;
   let languageFixture: HTMLElement;
 

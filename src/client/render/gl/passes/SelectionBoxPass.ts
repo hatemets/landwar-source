@@ -1,5 +1,5 @@
 /**
- * SelectionBoxPass — draws stippled pulsating square borders around selected
+ * SelectionBoxPass — draws breathing corner brackets around selected
  * warships. Supports any number of selections; renders one quad per selection.
  *
  * For typical use (1-50 selected units) the draw-call overhead is fine; if

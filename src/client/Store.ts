@@ -238,7 +238,7 @@ export class StoreModal extends BaseModal {
     return html`
       ${this.me === false
         ? signedOutNotice(
-            () => window.showPage?.("page-account"),
+            () => window.showPage?.("page-signin"),
             translateText("store.login_required"),
           )
         : nothing}

@@ -1,7 +1,7 @@
 /**
- * MoveIndicatorPass — converging chevron animation at a warship's
- * move-target location. Matches the upstream game's MoveIndicatorUI
- * but rendered via SDF in a fragment shader.
+ * MoveIndicatorPass — waypoint beacon at a warship's move target: a shaded
+ * diamond drops onto the tile while rings ripple across the ground. Drawn
+ * with SDFs in one fragment shader.
  */
 
 import type { RenderSettings } from "../RenderSettings";
@@ -21,11 +21,10 @@ export class MoveIndicatorPass {
   private uElapsed: WebGLUniformLocation;
   private uColor: WebGLUniformLocation;
   private uPxPerTile: WebGLUniformLocation;
-  private uStartRadius: WebGLUniformLocation;
-  private uChevronSize: WebGLUniformLocation;
+  private uRippleRadius: WebGLUniformLocation;
+  private uPinSize: WebGLUniformLocation;
   private uLineWidth: WebGLUniformLocation;
   private uDuration: WebGLUniformLocation;
-  private uConverge: WebGLUniformLocation;
 
   private active = false;
   private centerX = 0;
@@ -45,11 +44,10 @@ export class MoveIndicatorPass {
     this.uElapsed = gl.getUniformLocation(this.program, "uElapsed")!;
     this.uColor = gl.getUniformLocation(this.program, "uColor")!;
     this.uPxPerTile = gl.getUniformLocation(this.program, "uPxPerTile")!;
-    this.uStartRadius = gl.getUniformLocation(this.program, "uStartRadius")!;
-    this.uChevronSize = gl.getUniformLocation(this.program, "uChevronSize")!;
+    this.uRippleRadius = gl.getUniformLocation(this.program, "uRippleRadius")!;
+    this.uPinSize = gl.getUniformLocation(this.program, "uPinSize")!;
     this.uLineWidth = gl.getUniformLocation(this.program, "uLineWidth")!;
     this.uDuration = gl.getUniformLocation(this.program, "uDuration")!;
-    this.uConverge = gl.getUniformLocation(this.program, "uConverge")!;
 
     // Unit quad [0,1]
     this.vao = gl.createVertexArray()!;
@@ -97,11 +95,10 @@ export class MoveIndicatorPass {
     gl.uniform1f(this.uElapsed, elapsed);
     gl.uniform3f(this.uColor, this.colorR, this.colorG, this.colorB);
     gl.uniform1f(this.uPxPerTile, zoom);
-    gl.uniform1f(this.uStartRadius, s.startRadius);
-    gl.uniform1f(this.uChevronSize, s.chevronSize);
+    gl.uniform1f(this.uRippleRadius, s.rippleRadius);
+    gl.uniform1f(this.uPinSize, s.pinSize);
     gl.uniform1f(this.uLineWidth, s.lineWidth);
     gl.uniform1f(this.uDuration, s.duration);
-    gl.uniform1f(this.uConverge, s.converge);
 
     gl.bindVertexArray(this.vao);
     gl.drawArrays(gl.TRIANGLES, 0, 6);

@@ -254,10 +254,10 @@ export class PerformanceOverlay extends LitElement implements Controller {
       top: var(--top, 20px);
       left: var(--left, 50%);
       transform: var(--transform, translateX(-50%));
-      background: rgba(0, 0, 0, 0.8);
+      background: color-mix(in srgb, var(--color-gray-900) 90%, transparent);
       color: white;
       padding: 32px 16px 8px;
-      border-radius: 4px;
+      border-radius: 12px;
       font-family: monospace;
       font-size: 12px;
       z-index: 9999;
@@ -312,9 +312,9 @@ export class PerformanceOverlay extends LitElement implements Controller {
       width: 22px;
       height: 18px;
       padding: 0;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 4px;
-      background: rgba(0, 0, 0, 0.4);
+      border: none;
+      border-radius: 6px;
+      background: var(--color-gray-800);
       color: white;
       font-family: monospace;
       font-size: 12px;
@@ -364,11 +364,11 @@ export class PerformanceOverlay extends LitElement implements Controller {
       right: 8px;
       width: 20px;
       height: 20px;
-      background-color: rgba(0, 0, 0, 0.8);
-      border-radius: 4px;
+      background-color: var(--color-gray-800);
+      border-radius: 6px;
       color: white;
       font-size: 14px;
-      font-weight: bold;
+      font-weight: 500;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -384,10 +384,10 @@ export class PerformanceOverlay extends LitElement implements Controller {
       left: 8px;
       height: 20px;
       padding: 0 6px;
-      background-color: rgba(0, 0, 0, 0.8);
-      border-radius: 4px;
+      background-color: var(--color-gray-800);
+      border-radius: 6px;
       color: white;
-      font-size: 10px;
+      font-size: 12px;
       border: none;
       cursor: pointer;
       display: flex;
@@ -404,10 +404,10 @@ export class PerformanceOverlay extends LitElement implements Controller {
       left: 70px;
       height: 20px;
       padding: 0 6px;
-      background-color: rgba(0, 0, 0, 0.8);
-      border-radius: 4px;
+      background-color: var(--color-gray-800);
+      border-radius: 6px;
       color: white;
-      font-size: 10px;
+      font-size: 12px;
       border: none;
       cursor: pointer;
       display: flex;
@@ -419,8 +419,7 @@ export class PerformanceOverlay extends LitElement implements Controller {
     }
 
     .layers-section {
-      margin-top: 4px;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      margin-top: 8px;
       padding-top: 4px;
     }
 

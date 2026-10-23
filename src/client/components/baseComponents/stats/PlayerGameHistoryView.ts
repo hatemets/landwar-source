@@ -41,7 +41,7 @@ type ModeKey = PlayerGameModeFilter | "all";
 // Top row — game-type split (orthogonal to the mode row below). "All" reuses
 // the clan filter label; the rest are account-modal-specific.
 const TYPE_TABS: { key: TypeKey; labelKey: string }[] = [
-  { key: "all", labelKey: "clan_modal.history_filter_all" },
+  { key: "all", labelKey: "game_history.history_filter_all" },
   { key: "public", labelKey: "account_modal.games_type_public" },
   { key: "private", labelKey: "account_modal.games_type_private" },
   { key: "singleplayer", labelKey: "account_modal.games_type_singleplayer" },
@@ -50,11 +50,11 @@ const TYPE_TABS: { key: TypeKey; labelKey: string }[] = [
 // Bottom row — mode buckets. Mirrors the clan history filter exactly (FFA and
 // Team reuse the type-label keys; HvN/Ranked have shorter filter labels).
 const MODE_TABS: { key: ModeKey; labelKey: string }[] = [
-  { key: "all", labelKey: "clan_modal.history_filter_all" },
-  { key: "ffa", labelKey: "clan_modal.history_type_ffa" },
-  { key: "team", labelKey: "clan_modal.history_type_team" },
-  { key: "hvn", labelKey: "clan_modal.stats_hvn" },
-  { key: "ranked", labelKey: "clan_modal.stats_ranked" },
+  { key: "all", labelKey: "game_history.history_filter_all" },
+  { key: "ffa", labelKey: "game_history.history_type_ffa" },
+  { key: "team", labelKey: "game_history.history_type_team" },
+  { key: "hvn", labelKey: "game_history.stats_hvn" },
+  { key: "ranked", labelKey: "game_history.stats_ranked" },
 ];
 
 // Cache survives a tab switch within the modal: keep the full accumulated list
@@ -343,7 +343,7 @@ export class PlayerGameHistoryView extends LitElement {
           class="bg-white/5 rounded-xl border border-white/10 p-8 text-center"
         >
           <p class="text-white/40 text-sm mb-3">
-            ${translateText("clan_modal.history_unavailable")}
+            ${translateText("game_history.history_unavailable")}
           </p>
           <button
             type="button"
@@ -361,7 +361,7 @@ export class PlayerGameHistoryView extends LitElement {
           class="bg-white/5 rounded-xl border border-white/10 p-8 text-center"
         >
           <p class="text-white/40 text-sm">
-            ${translateText("clan_modal.history_empty")}
+            ${translateText("game_history.history_empty")}
           </p>
         </div>
       `;
@@ -406,7 +406,7 @@ export class PlayerGameHistoryView extends LitElement {
     if (this.nextCursor === null) {
       return html`
         <div class="text-center text-[11px] text-white/30 py-3 select-none">
-          ${translateText("clan_modal.history_end_of_history")}
+          ${translateText("game_history.history_end_of_history")}
         </div>
       `;
     }
@@ -414,7 +414,7 @@ export class PlayerGameHistoryView extends LitElement {
       return html`
         <div class="text-center py-3">
           <p class="text-white/40 text-xs mb-2">
-            ${translateText("clan_modal.history_load_more_failed")}
+            ${translateText("game_history.history_load_more_failed")}
           </p>
           <button
             type="button"
@@ -530,8 +530,8 @@ export class PlayerGameHistoryView extends LitElement {
             </button>
             <button
               type="button"
-              title=${translateText("clan_modal.history_watch_replay")}
-              aria-label=${translateText("clan_modal.history_watch_replay")}
+              title=${translateText("game_history.history_watch_replay")}
+              aria-label=${translateText("game_history.history_watch_replay")}
               @click=${() => this.watchReplay(game.gameId)}
               class="inline-flex w-8 h-8 items-center justify-center text-white bg-malibu-blue hover:bg-aquarius active:bg-malibu-blue/80 rounded-lg transition-all"
             >
@@ -543,18 +543,14 @@ export class PlayerGameHistoryView extends LitElement {
                 height="18"
               />
               <span class="sr-only"
-                >${translateText("clan_modal.history_watch_replay")}</span
+                >${translateText("game_history.history_watch_replay")}</span
               >
             </button>
           </div>
         </div>
         <div
-          class="px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-2 justify-items-center text-center border-b border-white/5"
+          class="px-4 py-3 grid grid-cols-1 gap-y-2 justify-items-center text-center border-b border-white/5"
         >
-          ${this.renderField(
-            translateText("account_modal.games_clan_tag"),
-            game.clanTag ?? "—",
-          )}
           ${this.renderField(
             translateText("account_modal.username_title"),
             game.username,
@@ -564,21 +560,21 @@ export class PlayerGameHistoryView extends LitElement {
           class="px-4 py-3 grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 justify-items-center text-center"
         >
           ${this.renderField(
-            translateText("clan_modal.history_game_type"),
+            translateText("game_history.history_game_type"),
             formatGameType(game),
           )}
           ${mapWebpPath
             ? ""
             : this.renderField(
-                translateText("clan_modal.history_map"),
+                translateText("game_history.history_map"),
                 mapDisplayName ?? "—",
               )}
           ${this.renderField(
-            translateText("clan_modal.history_players"),
+            translateText("game_history.history_players"),
             game.totalPlayers === null ? "—" : `${game.totalPlayers}`,
           )}
           ${this.renderField(
-            translateText("clan_modal.history_duration"),
+            translateText("game_history.history_duration"),
             renderDuration(game.durationSeconds),
           )}
         </div>
@@ -606,10 +602,10 @@ export class PlayerGameHistoryView extends LitElement {
     let label: string;
     let tint: string;
     if (game.result === "victory") {
-      label = translateText("clan_modal.history_result_victory");
+      label = translateText("game_history.history_result_victory");
       tint = "text-white bg-green-600 border-green-500";
     } else if (game.result === "defeat") {
-      label = translateText("clan_modal.history_result_defeat");
+      label = translateText("game_history.history_result_defeat");
       tint = "text-white bg-red-600 border-red-500";
     } else {
       label = translateText("account_modal.games_result_incomplete");

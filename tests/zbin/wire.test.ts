@@ -94,6 +94,11 @@ const SAMPLE_INTENTS: StampedIntent[] = [
     unit: UnitType.City,
     unitId: 88,
   },
+  {
+    type: "max_upgrade",
+    clientID: P2,
+    units: [UnitType.City, UnitType.SAMLauncher],
+  },
   { type: "embargo", clientID: P1, targetID: P2, action: "start" },
   { type: "embargo_all", clientID: P1, action: "stop" },
   { type: "move_warship", clientID: P3, unitIds: [1, 2, 3], tile: 555 },

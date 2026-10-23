@@ -1035,7 +1035,9 @@ export class PlayerExecution implements Execution {
     const mySmallID = this.player.smallID();
     for (let j = 0; j < cluster.length; j++) {
       const tile = cluster[j];
-      if (map.isOceanShore(tile) || map.isOnEdgeOfMap(tile)) {
+      // The map edge is a wall: neighbors4 stops there. Impassable terrain
+      // is not, but it is never owned, so the unowned check below covers it.
+      if (map.isOceanShore(tile)) {
         return false;
       }
       const numNeighbors = map.neighbors4(tile, this.nbuf);
@@ -1078,8 +1080,10 @@ export class PlayerExecution implements Execution {
 
   /**
    * The enemy box test ignores unclaimed land, but only fallout leaves the
-   * cluster a severed-land candidate: open land rules that out. Coast or map
-   * edge rules out both. Coast, map edge or open land make it CLUSTER_OPEN.
+   * cluster a severed-land candidate: open land rules that out. Coast or
+   * impassable terrain rules out both. The map edge rules out a severed-land
+   * candidate only: it is a wall for the surrounded check. Coast, map edge or
+   * open land make it CLUSTER_OPEN.
    */
   // Perf: Accepts raw bounds to skip allocating {min, max} Box objects.
   private classifyCluster(
@@ -1092,6 +1096,7 @@ export class PlayerExecution implements Execution {
     let hasEnemy = false;
     let hasFallout = false;
     let hasOpenLand = false;
+    let touchesMapEdge = false;
     let minX = 1e9,
       minY = 1e9,
       maxX = -1e9,
@@ -1100,12 +1105,21 @@ export class PlayerExecution implements Execution {
     const mySmallID = this.player.smallID();
     for (let j = 0; j < cluster.length; j++) {
       const tr = cluster[j];
-      if (map.isShore(tr) || map.isOnEdgeOfMap(tr)) {
+      if (map.isShore(tr)) {
         return CLUSTER_OPEN;
+      }
+      // The map edge is open for the severed-land checks, but a wall for
+      // the surrounded check: the cluster still counts its enemy neighbours.
+      if (!touchesMapEdge) {
+        touchesMapEdge = this.onMapEdge(tr);
       }
       const numNeighbors = map.neighbors4(tr, this.nbuf);
       for (let i = 0; i < numNeighbors; i++) {
         const n = this.nbuf[i];
+        // Impassable terrain next to the cluster: never surrounded.
+        if (map.isImpassable(n)) {
+          return CLUSTER_OPEN;
+        }
         const ownerId = map.ownerID(n);
         if (ownerId !== 0 && ownerId !== mySmallID) {
           hasEnemy = true;
@@ -1121,10 +1135,11 @@ export class PlayerExecution implements Execution {
         }
       }
     }
+    const open = hasOpenLand || touchesMapEdge;
     if (!hasEnemy) {
-      return hasOpenLand ? CLUSTER_OPEN : 0;
+      return open ? CLUSTER_OPEN : 0;
     }
-    let result = hasOpenLand ? CLUSTER_OPEN : 0;
+    let result = open ? CLUSTER_OPEN : 0;
     if (
       minX <= clusterBoxMinX &&
       minY <= clusterBoxMinY &&
@@ -1133,7 +1148,7 @@ export class PlayerExecution implements Execution {
     ) {
       result |= CLUSTER_SURROUNDED;
     }
-    if (hasFallout && !hasOpenLand) {
+    if (hasFallout && !open) {
       result |= CLUSTER_SEVERED_CANDIDATE;
     }
     return result;
@@ -1185,6 +1200,15 @@ export class PlayerExecution implements Execution {
     }
   }
 
+  private onMapEdge(tile: TileRef): boolean {
+    const map = this.map;
+    const x = map.x(tile);
+    const y = map.y(tile);
+    return (
+      x === 0 || y === 0 || x === map.width() - 1 || y === map.height() - 1
+    );
+  }
+
   /**
    * Whether the player's territory reachable from `start` is walled in by
    * other players: walking from it through our own tiles and any unclaimed
@@ -1192,9 +1216,10 @@ export class PlayerExecution implements Execution {
    * is across someone else's territory.
    *
    * Unclaimed land is walked through rather than treated as a way out — a
-   * crater inside our own land is a hole, not an exit — but water and the
-   * map edge end it, matching what the cluster checks already require of the
-   * tiles they inspect.
+   * crater inside our own land is a hole, not an exit — but water,
+   * impassable terrain and unclaimed land on the map edge end it. Our own
+   * tiles on the map edge are a wall, as long as the walk crossed no
+   * unclaimed land.
    */
   private isEnclosed(start: TileRef): boolean {
     const map = this.map;
@@ -1206,32 +1231,43 @@ export class PlayerExecution implements Execution {
     stack.length = 0;
     visited[start] = gen;
     stack.push(start);
+    let walkedUnclaimed = false;
+    let ownTileOnEdge = this.onMapEdge(start);
 
     while (stack.length > 0) {
       const tile = stack.pop()!;
-      if (map.isOnEdgeOfMap(tile)) {
-        return false;
-      }
       const numNeighbors = map.neighbors4(tile, this.nbuf);
       for (let i = 0; i < numNeighbors; i++) {
         const n = this.nbuf[i];
         if (visited[n] === gen) {
           continue;
         }
+        if (map.isImpassable(n)) {
+          // Impassable terrain is a way out, not a wall.
+          return false;
+        }
         const ownerId = map.ownerID(n);
         if (ownerId !== 0 && ownerId !== mySmallID) {
           // Someone else's tile — part of the wall, so stop here.
           continue;
         }
-        if (ownerId === 0 && !map.isLand(n)) {
-          // Open water is a way out.
-          return false;
+        if (ownerId === 0) {
+          // Open water is a way out. So is unclaimed land on the map edge.
+          if (!map.isLand(n) || this.onMapEdge(n)) {
+            return false;
+          }
+          walkedUnclaimed = true;
+        } else if (!ownTileOnEdge) {
+          ownTileOnEdge = this.onMapEdge(n);
         }
         visited[n] = gen;
         stack.push(n);
       }
     }
-    return true;
+    // Our own tiles on the map edge are walled in by the edge itself, unless
+    // the walk got there across unclaimed land: that land (a crater, say)
+    // may link the territory to a body with a way out the walk cannot see.
+    return !(ownTileOnEdge && walkedUnclaimed);
   }
 
   private getCapturingPlayer(cluster: readonly TileRef[]): Player | null {

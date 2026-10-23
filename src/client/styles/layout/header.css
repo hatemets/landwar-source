@@ -22,11 +22,7 @@
 .l-header__logo {
   max-width: 450px;
   fill: url(#logo-gradient);
-  filter: drop-shadow(1px 1px 0px rgb(255, 255, 255))
-    drop-shadow(-1px -1px 0px rgb(255, 255, 255))
-    drop-shadow(1px -1px 0px rgb(255, 255, 255))
-    drop-shadow(-1px 1px 0px rgb(255, 255, 255))
-    drop-shadow(3px 3px 0px rgb(255, 255, 255));
+  filter: none;
 }
 
 .l-header__highlightText {

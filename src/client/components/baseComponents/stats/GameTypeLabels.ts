@@ -34,24 +34,24 @@ export function formatGameType(game: GameTypeFields): string {
     // `rankedType` (e.g. "1v1") is a server-authoritative token interpolated
     // verbatim — there is only one value today and it reads identically in
     // every locale. If more ranked variants appear, map them through keys.
-    return translateText("clan_modal.history_type_ranked", {
+    return translateText("game_history.history_type_ranked", {
       ranked: game.rankedType,
     });
   }
   if (isFfa(game)) {
-    return translateText("clan_modal.history_type_ffa");
+    return translateText("game_history.history_type_ffa");
   }
   const pt = game.playerTeams;
   if (pt === "Humans Vs Nations") {
-    return translateText("clan_modal.history_type_hvn");
+    return translateText("game_history.history_type_hvn");
   }
   if (pt === "Duos" || pt === "Trios" || pt === "Quads") {
-    return translateText(`clan_modal.history_type_${pt.toLowerCase()}`);
+    return translateText(`game_history.history_type_${pt.toLowerCase()}`);
   }
   if (pt && /^\d+$/.test(pt)) {
-    return translateText("clan_modal.history_type_n_teams", {
+    return translateText("game_history.history_type_n_teams", {
       count: Number(pt),
     });
   }
-  return translateText("clan_modal.history_type_team");
+  return translateText("game_history.history_type_team");
 }

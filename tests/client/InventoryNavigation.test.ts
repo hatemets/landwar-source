@@ -29,7 +29,7 @@ describe("Inventory navigation", () => {
     const play = await mount(new PlayPage());
     expect(play.querySelector("cosmetics-input")).toBeNull();
     expect(play.querySelector("flag-input")).toBeNull();
-    expect(play.querySelector("username-input")).toBeTruthy();
+    expect(play.querySelector("username-input")).toBeNull();
   });
 
   it("declares only the routed Inventory page in index.html", () => {

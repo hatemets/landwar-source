@@ -112,14 +112,14 @@ export class GameLeftSidebar extends LitElement implements Controller {
   render() {
     return html`
       <aside
-        class=${`fixed top-0 left-0 z-900 flex flex-col max-h-[calc(100vh-80px)] overflow-y-auto p-2 bg-gray-800/92 backdrop-blur-sm shadow-xs rounded-br-lg ${this.isPlayerStatsShown || this.isTeamStatsShown ? "max-[400px]:w-full max-[400px]:rounded-none" : ""} transition-all duration-300 ease-out transform ${
+        class=${`fixed top-0 left-0 z-900 flex flex-col max-h-[calc(100vh-80px)] overflow-y-auto p-2 bg-gray-900/90 rounded-br-lg ${this.isPlayerStatsShown || this.isTeamStatsShown ? "max-[400px]:w-full max-[400px]:rounded-none" : ""} transition-all duration-300 ease-out transform ${
           this.isVisible ? "translate-x-0" : "hidden"
         }`}
         style="margin-top: ${this.barOffset}px;"
       >
         <div class="flex items-center gap-4 xl:gap-6 text-white">
           <div
-            class="cursor-pointer p-0.5 bg-gray-700/50 hover:bg-gray-600 border rounded-md border-slate-500 transition-colors"
+            class="cursor-pointer p-1 bg-gray-800 hover:bg-gray-700 rounded-md transition-colors"
             @click=${this.togglePlayerStats}
             role="button"
             tabindex="0"
@@ -143,7 +143,7 @@ export class GameLeftSidebar extends LitElement implements Controller {
           ${this.isTeamGame
             ? html`
                 <div
-                  class="cursor-pointer p-0.5 bg-gray-700/50 hover:bg-gray-600 border rounded-md border-slate-500 transition-colors"
+                  class="cursor-pointer p-1 bg-gray-800 hover:bg-gray-700 rounded-md transition-colors"
                   @click=${this.toggleTeamStats}
                   role="button"
                   tabindex="0"
@@ -173,7 +173,7 @@ export class GameLeftSidebar extends LitElement implements Controller {
             : null}
           ${this.isPlayerStatsShown || this.isTeamStatsShown
             ? html`<span
-                class="ml-auto text-[10px] text-slate-500 select-all leading-none self-start"
+                class="ml-auto text-xs text-slate-500 select-all leading-none self-start"
                 title=${translateText("help_modal.game_id_tooltip")}
                 >${this.game?.gameID() ?? ""}</span
               >`
@@ -190,10 +190,7 @@ export class GameLeftSidebar extends LitElement implements Controller {
                   style="--color: ${this.playerColor.toRgbString()}"
                   class="text-(--color)"
                 >
-                  &nbsp;${getTranslatedPlayerTeamLabel(
-                    this.playerTeam,
-                    this.game?.teamClanTag(this.playerTeam),
-                  )}
+                  &nbsp;${getTranslatedPlayerTeamLabel(this.playerTeam)}
                   &#10687;
                 </span>
               </div>

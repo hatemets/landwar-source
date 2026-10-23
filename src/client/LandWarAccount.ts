@@ -26,7 +26,7 @@ const MeSchema = z.object({
     .default({}),
 });
 
-type MyClans = Pick<
+type MyAccountExtras = Pick<
   z.infer<typeof MeSchema>,
   "ratings" | "currency" | "flares"
 >;
@@ -39,7 +39,7 @@ export type Account = z.infer<typeof AccountSchema>;
 // Left unparsed on purpose: fetchAccountProfile validates it with the schema.
 export function toUserMeCandidate(
   account: Account,
-  mine: MyClans = { ratings: {}, flares: [] },
+  mine: MyAccountExtras = { ratings: {}, flares: [] },
 ): unknown {
   return {
     user: {

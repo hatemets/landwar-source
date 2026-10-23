@@ -1,5 +1,6 @@
 import { CloseCode, isTerminalClose } from "@openfront/shared/CloseCodes";
 import { isCommitLike } from "@openfront/shared/ServerList";
+import { assetUrl } from "@openfront/shared/AssetUrls";
 import { html } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { ClientEnv } from "src/client/ClientEnv";
@@ -7,6 +8,7 @@ import { responseHasLinkedIdentity } from "./AccountIdentity";
 import { getUserMe } from "./Api";
 import { getPlayToken } from "./Auth";
 import { BaseModal } from "./components/BaseModal";
+import { renderGlobeLoader } from "./components/ConquestGlobe";
 import "./components/Difficulties";
 import { GameStartAlertController } from "./components/GameStartAlertController";
 import { DEFAULT_TITLE_CLASS, modalHeader } from "./components/ui/ModalHeader";
@@ -84,10 +86,7 @@ export class MatchmakingModal extends BaseModal {
 
   private renderInner() {
     if (!this.connected) {
-      return this.renderLoadingSpinner(
-        translateText("matchmaking_modal.connecting"),
-        "blue",
-      );
+      return renderGlobeLoader(translateText("matchmaking_modal.connecting"));
     }
     if (this.gameID === null) {
       return html`
@@ -100,17 +99,34 @@ export class MatchmakingModal extends BaseModal {
               </p>
             `
           : ""}
-        ${this.renderLoadingSpinner(
-          translateText("matchmaking_modal.searching"),
-          "green",
-        )}
+        ${this.renderSearching()}
       `;
     } else {
-      return this.renderLoadingSpinner(
+      return renderGlobeLoader(
         translateText("matchmaking_modal.waiting_for_game"),
-        "yellow",
       );
     }
+  }
+
+  // The radar stands in for the globe while the queue looks for a match.
+  private renderSearching() {
+    return html`
+      <div
+        class="flex flex-col items-center justify-center gap-4 p-6 h-full min-h-[320px]"
+        role="status"
+      >
+        <img
+          class="illustration-scan size-44"
+          src=${assetUrl("images/illustrations/Radar.webp")}
+          alt=""
+          aria-hidden="true"
+          draggable="false"
+        />
+        <p class="text-sm text-[var(--field-muted)]">
+          ${translateText("matchmaking_modal.searching")}
+        </p>
+      </div>
+    `;
   }
 
   // Re-enter the queue after a pre-start match cancellation (a matched

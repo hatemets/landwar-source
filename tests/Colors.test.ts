@@ -6,6 +6,7 @@ import defaultTheme from "../src/client/render/gl/default-theme.json";
 import { createThemeSettings } from "../src/client/render/gl/RenderSettings";
 import {
   ColorAllocator,
+  deltaE2000,
   selectDistinctColorIndex,
 } from "../src/client/theme/ColorAllocator";
 import { SettingsTheme } from "../src/client/theme/ThemeProvider";
@@ -220,5 +221,80 @@ describe("selectDistinctColor", () => {
       { r: 0, g: 255, b: 0, a: 1 },
       { r: 0, g: 0, b: 255, a: 1 },
     ]).toContainEqual(rgb);
+  });
+});
+
+// Upstream issue 4928: in a 125-player lobby, several pairs of players got the
+// same or almost the same color. Before the fix the smallest pairwise delta-E
+// was 0 (ten exact duplicates) with the default theme.
+describe("player color distinctness in large lobbies", () => {
+  const player = (type: PlayerType, id: string, team: string | null = null) =>
+    ({
+      team: () => team,
+      type: () => type,
+      id: () => id,
+    }) as unknown as PlayerView;
+
+  const minPairwiseDelta = (colors: Colord[]): number => {
+    let min = Infinity;
+    for (let i = 0; i < colors.length; i++) {
+      for (let j = i + 1; j < colors.length; j++) {
+        min = Math.min(min, colors[i].delta(colors[j]));
+      }
+    }
+    return min;
+  };
+
+  const lobby = (
+    themeName: "default" | "colorblind",
+    humans: number,
+    nations: number,
+  ) => {
+    const theme = new SettingsTheme(createThemeSettings(themeName));
+    return [
+      ...Array.from({ length: humans }, (_, i) =>
+        theme.territoryColor(player(PlayerType.Human, `human-${i}`)),
+      ),
+      ...Array.from({ length: nations }, (_, i) =>
+        theme.territoryColor(player(PlayerType.Nation, `nation-${i}`)),
+      ),
+    ];
+  };
+
+  test("125 humans on the default theme are all clearly different", () => {
+    // delta-E 2000 of 6 (0.06) is well above "same color" and was 0 before.
+    expect(minPairwiseDelta(lobby("default", 125, 0))).toBeGreaterThan(0.06);
+  });
+
+  test("humans and nations together never look alike", () => {
+    expect(minPairwiseDelta(lobby("default", 100, 25))).toBeGreaterThan(0.06);
+  });
+
+  test("colorblind theme never repeats a color in 125 players", () => {
+    const colors = lobby("colorblind", 125, 0);
+    expect(new Set(colors.map((c) => c.toHex())).size).toBe(125);
+    expect(minPairwiseDelta(colors)).toBeGreaterThan(0.03);
+  });
+
+  test("allocation is deterministic for the same player order", () => {
+    const a = lobby("default", 125, 0).map((c) => c.toHex());
+    const b = lobby("default", 125, 0).map((c) => c.toHex());
+    expect(a).toEqual(b);
+  });
+
+  test("players on one team get different colors", () => {
+    const theme = new SettingsTheme(createThemeSettings("default"));
+    const colors = Array.from({ length: 40 }, (_, i) =>
+      theme.territoryColor(
+        player(PlayerType.Human, `p-${i}`, ColoredTeams.Blue),
+      ),
+    );
+    expect(new Set(colors.map((c) => c.toHex())).size).toBe(40);
+  });
+
+  test("deltaE2000 matches colord delta", () => {
+    const a = colord("#a3e635");
+    const b = colord("#3b82f6");
+    expect(deltaE2000(a.toLab(), b.toLab())).toBeCloseTo(a.delta(b), 3);
   });
 });

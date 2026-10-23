@@ -12,16 +12,16 @@ import { whenPageIdle } from "./WhenPageIdle";
  */
 const modules: Record<string, () => Promise<unknown>> = {
   "account-modal": () => import("./AccountModal"),
+  "signin-page": () => import("./AuthPage"),
+  "signup-page": () => import("./AuthPage"),
   "change-username-modal": () => import("./ChangeUsernameModal"),
   "detailed-view-modal": () => import("./components/DetailedGameViewModal"),
   "game-stats-modal": () => import("./GameStatsModal"),
-  "help-modal": () => import("./HelpModal"),
   "host-lobby-modal": () => import("./HostLobbyModal"),
   "inventory-modal": () => import("./InventoryModal"),
   "join-lobby-modal": () => import("./JoinLobbyModal"),
   "leaderboard-modal": () => import("./LeaderboardModal"),
   "matchmaking-modal": () => import("./Matchmaking"),
-  "news-modal": () => import("./NewsModal"),
   "player-profile-modal": () => import("./PlayerProfileModal"),
   "single-player-modal": () => import("./SinglePlayerModal"),
   "store-modal": () => import("./Store"),

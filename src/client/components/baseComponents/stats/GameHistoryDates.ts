@@ -62,15 +62,15 @@ export function formatDayHeader(day: string): string {
   const diffDays = Math.round(
     (today.getTime() - dayStart.getTime()) / (24 * 60 * 60 * 1000),
   );
-  if (diffDays === 0) return translateText("clan_modal.history_today");
-  if (diffDays === 1) return translateText("clan_modal.history_yesterday");
+  if (diffDays === 0) return translateText("game_history.history_today");
+  if (diffDays === 1) return translateText("game_history.history_yesterday");
   // "17 May 2026" — weekday dropped (no translation coverage). The month uses
   // our own translation keys, and the whole day/month/year template goes
   // through a key too so other locales can reorder it (e.g. "May 17, 2026").
   // day/year are passed as strings so ICU doesn't apply number grouping to the
   // year (e.g. "2,026").
   const month = translateText(MONTH_KEYS[d.getMonth()]);
-  return translateText("clan_modal.history_date_full", {
+  return translateText("game_history.history_date_full", {
     day: String(d.getDate()),
     month,
     year: String(d.getFullYear()),
@@ -90,11 +90,11 @@ export function formatAbsoluteTime(iso: string): string {
     date.getMonth() === now.getMonth() &&
     date.getDate() === now.getDate();
   if (sameDay) {
-    return translateText("clan_modal.history_today_at", { time });
+    return translateText("game_history.history_today_at", { time });
   }
   // Join the localized date and time through a key so locales control the
   // order/separator (parallels history_today_at).
-  return translateText("clan_modal.history_date_at", {
+  return translateText("game_history.history_date_at", {
     date: date.toLocaleDateString(),
     time,
   });

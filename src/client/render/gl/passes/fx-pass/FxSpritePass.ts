@@ -132,6 +132,81 @@ const FX_CONFIG: FxTypeConfig[] = [
 ];
 
 // ---------------------------------------------------------------------------
+// Atlas upscale + vector conquest icon
+// ---------------------------------------------------------------------------
+
+/** The sprite atlas is uploaded at this multiple of its source size. */
+const FX_ATLAS_SCALE = 4;
+
+// Lucide "swords" (ISC licence), 24×24 view box.
+const SWORDS_PATHS = [
+  "m13 19 6-6",
+  "M14.5 17.5 3.586 6.586A2 2 0 013 5.172V3h2.172a2 2 0 011.414.586L17.5 14.5",
+  "m14.828 6.172 2.586-2.586A2 2 0 0118.828 3H21v2.172a2 2 0 01-.586 1.414l-2.586 2.586",
+  "m16 16 4 4",
+  "m19 21 2-2",
+  "m5 14 4 4",
+  "m5 21-2-2",
+  "M7.5 16.5 4 20",
+];
+
+/**
+ * Upscale the pixel atlas (nearest, so the other effects keep their look but
+ * filter smoothly) and replace the conquest row with crossed swords drawn as
+ * vectors: each frame scales the icon up with a slight overshoot, so the
+ * animation is a smooth pop instead of pixel frames.
+ */
+function buildFxAtlasCanvas(img: HTMLImageElement): HTMLCanvasElement {
+  const k = FX_ATLAS_SCALE;
+  const canvas = document.createElement("canvas");
+  canvas.width = img.width * k;
+  canvas.height = img.height * k;
+  const ctx = canvas.getContext("2d");
+  if (ctx === null) throw new Error("2d canvas unavailable");
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+  const row = fxAtlasMeta.rows[FX_CONQUEST];
+  const cfg = FX_CONFIG[FX_CONQUEST];
+  const cellW = row.worldWidth * k;
+  const cellH = row.height * k;
+  const top = row.yOffset * k;
+  ctx.clearRect(0, top, cellW * cfg.frameCount, cellH);
+
+  const paths = SWORDS_PATHS.map((d) => new Path2D(d));
+  for (let i = 0; i < cfg.frameCount; i++) {
+    const t = Math.min(1, i / 4);
+    const overshoot = 1.70158;
+    const back = 1 + (overshoot + 1) * (t - 1) ** 3 + overshoot * (t - 1) ** 2;
+    const scale = (0.55 + 0.45 * back) * (Math.min(cellW, cellH) / 24) * 0.82;
+
+    ctx.save();
+    ctx.translate(i * cellW + cellW / 2, top + cellH / 2);
+    ctx.scale(scale, scale);
+    ctx.translate(-12, -12);
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    // Shadow and dark outline lift the icon off any territory colour.
+    ctx.shadowColor = "rgba(0, 0, 0, 0.45)";
+    ctx.shadowBlur = 1.2;
+    ctx.shadowOffsetY = 0.6;
+    ctx.strokeStyle = "rgba(12, 14, 17, 0.85)";
+    ctx.lineWidth = 3.6;
+    for (const p of paths) ctx.stroke(p);
+    ctx.shadowColor = "transparent";
+    // Brushed-steel blade: lighter at the top.
+    const steel = ctx.createLinearGradient(0, 3, 0, 21);
+    steel.addColorStop(0, "#ffffff");
+    steel.addColorStop(1, "#c9d0d8");
+    ctx.strokeStyle = steel;
+    ctx.lineWidth = 2;
+    for (const p of paths) ctx.stroke(p);
+    ctx.restore();
+  }
+  return canvas;
+}
+
+// ---------------------------------------------------------------------------
 // Nuke debris plan
 // ---------------------------------------------------------------------------
 
@@ -281,9 +356,21 @@ export class FxSpritePass {
       const gl = this.gl;
 
       gl.bindTexture(gl.TEXTURE_2D, this.atlasTex);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        buildFxAtlasCanvas(img),
+      );
+      gl.generateMipmap(gl.TEXTURE_2D);
+      gl.texParameteri(
+        gl.TEXTURE_2D,
+        gl.TEXTURE_MIN_FILTER,
+        gl.LINEAR_MIPMAP_LINEAR,
+      );
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
       const meta = fxAtlasMeta;
       const uvData = new Float32Array(FX_TYPE_COUNT * 4);

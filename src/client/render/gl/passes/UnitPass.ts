@@ -3,37 +3,27 @@
  *
  * Renders all mobile (non-structure) units: boats, nukes, shells, SAM
  * missiles, and MIRV warheads. All unit types are rotationally symmetric
- * — no rotation needed. Sprites are tiny grayscale PNGs colorized on the
- * GPU using the standard 3-band gray replacement (180/130/70). MIRV
- * Warhead uses a programmatic 3×3 white square (colorized to border
- * color); Shell is a single white pixel.
+ * — no rotation needed. Sprites are vector shapes drawn with Canvas2D in
+ * grayscale and colorized on the GPU using the gray band replacement
+ * (180/130/100/70), with smooth seams between bands. MIRV Warhead and
+ * Shell are white discs.
  *
  * Two instanced draw calls per frame — ground units and missiles are
  * split into separate buffers for correct layer ordering:
  *   Ground/sea (boats, trains) → rendered below structures
  *   Missiles (nukes, shells, SAM, MIRV warheads) → rendered above structures
  *
- * Atlas layout (12 columns × 13px cells, pre-built by generate-sprite-atlases.mjs):
- *   Col 0: Transport (5×5)
- *   Col 1: Trade Ship (5×5)
- *   Col 2: Warship (11×11)
- *   Col 3: Atom Bomb (7×7)
- *   Col 4: Hydrogen Bomb (9×9)
- *   Col 5: MIRV (13×13, grayscale colorized)
- *   Col 6: SAM Missile (3×3)
- *   Col 7: Shell (1×1 white pixel)
- *   Col 8: MIRV Warhead (3×3 white square)
- *   Col 9: Train Engine (5×5)
- *   Col 10: Train Carriage (5×5)
- *   Col 11: Train Carriage Loaded (5×5)
+ * Atlas layout: 12 columns of 13×13-tile cells, one per UNIT_ORDER entry,
+ * drawn as vectors at load time by utils/UnitSprites.ts (transport, trade
+ * ship, warship, atom bomb, hydrogen bomb, MIRV, SAM missile, shell, MIRV
+ * warhead, train engine, carriage, loaded carriage).
  *
  * Data flow:
  *   FrameSnapshot.units → filter by typeToAtlasIdx → instance VBO → GPU
- *   Shells emit 2 instances (pos + lastPos) to match live game's 2-pixel trail.
+ *   Shells emit 3 instances (pos, midpoint, lastPos) to form a smooth streak.
  */
 
 import type { Config } from "@openfront/engine-lib/configuration/Config";
-import { assetUrl } from "@openfront/shared/AssetUrls";
 import type { RendererConfig, UnitState } from "../../types";
 import {
   SMOOTHED_NUKE_TYPES,
@@ -60,8 +50,7 @@ import {
   WARSHIP_EFFECT_BLOCK,
 } from "../utils/ColorUtils";
 import { createProgram, shaderSrc } from "../utils/GlUtils";
-
-const unitAtlasUrl = assetUrl("atlases/unit-atlas.png");
+import { drawUnitAtlas } from "../utils/UnitSprites";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -359,7 +348,6 @@ export class UnitPass {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-    // Start async atlas build
     this.loadAtlas();
 
     // --- Shared quad buffer ---
@@ -392,16 +380,19 @@ export class UnitPass {
     this.missileVao = createUnitVao(gl, this.quadBuf, missileGlBuf);
   }
 
-  private async loadAtlas(): Promise<void> {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.src = unitAtlasUrl;
-    await img.decode();
+  private loadAtlas(): void {
+    const canvas = drawUnitAtlas(ATLAS_COLS);
+    if (canvas === null) return; // keep the placeholder
     const gl = this.gl;
     gl.bindTexture(gl.TEXTURE_2D, this.atlasTex);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
+    gl.generateMipmap(gl.TEXTURE_2D);
+    gl.texParameteri(
+      gl.TEXTURE_2D,
+      gl.TEXTURE_MIN_FILTER,
+      gl.LINEAR_MIPMAP_LINEAR,
+    );
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   }
 
   private emitGround(
@@ -535,10 +526,18 @@ export class UnitPass {
         }
         this.emitMissile(x, y, unit.ownerID, atlasIdx, flags);
 
-        // Shells emit a second instance at lastPos (2-pixel trail effect)
+        // Shells emit extra instances between pos and lastPos so the round
+        // slug smears into a continuous streak instead of two separate dots.
         if (unit.unitType === UT_SHELL && unit.lastPos !== unit.pos) {
           const lx = unit.lastPos % this.mapW;
           const ly = (unit.lastPos - lx) / this.mapW;
+          this.emitMissile(
+            (x + lx) / 2,
+            (y + ly) / 2,
+            unit.ownerID,
+            atlasIdx,
+            flags,
+          );
           this.emitMissile(lx, ly, unit.ownerID, atlasIdx, flags);
         }
       } else {

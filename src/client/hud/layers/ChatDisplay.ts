@@ -126,11 +126,13 @@ export class ChatDisplay extends LitElement implements Controller {
     return html`
       <div
         class="pointer-events-auto ${this._hidden
-          ? "w-fit px-2.5 py-1.25"
-          : ""} rounded-md bg-black/60 relative max-h-[30vh] flex flex-col-reverse overflow-y-auto w-full lg:bottom-2.5 lg:right-2.5 z-50 lg:max-w-[30vw] lg:w-full lg:w-auto"
+          ? "w-fit px-3 py-1"
+          : ""} rounded-lg bg-gray-900/90 relative max-h-[30vh] flex flex-col-reverse overflow-y-auto w-full lg:bottom-2.5 lg:right-2.5 z-50 lg:max-w-[30vw] lg:w-full lg:w-auto"
       >
         <div>
-          <div class="w-full bg-black/80 sticky top-0 px-2.5">
+          <div
+            class="w-full bg-gray-900 sticky top-0 px-3 py-1 text-sm font-medium"
+          >
             <button
               class="text-white cursor-pointer pointer-events-auto ${this
                 ._hidden
@@ -143,7 +145,8 @@ export class ChatDisplay extends LitElement implements Controller {
           </div>
 
           <button
-            class="text-white cursor-pointer pointer-events-auto ${this._hidden
+            class="text-white text-sm font-medium cursor-pointer pointer-events-auto ${this
+              ._hidden
               ? ""
               : "hidden"}"
             @click=${this.toggleHidden}
@@ -152,13 +155,13 @@ export class ChatDisplay extends LitElement implements Controller {
             <span
               class="${this.newEvents
                 ? ""
-                : "hidden"} inline-block px-2 bg-red-500 rounded-xs"
+                : "hidden"} inline-block px-2 bg-red-500 rounded-sm tabular-nums"
               >${this.newEvents}</span
             >
           </button>
 
           <table
-            class="w-full border-collapse text-white shadow-lg lg:text-xl text-xs pointer-events-none ${this
+            class="w-full border-collapse text-white text-sm pointer-events-none ${this
               ._hidden
               ? "hidden"
               : ""}"
@@ -166,8 +169,8 @@ export class ChatDisplay extends LitElement implements Controller {
             <tbody>
               ${this.chatEvents.map(
                 (chat) => html`
-                  <tr class="border-b border-gray-200/0">
-                    <td class="lg:p-3 p-1 text-left">
+                  <tr>
+                    <td class="px-3 py-1 text-left">
                       ${this.getChatContent(chat)}
                     </td>
                   </tr>

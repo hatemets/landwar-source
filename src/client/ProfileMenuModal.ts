@@ -48,7 +48,7 @@ export abstract class ProfileMenuModal extends BaseModal {
     if (this.userMeResponse === false) {
       return signedOutNotice(() => {
         this.close();
-        window.showPage?.("page-account");
+        window.showPage?.("page-signin");
       });
     }
     return this.renderSignedIn(this.userMeResponse) as TemplateResult;

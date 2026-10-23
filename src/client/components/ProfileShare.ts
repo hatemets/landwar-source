@@ -69,7 +69,7 @@ const RING_KEYFRAMES: Keyframe[] = [
 // when it plays, since the menu's trigger can be any shape. 14px fits the
 // row's 10px buttons.
 const RING =
-  "pointer-events-none absolute -inset-1 rounded-[14px] border-2 border-solid border-[rgba(250,204,21,0.95)] opacity-0 shadow-[0_0_12px_rgba(250,204,21,0.45)]";
+  "pointer-events-none absolute -inset-1 rounded-[14px] border-2 border-solid border-[rgba(250,204,21,0.95)] opacity-0";
 
 /** Whether this device shows the share ring: a fine hover pointer, motion on. */
 export function shareRingEnabled(): boolean {

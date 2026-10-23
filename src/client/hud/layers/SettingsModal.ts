@@ -181,17 +181,12 @@ export class SettingsModal extends LitElement implements Controller {
     if (settings.length === 0 && disabledUnits === null && hostCheats === null)
       return null;
     return html`
-      <div class="border-t border-slate-600 pt-3 mt-4" data-game-modifiers>
-        <div
-          class="px-3 py-1 text-xs font-semibold text-slate-400 uppercase tracking-wider"
-        >
+      <div class="mt-3" data-game-modifiers>
+        <div class="px-3 py-1 text-xs font-medium text-slate-400">
           ${translateText("user_setting.modifiers")}
         </div>
         ${settings.length > 0
-          ? html`<div
-              class="flex flex-wrap gap-1 px-3 pt-1 uppercase"
-              data-modifier-tags
-            >
+          ? html`<div class="flex flex-wrap gap-2 px-3 pt-1" data-modifier-tags>
               ${settings.map(
                 (s) =>
                   html`<span class=${LOBBY_SETTING_TAG}
@@ -212,15 +207,13 @@ export class SettingsModal extends LitElement implements Controller {
 
     return html`
       <div
-        class="modal-overlay fixed inset-0 bg-black/60 backdrop-blur-xs z-2000 flex items-center justify-center p-4"
+        class="modal-overlay fixed inset-0 bg-black/60 z-2000 flex items-center justify-center p-4"
         @contextmenu=${(e: Event) => e.preventDefault()}
       >
         <div
-          class="bg-slate-800 border border-slate-600 rounded-lg max-w-md w-full max-h-[80vh] overflow-y-auto"
+          class="bg-slate-900 rounded-lg max-w-md w-full max-h-[80vh] overflow-y-auto"
         >
-          <div
-            class="flex items-center justify-between p-4 border-b border-slate-600"
-          >
+          <div class="flex items-center justify-between px-6 pt-6 pb-2">
             <div class="flex items-center gap-2">
               <img
                 src=${settingsIcon}
@@ -229,21 +222,21 @@ export class SettingsModal extends LitElement implements Controller {
                 height="24"
                 class="align-middle"
               />
-              <h2 class="text-xl font-semibold text-white">
+              <h2 class="text-lg font-semibold text-white">
                 ${translateText("user_setting.game_menu_title")}
               </h2>
             </div>
             <button
-              class="text-slate-400 hover:text-white text-2xl font-bold leading-none"
+              class="flex size-8 items-center justify-center rounded-md text-slate-400 hover:bg-slate-800 hover:text-white text-xl leading-none transition-colors"
               @click=${this.closeModal}
             >
               ×
             </button>
           </div>
 
-          <div class="p-4 flex flex-col gap-3">
+          <div class="px-4 pb-6 flex flex-col gap-2">
             <button
-              class="flex gap-3 items-center w-full text-left p-3 hover:bg-slate-700 rounded-sm text-white transition-colors"
+              class="flex gap-3 items-center w-full text-left p-3 hover:bg-slate-800 rounded-md text-white transition-colors"
               data-open-settings
               @click="${this.onOpenSettingsButtonClick}"
             >
@@ -259,7 +252,7 @@ export class SettingsModal extends LitElement implements Controller {
             </button>
 
             <button
-              class="flex gap-3 items-center w-full text-left p-3 hover:bg-slate-700 rounded-sm text-white transition-colors"
+              class="flex gap-3 items-center w-full text-left p-3 hover:bg-slate-800 rounded-md text-white transition-colors"
               @click="${this.onTerrainButtonClick}"
             >
               <img src=${treeIcon} alt="" width="20" height="20" />
@@ -280,15 +273,13 @@ export class SettingsModal extends LitElement implements Controller {
 
             ${this.renderModifiers()}
 
-            <div class="border-t border-slate-600 pt-3 mt-4">
-              <div
-                class="px-3 py-1 text-xs font-semibold text-slate-400 uppercase tracking-wider"
-              >
+            <div class="mt-3">
+              <div class="px-3 py-1 text-xs font-medium text-slate-400">
                 ${translateText("user_setting.development_only")}
               </div>
 
               <button
-                class="flex gap-3 items-center w-full text-left p-3 hover:bg-slate-700 rounded-sm text-white transition-colors"
+                class="flex gap-3 items-center w-full text-left p-3 hover:bg-slate-800 rounded-md text-white transition-colors"
                 @click="${this.onRenderDebugGuiButtonClick}"
               >
                 <img src=${settingsIcon} alt="" width="20" height="20" />
@@ -303,9 +294,9 @@ export class SettingsModal extends LitElement implements Controller {
               </button>
             </div>
 
-            <div class="border-t border-slate-600 pt-3 mt-4">
+            <div class="mt-3">
               <button
-                class="flex gap-3 items-center w-full text-left p-3 hover:bg-red-600/20 rounded-sm text-red-400 transition-colors"
+                class="flex gap-3 items-center w-full text-left p-3 hover:bg-red-500/15 rounded-md text-red-400 transition-colors"
                 @click="${this.onExitButtonClick}"
               >
                 <img src=${exitIcon} alt="" width="20" height="20" />

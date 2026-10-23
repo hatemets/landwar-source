@@ -113,7 +113,7 @@ export class CopyButton extends LitElement {
       return html`
         <button
           @click=${this.handleCopy}
-          class="text-xs text-white/60 font-mono bg-white/5 px-2 py-0.5 rounded border border-white/5 hover:bg-white/10 hover:text-white transition-colors ${disabledClass}"
+          class="text-xs text-white/60 font-mono bg-white/5 px-2 py-0.5 rounded hover:bg-white/10 hover:text-white transition-colors ${disabledClass}"
           title="${translateText("common.click_to_copy")}"
           aria-label="${translateText("common.click_to_copy")}"
           ?disabled=${!canCopy}
@@ -126,7 +126,7 @@ export class CopyButton extends LitElement {
 
     return html`
       <div
-        class="flex items-center gap-0.5 bg-white/5 rounded-lg px-2 py-1 border border-white/10 max-w-[220px] flex-nowrap"
+        class="lw-copy flex items-center gap-0.5 rounded-lg px-1 py-1 max-w-[220px] flex-nowrap"
       >
         ${this.showVisibilityToggle
           ? html`<button

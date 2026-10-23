@@ -87,6 +87,11 @@ export class SendUpgradeStructureIntentEvent implements GameEvent {
   ) {}
 }
 
+// Spends all gold on upgrades of `unitTypes`, spread equally (see max_upgrade).
+export class SendMaxUpgradeIntentEvent implements GameEvent {
+  constructor(public readonly unitTypes: readonly UnitType[]) {}
+}
+
 export class SendAllianceRejectIntentEvent implements GameEvent {
   constructor(public readonly requestor: PlayerView) {}
 }
@@ -310,6 +315,9 @@ export class Transport {
     this.subscribe(SendAttackIntentEvent, (e) => this.onSendAttackIntent(e));
     this.subscribe(SendUpgradeStructureIntentEvent, (e) =>
       this.onSendUpgradeStructureIntent(e),
+    );
+    this.subscribe(SendMaxUpgradeIntentEvent, (e) =>
+      this.onSendMaxUpgradeIntent(e),
     );
     this.subscribe(SendBoatAttackIntentEvent, (e) =>
       this.onSendBoatAttackIntent(e),
@@ -825,6 +833,12 @@ export class Transport {
       unitId: event.unitId,
       amount: event.amount,
     });
+  }
+
+  private onSendMaxUpgradeIntent(event: SendMaxUpgradeIntentEvent) {
+    const [first, ...rest] = event.unitTypes;
+    if (first === undefined) return;
+    this.sendIntent({ type: "max_upgrade", units: [first, ...rest] });
   }
 
   private onSendTargetPlayerIntent(event: SendTargetPlayerIntentEvent) {

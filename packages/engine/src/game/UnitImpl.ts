@@ -56,6 +56,9 @@ export class UnitImpl implements Unit {
   private _troops: number;
   // Number of missiles in cooldown, if empty all missiles are ready.
   private _missileTimerQueue: number[] = [];
+  // Last departure tick given to a nuke launched from this silo. Kept apart
+  // from the timer queue, which drops entries as slots reload.
+  private _lastNukeDeparture = -1;
   private _hasTrainStation: boolean = false;
   private _level: number = 1;
   private _targetable: boolean = true;
@@ -560,6 +563,12 @@ export class UnitImpl implements Unit {
     this.mg.addUpdate(this.toUpdate());
   }
 
+  reserveNukeDeparture(): Tick {
+    const departure = Math.max(this._lastNukeDeparture + 1, this.mg.ticks());
+    this._lastNukeDeparture = departure;
+    return departure;
+  }
+
   ticksLeftInCooldown(): Tick | undefined {
     return this._missileTimerQueue[0];
   }
@@ -735,23 +744,27 @@ export class UnitImpl implements Unit {
     return this._hasTrainStation;
   }
 
-  increaseLevel(): void {
+  // `amount` levels at once end in the same state as `amount` single calls in
+  // one tick, with one version bump and one update instead of `amount`.
+  increaseLevel(amount: number = 1): void {
+    if (amount <= 0) return;
     if (this._type === UnitType.SAMLauncher) {
       const currentTick = this.mg.ticks();
       const currentRange = this.mg.config().dynamicSamRange(this, currentTick);
       this._samLauncherState = {
         upgradeStartTick: currentTick,
         startRange: currentRange,
-        targetLevel: this._level + 1,
+        targetLevel: this._level + amount,
         duration: this.mg.config().samUpgradeDuration(),
       };
     }
-    this._level++;
+    this._level += amount;
     // unitCount()/unitsOwned() are level-weighted and memoised on these versions
     this.mg.bumpUnitsVersion();
     this._owner._myUnitsVersion++;
     if ([UnitType.MissileSilo, UnitType.SAMLauncher].includes(this.type())) {
-      this._missileTimerQueue.push(this.mg.ticks());
+      const tick = this.mg.ticks();
+      for (let i = 0; i < amount; i++) this._missileTimerQueue.push(tick);
     }
     this.mg.addUpdate(this.toUpdate());
   }
@@ -842,6 +855,7 @@ export class UnitImpl implements Unit {
       lastOwner: w.playerOrNull(this._lastOwner),
       troops: this._troops,
       missileTimerQueue: [...this._missileTimerQueue],
+      lastNukeDeparture: this._lastNukeDeparture,
       hasTrainStation: this._hasTrainStation,
       level: this._level,
       targetable: this._targetable,
@@ -897,6 +911,7 @@ export class UnitImpl implements Unit {
     this._lastOwner = r.playerOrNull(s.lastOwner) as PlayerImpl | null;
     this._troops = s.troops;
     this._missileTimerQueue = [...s.missileTimerQueue];
+    this._lastNukeDeparture = s.lastNukeDeparture;
     this._hasTrainStation = s.hasTrainStation;
     this._level = s.level;
     this._targetable = s.targetable;
@@ -911,7 +926,11 @@ export class UnitImpl implements Unit {
 
 export const UnitSnapshot = snapshotType({
   name: "Unit",
-  version: 1,
+  version: 2,
+  migrations: {
+    // v2 tracks the last nuke departure tick; -1 means none reserved yet.
+    1: (d) => ({ ...d, lastNukeDeparture: -1 }),
+  },
   schema: z.object({
     id: zInt(),
     type: UnitTypeSchema,
@@ -954,6 +973,7 @@ export const UnitSnapshot = snapshotType({
     lastOwner: zPlayerRef().nullable(),
     troops: zNum(),
     missileTimerQueue: z.array(zInt()),
+    lastNukeDeparture: zInt(),
     hasTrainStation: z.boolean(),
     level: zInt(),
     targetable: z.boolean(),

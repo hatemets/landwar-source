@@ -9,6 +9,7 @@ import {
   GameMode,
   GameType,
   Gold,
+  MAX_BULK_UPGRADE_LEVELS,
   MAX_UPGRADE_AMOUNT,
   PlayerBuildable,
   PlayerBuildableUnitType,
@@ -1505,6 +1506,56 @@ export class PlayerImpl implements Player {
     this.removeGold(cost);
     unit.increaseLevel();
     this.recordUnitConstructed(unit.type());
+  }
+
+  maxUpgradeUnits(types: readonly UnitType[]): number {
+    const mg = this.mg;
+    const config = mg.config();
+    const wanted = types.filter(
+      (t) => this.canUpgradeUnitType(t) && !config.isUnitDisabled(t),
+    );
+    if (wanted.length === 0 || !this.isAlive()) return 0;
+    const units = this._units
+      .filter((u) => wanted.includes(u.type()) && this.isUnitValidToUpgrade(u))
+      .sort((a, b) => a.level() - b.level() || a.id() - b.id());
+
+    // Price each level as if the earlier ones were applied: every level of a
+    // type in the cost group raises the count by one (see upgradeUnit). Costs
+    // never fall, so a type that is too dear once stays too dear.
+    const added = new Map<UnitType, number>();
+    const extra = (t: UnitType) =>
+      config.unitCostGroup(t).reduce((a, g) => a + (added.get(g) ?? 0), 0);
+    const perUnit = new Array<number>(units.length).fill(0);
+    const tooDear = new Set<UnitType>();
+    let spent = 0n;
+    let levels = 0;
+    let progress = units.length > 0;
+    while (progress && levels < MAX_BULK_UPGRADE_LEVELS) {
+      progress = false;
+      for (let i = 0; i < units.length; i++) {
+        const t = units[i].type();
+        if (tooDear.has(t)) continue;
+        const cost = config.unitInfo(t).cost(mg, this, extra(t));
+        if (spent + cost > this._gold) {
+          tooDear.add(t);
+          continue;
+        }
+        spent += cost;
+        perUnit[i]++;
+        added.set(t, (added.get(t) ?? 0) + 1);
+        progress = true;
+        if (++levels >= MAX_BULK_UPGRADE_LEVELS) break;
+      }
+    }
+    if (levels === 0) return 0;
+
+    // Apply in one pass: one update per unit, not one per level.
+    this.removeGold(spent);
+    units.forEach((u, i) => u.increaseLevel(perUnit[i]));
+    for (const [t, n] of added) {
+      this.numUnitsConstructed[t] = (this.numUnitsConstructed[t] ?? 0) + n;
+    }
+    return levels;
   }
 
   public buildableUnits(

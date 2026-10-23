@@ -206,18 +206,16 @@ export function disabledUnitsBox(
   return html`
     <div
       data-disabled-units
-      class="${className} p-3 bg-red-500/10 border border-red-500/20 rounded-lg"
+      class="${className} p-3 bg-[var(--field-danger-soft)] rounded-md"
     >
-      <div
-        class="text-xs font-bold text-red-400 uppercase tracking-widest mb-2"
-      >
+      <div class="mb-2 text-xs font-medium text-[var(--field-danger)]">
         ${translateText("private_lobby.disabled_units")}
       </div>
       <div class="flex flex-wrap gap-2">
         ${c.disabledUnits.map((unit) => {
           const key = DISABLED_UNIT_KEYS[unit];
           return html`<span
-            class="px-2 py-1 bg-red-500/20 text-red-200 text-xs rounded font-bold border border-red-500/30"
+            class="rounded-sm bg-[var(--field-raised)] px-2 py-1 text-xs text-[var(--field-paper)]"
             >${key ? translateText(key) : unit}</span
           >`;
         })}
@@ -250,18 +248,16 @@ export function hostCheatsBox(
   return html`
     <div
       data-host-cheats
-      class="${className} p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg"
+      class="${className} p-3 bg-[var(--field-warning-soft)] rounded-md"
     >
-      <div
-        class="text-xs font-bold text-yellow-400 uppercase tracking-widest mb-2"
-      >
+      <div class="mb-2 text-xs font-medium text-[var(--field-warning)]">
         ${translateText("private_lobby.host_cheats")}
       </div>
       <div class="flex flex-wrap gap-2">
         ${cheats.map(
           (cheat) =>
             html`<span
-              class="px-2 py-1 bg-yellow-500/20 text-yellow-200 text-xs rounded font-bold border border-yellow-500/30"
+              class="rounded-sm bg-[var(--field-raised)] px-2 py-1 text-xs text-[var(--field-paper)]"
               >${cheat}</span
             >`,
         )}

@@ -14,6 +14,7 @@ import {
   validateAccountUsername,
 } from "../validations/username";
 import "./baseComponents/Button";
+import { statusNotice } from "./ui/StatusNotice";
 import { usernameText } from "./ui/UsernameText";
 
 type UserMePlayer = UserMeResponse["player"];
@@ -256,48 +257,21 @@ export class UsernamePanel extends LitElement {
   }
 
   private renderNotice(message: string): TemplateResult {
-    return html`
-      <div
-        class="flex items-start gap-2.5 px-3 py-2.5 rounded-lg border border-amber-500/40 bg-amber-500/10 text-amber-200 text-sm"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="w-4 h-4 shrink-0 mt-0.5"
-          aria-hidden="true"
-        >
-          <path
-            d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"
-          />
-          <line x1="12" y1="9" x2="12" y2="13" />
-          <line x1="12" y1="17" x2="12.01" y2="17" />
-        </svg>
-        <span>${message}</span>
-      </div>
-    `;
+    return statusNotice("warning", message);
   }
 
   // Cooldown state as a pill: locked until a date, or free to change now.
   private renderCooldownPill(cooldownEnd: Date | null): TemplateResult {
     const base =
-      "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider border shrink-0";
+      "inline-flex items-center gap-1.5 rounded-sm px-2 py-1 text-xs font-medium text-[var(--field-paper)] shrink-0";
     if (cooldownEnd === null) {
-      return html`<span
-        class="${base} bg-green-500/10 border-green-500/30 text-green-300"
-      >
-        <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span>
+      return html`<span class="${base} bg-[var(--field-success-soft)]">
+        <span class="w-1.5 h-1.5 rounded-full bg-[var(--field-success)]"></span>
         ${translateText("account_modal.username_change_ready")}
       </span>`;
     }
-    return html`<span
-      class="${base} bg-amber-500/10 border-amber-500/30 text-amber-300"
-    >
-      <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+    return html`<span class="${base} bg-[var(--field-warning-soft)]">
+      <span class="w-1.5 h-1.5 rounded-full bg-[var(--field-warning)]"></span>
       ${translateText("account_modal.username_locked_until", {
         date: this.formatDate(cooldownEnd),
       })}

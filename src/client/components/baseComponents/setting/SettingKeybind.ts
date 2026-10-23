@@ -28,22 +28,22 @@ export class SettingKeybind extends LitElement {
 
     return html`
       <div
-        class="flex flex-row items-center justify-between w-full p-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all gap-4 ${rainbowClass}"
+        class="flex flex-row items-center justify-between w-full px-3 py-2 rounded-lg hover:bg-white/[0.04] transition-all gap-4 ${rainbowClass}"
       >
         <div class="flex flex-col flex-1 min-w-0 mr-4">
-          <label class="text-white font-bold text-base block mb-1"
+          <label class="text-white font-medium text-sm block"
             >${this.label}</label
           >
-          <div class="text-white/50 text-sm leading-snug">
+          <div class="text-white/50 text-xs leading-snug">
             ${this.description}
           </div>
         </div>
 
         <div class="flex items-center gap-3 shrink-0">
           <div
-            class="relative h-12 min-w-[80px] px-4 flex items-center justify-center bg-black/60 border border-white/20 rounded-lg text-xl font-bold font-mono shadow-inner hover:border-blue-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all cursor-pointer select-none text-white
+            class="relative h-9 min-w-[72px] px-3 flex items-center justify-center bg-white/[0.06] border border-transparent rounded-md text-sm font-medium font-mono hover:bg-white/[0.1] focus:border-[var(--field-accent)] transition-all cursor-pointer select-none text-white
             ${this.listening
-              ? "border-blue-500 text-blue-400 ring-2 ring-blue-500/50"
+              ? "border-[var(--field-accent)] text-[var(--field-accent-text)]"
               : ""}"
             role="button"
             aria-label="${translateText("user_setting.press_a_key")}"
@@ -57,7 +57,7 @@ export class SettingKeybind extends LitElement {
 
           <div class="flex flex-col gap-1">
             <button
-              class="text-[10px] font-bold uppercase tracking-wider bg-white/5 hover:bg-white/20 border border-white/10 px-3 py-1 rounded text-white/60 hover:text-white transition-colors ${canReset
+              class="text-xs font-medium bg-white/[0.06] hover:bg-white/[0.12] px-3 py-1 rounded text-white/60 hover:text-white transition-colors ${canReset
                 ? ""
                 : "opacity-50 cursor-not-allowed pointer-events-none"}"
               @click=${this.resetToDefault}
@@ -66,7 +66,7 @@ export class SettingKeybind extends LitElement {
               ${translateText("user_setting.reset")}
             </button>
             <button
-              class="text-[10px] font-bold uppercase tracking-wider bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-500/50 px-3 py-1 rounded text-white/60 hover:text-red-200 transition-colors"
+              class="text-xs font-medium bg-white/[0.06] hover:bg-red-500/20 px-3 py-1 rounded text-white/60 hover:text-red-200 transition-colors"
               @click=${this.unbindKey}
             >
               ${translateText("user_setting.unbind")}

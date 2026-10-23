@@ -339,6 +339,14 @@ export class EngineConfig extends Config {
     return info;
   }
 
+  // Unit types whose owned count prices `type`: Ports and Factories share one
+  // count, every other type counts only itself.
+  unitCostGroup(type: UnitType): readonly UnitType[] {
+    return type === UnitType.Port || type === UnitType.Factory
+      ? [UnitType.Port, UnitType.Factory]
+      : [type];
+  }
+
   private unitCost(type: UnitType): EngineUnitInfo["cost"] {
     switch (type) {
       case UnitType.Warship:
@@ -349,8 +357,7 @@ export class EngineConfig extends Config {
       case UnitType.Port:
         return this.costWrapper(
           (numUnits: number) => Math.min(1_000_000, pow2(numUnits) * 125_000),
-          UnitType.Port,
-          UnitType.Factory,
+          ...this.unitCostGroup(UnitType.Port),
         );
       case UnitType.AtomBomb:
         return this.costWrapper(() => 750_000, UnitType.AtomBomb);
@@ -386,8 +393,7 @@ export class EngineConfig extends Config {
       case UnitType.Factory:
         return this.costWrapper(
           (numUnits: number) => Math.min(1_000_000, pow2(numUnits) * 125_000),
-          UnitType.Factory,
-          UnitType.Port,
+          ...this.unitCostGroup(UnitType.Factory),
         );
       case UnitType.TransportShip:
       case UnitType.Shell:

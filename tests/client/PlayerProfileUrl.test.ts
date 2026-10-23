@@ -49,7 +49,7 @@ describe("playerProfileRouteArgs", () => {
   });
 
   it("takes a known tab from ?tab=", () => {
-    for (const tab of ["stats", "games", "clans", "progression"]) {
+    for (const tab of ["stats", "games", "progression"]) {
       expect(
         playerProfileRouteArgs({
           pathname: "/player/aB3dE5fX/",

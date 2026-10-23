@@ -180,6 +180,9 @@ describe("land a nuke severs from the main body is annexed", () => {
   test("a piece with no fallout around it is left to the existing rules", () => {
     // Cut off by the attacker's land rather than by a nuke.
     paint(union(mainBody, arm));
+    // A map edge walls in a body the attacker rings, so the main body gets
+    // its way out from a tile of unclaimed land on the edge.
+    attacker.relinquish(game.ref(0, 59));
     startClusterChecks();
     for (let y = 94; y <= 106; y++) attacker.conquer(game.ref(120, y));
     const mainBefore = defenderTilesIn(mainBody);
@@ -884,6 +887,9 @@ describe("land a nuke severs from the main body is annexed", () => {
     // the big one, landlocked, is cut off.
     const { big, small } = cornerPair(170, 60);
     paint(union(rect(20, 20, 130, 24), big, small));
+    // A map edge walls in a piece the attacker rings, so the way out is a
+    // tile of unclaimed land on the edge, beside the small piece.
+    attacker.relinquish(game.ref(199, 95));
     startClusterChecks();
     fallout(union(stripCrater, rect(165, 70, 169, 72)));
     expect(defenderTilesIn(strip)).toBe(550);
@@ -937,6 +943,11 @@ describe("land a nuke severs from the main body is annexed", () => {
     const piece = rect(150, 100, 159, 109);
     const edgeStrip = rect(160, 110, 199, 115);
     paint(union(edgeBody, piece, edgeStrip));
+    // A map edge walls in a strip the attacker rings, so the way out is a
+    // tile of unclaimed land on the edge, beside the strip.
+    attacker.relinquish(game.ref(199, 116));
+    // Likewise for the main body on the left edge.
+    attacker.relinquish(game.ref(0, 39));
     startClusterChecks();
     fallout(rect(148, 96, 161, 100));
     const bodyBefore = defenderTilesIn(edgeBody);

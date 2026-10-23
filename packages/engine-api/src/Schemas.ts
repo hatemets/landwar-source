@@ -3,6 +3,7 @@ import quickChatData from "resources/QuickChat.json";
 import { z } from "zod";
 import {
   AllPlayers,
+  BULK_UPGRADE_TYPES,
   Difficulty,
   Duos,
   GameMapSize,
@@ -42,6 +43,7 @@ export type Intent =
   | MarkDisconnectedIntent
   | EmbargoAllIntent
   | UpgradeStructureIntent
+  | MaxUpgradeIntent
   | DeleteUnitIntent
   | KickPlayerIntent
   | TogglePauseIntent
@@ -66,6 +68,7 @@ export type BuildUnitIntent = z.infer<typeof BuildUnitIntentSchema>;
 export type UpgradeStructureIntent = z.infer<
   typeof UpgradeStructureIntentSchema
 >;
+export type MaxUpgradeIntent = z.infer<typeof MaxUpgradeIntentSchema>;
 export type MoveWarshipIntent = z.infer<typeof MoveWarshipIntentSchema>;
 export type QuickChatIntent = z.infer<typeof QuickChatIntentSchema>;
 export type MarkDisconnectedIntent = z.infer<
@@ -487,6 +490,14 @@ export const UpgradeStructureIntentSchema = z.object({
   amount: zb.uint({ min: 1, max: MAX_UPGRADE_AMOUNT }).optional(),
 });
 
+// Spends all gold on upgrades of the listed types in one intent, one level at
+// a time round-robin over every owned unit of them (lowest level first), so
+// the levels spread equally. The engine prices each level itself.
+export const MaxUpgradeIntentSchema = z.object({
+  type: z.literal("max_upgrade"),
+  units: z.array(z.enum(UnitType)).nonempty().max(BULK_UPGRADE_TYPES.length),
+});
+
 export const CancelAttackIntentSchema = z.object({
   type: z.literal("cancel_attack"),
   attackID: z.string(),
@@ -497,9 +508,20 @@ export const CancelBoatIntentSchema = z.object({
   unitID: zb.uint(),
 });
 
+// Bounds for one move_warship intent. The server sizes its per-intent byte
+// limit from these (see ClientMsgRateLimiter), so a legal fleet move always
+// fits and anything larger is rejected by the schema first.
+export const MAX_MOVE_WARSHIP_UNITS = 1000;
+// Unit ids count up from 1. Below 2^28 the zigzag varint is at most 5 bytes.
+export const MAX_UNIT_ID = 0x0fffffff;
+export const MAX_UNIT_ID_WIRE_BYTES = 5;
+
 export const MoveWarshipIntentSchema = z.object({
   type: z.literal("move_warship"),
-  unitIds: z.array(zb.int()).nonempty(),
+  unitIds: z
+    .array(zb.int({ min: 0, max: MAX_UNIT_ID }))
+    .nonempty()
+    .max(MAX_MOVE_WARSHIP_UNITS),
   tile: zb.uint(),
 });
 
@@ -565,6 +587,7 @@ export const IntentSchema = z.discriminatedUnion("type", [
   DonateTroopIntentSchema,
   BuildUnitIntentSchema,
   UpgradeStructureIntentSchema,
+  MaxUpgradeIntentSchema,
   EmbargoIntentSchema,
   EmbargoAllIntentSchema,
   MoveWarshipIntentSchema,

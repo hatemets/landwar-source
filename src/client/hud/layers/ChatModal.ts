@@ -137,22 +137,24 @@ export class ChatModal extends LitElement {
         <div class="relative">
           <button
             class="absolute -top-3 -right-3 w-7 h-7 flex items-center justify-center
-                    bg-zinc-700 hover:bg-red-500 text-white rounded-full shadow-sm transition-colors z-10004"
+                    bg-gray-800 hover:bg-gray-700 text-white rounded-md transition-colors z-10004"
             aria-label=${translateText("common.close")}
             @click=${() => this.close()}
           >
             ✕
           </button>
           <div
-            class="bg-zinc-900/95 p-3 rounded-xl shadow-2xl shadow-black/50 ring-1 ring-white/10 text-white
+            class="bg-gray-900 p-4 rounded-lg text-white
                    w-[min(44rem,calc(100vw-32px))] max-h-[calc(100vh-60px)] overflow-y-auto
                    flex flex-col gap-3"
             @contextmenu=${(e: MouseEvent) => e.preventDefault()}
             @wheel=${(e: WheelEvent) => e.stopPropagation()}
           >
             <div class="flex items-baseline gap-2 pe-4">
-              <h2 class="font-semibold">${translateText("chat.title")}</h2>
-              <span class="truncate text-sm text-zinc-400"
+              <h2 class="text-base font-semibold">
+                ${translateText("chat.title")}
+              </h2>
+              <span class="truncate text-sm text-gray-400"
                 >${this.recipient?.displayName()}</span
               >
               ${this.pending ? null : this.renderAllPhrasesSwitch()}
@@ -167,7 +169,7 @@ export class ChatModal extends LitElement {
   private renderAllPhrasesSwitch() {
     return html`
       <button
-        class="ms-auto shrink-0 flex items-center gap-2 text-sm text-zinc-300 hover:text-white cursor-pointer"
+        class="ms-auto shrink-0 flex items-center gap-2 text-sm text-gray-300 hover:text-white cursor-pointer"
         role="switch"
         aria-checked=${this.showAll}
         @click=${() => (this.showAll = !this.showAll)}
@@ -176,8 +178,8 @@ export class ChatModal extends LitElement {
         <span
           class="relative inline-block w-8 h-4.5 rounded-full transition-colors ${this
             .showAll
-            ? "bg-blue-500"
-            : "bg-zinc-600"}"
+            ? "bg-malibu-blue"
+            : "bg-gray-600"}"
         >
           <span
             class="absolute top-0.5 left-0.5 size-3.5 rounded-full bg-white transition-transform ${this
@@ -196,7 +198,7 @@ export class ChatModal extends LitElement {
     return html`
       ${this.showAll
         ? html`<input
-            class="px-2 py-1.5 rounded-md bg-zinc-800 ring-1 ring-white/10 text-sm outline-none focus:ring-white/30"
+            class="px-2 py-1.5 h-9 rounded-md bg-gray-800 text-sm outline-none focus:outline-2 focus:outline-malibu-blue"
             type="text"
             placeholder=${translateText("chat.search_phrases")}
             .value=${this.phraseSearch}
@@ -211,18 +213,16 @@ export class ChatModal extends LitElement {
           />`
         : null}
       ${sections.length === 0
-        ? html`<p class="text-sm text-zinc-400">
+        ? html`<p class="text-sm text-gray-400">
             ${translateText("chat.no_phrases")}
           </p>`
         : sections.map(
             ({ id, phrases }) => html`
               <section>
-                <h3
-                  class="mb-1 text-[11px] font-semibold uppercase tracking-wider text-zinc-400"
-                >
+                <h3 class="mb-2 text-xs font-medium text-gray-400">
                   ${translateText(`chat.cat.${id}`)}
                 </h3>
-                <div class="flex flex-wrap gap-1">
+                <div class="flex flex-wrap gap-2">
                   ${phrases.map((entry) => this.renderChip(entry))}
                 </div>
               </section>
@@ -278,8 +278,8 @@ export class ChatModal extends LitElement {
     const full = translateText(`chat.${category}.${phrase.key}`);
     return html`
       <button
-        class="max-w-[15rem] truncate px-2.5 py-1 rounded-md text-sm text-left
-               bg-white/5 hover:bg-white/15 active:bg-white/25 transition-colors cursor-pointer"
+        class="max-w-[15rem] truncate px-3 py-1 rounded-md text-sm text-left
+               bg-gray-800 hover:bg-gray-700 transition-colors cursor-pointer"
         title=${full.replace(PLAYER_PLACEHOLDER, "___")}
         @click=${() => this.pickPhrase(category, phrase)}
       >
@@ -302,7 +302,7 @@ export class ChatModal extends LitElement {
       return text;
     }
     return html`${before}<span
-        class="inline-block w-6 mx-0.5 border-b border-zinc-400 align-baseline"
+        class="inline-block w-6 mx-0.5 border-b border-gray-400 align-baseline"
       ></span
       >${after.join(PLAYER_PLACEHOLDER)}`;
   }
@@ -313,7 +313,7 @@ export class ChatModal extends LitElement {
     return html`
       <div class="flex items-center gap-2">
         <button
-          class="px-2 py-1 rounded-md bg-white/5 hover:bg-white/15 cursor-pointer"
+          class="px-2 py-1 rounded-md bg-gray-800 hover:bg-gray-700 transition-colors cursor-pointer"
           aria-label=${translateText("common.back")}
           @click=${() => (this.pending = null)}
         >
@@ -326,7 +326,7 @@ export class ChatModal extends LitElement {
         </span>
       </div>
       <input
-        class="px-2 py-1.5 rounded-md bg-zinc-800 ring-1 ring-white/10 text-sm outline-none focus:ring-white/30"
+        class="px-2 py-1.5 h-9 rounded-md bg-gray-800 text-sm outline-none focus:outline-2 focus:outline-malibu-blue"
         type="text"
         placeholder=${translateText("chat.search")}
         .value=${this.search}
@@ -339,16 +339,19 @@ export class ChatModal extends LitElement {
           }
         }}
       />
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-1">
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
         ${players.map(
           (player) => html`
             <button
-              class="truncate px-2.5 py-1.5 rounded-md text-sm text-left border-l-4
-                     bg-white/5 hover:bg-white/15 active:bg-white/25 transition-colors cursor-pointer"
-              style="border-left-color: ${player.territoryColor().toHex()}"
+              class="truncate px-3 py-2 rounded-md text-sm text-left
+                     bg-gray-800 hover:bg-gray-700 transition-colors cursor-pointer"
               @click=${() => this.sendPending(player)}
             >
-              ${player.displayName()}
+              <span
+                class="inline-block size-2 rounded-full me-2 align-middle"
+                style="background: ${player.territoryColor().toHex()}"
+              ></span
+              >${player.displayName()}
             </button>
           `,
         )}

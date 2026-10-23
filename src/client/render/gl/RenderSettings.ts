@@ -161,6 +161,16 @@ export interface RenderSettings {
     friendlyTintR: number;
     friendlyTintG: number;
     friendlyTintB: number;
+    /**
+     * Draw territory fills and borders along curves through the tile grid
+     * instead of tile steps (shaders/shared/smooth-owner.glsl).
+     */
+    smoothEdges: boolean;
+    /**
+     * Border width when smoothEdges is on, in score units below 1 (0.8 ≈ 0.4
+     * tile per side). At 1 the inner edge would fall on the tile grid.
+     */
+    borderBand: number;
   };
   /** Alt-view affiliation colors (0–1 RGB). */
   affiliation: {
@@ -362,11 +372,10 @@ export interface RenderSettings {
     allyColorB: number;
   };
   moveIndicator: {
-    startRadius: number; // screen px — initial distance from center
-    chevronSize: number; // screen px — wing span
-    lineWidth: number; // screen px — stroke width
+    rippleRadius: number; // screen px — outer radius of the ground ripples
+    pinSize: number; // screen px — half-height of the beacon diamond
+    lineWidth: number; // screen px — ripple stroke width
     duration: number; // ms — total animation lifetime
-    converge: number; // 0–1 — fraction of radius consumed during animation
   };
   samRadius: {
     strokeWidth: number; // ring half-width in world units
@@ -396,8 +405,9 @@ export interface RenderSettings {
   spawnOverlay: {
     highlightRadius: number; // tile highlight radius (squared internally)
     highlightAlpha: number; // tile highlight opacity (0–1)
-    selfMinRad: number; // self ring inner radius
-    selfMaxRad: number; // self ring outer radius
+    selfOrbitRadius: number; // self marker: orbit radius of the swirling dot (tiles)
+    selfDotRadius: number; // self marker: radius of the swirling dot (tiles)
+    selfOrbitSpeed: number; // self marker: orbit speed (radians per second)
     mateMinRad: number; // teammate ring inner radius
     mateMaxRad: number; // teammate ring outer radius
     animSpeed: number; // breathing animation speed

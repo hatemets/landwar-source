@@ -66,7 +66,7 @@ export class NewLobbyPrompt extends LitElement implements Controller {
     }
     return html`
       <div
-        class="fixed top-4 left-1/2 -translate-x-1/2 z-[10010] flex items-center gap-3 bg-gray-800/90 text-white px-4 py-3 rounded-lg shadow-2xl backdrop-blur-xs max-w-[90%]"
+        class="fixed top-4 left-1/2 -translate-x-1/2 z-[10010] flex items-center gap-3 bg-gray-900/90 text-white text-sm px-4 py-3 rounded-lg max-w-[90%]"
       >
         <span>${translateText("new_lobby_prompt.message")}</span>
         <o-button
@@ -75,7 +75,7 @@ export class NewLobbyPrompt extends LitElement implements Controller {
           @click=${this._handleJoin}
         ></o-button>
         <button
-          class="text-white/70 hover:text-white text-xl leading-none px-1"
+          class="size-8 rounded-md text-white/70 hover:text-white hover:bg-gray-800 text-base leading-none transition-colors"
           aria-label=${translateText("new_lobby_prompt.dismiss")}
           @click=${this._handleDismiss}
         >

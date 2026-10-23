@@ -637,7 +637,7 @@ export class UserSettingModal extends BaseModal {
             this.sliderAudio(category, e)}
         ></setting-slider>
         ${controls !== null && PREVIEWABLE.includes(category as CueCategory)
-          ? html`<div class="flex justify-end">
+          ? html`<div class="flex justify-end px-3">
               ${this.renderTestButton(controls, category as CueCategory)}
             </div>`
           : ""}
@@ -672,7 +672,7 @@ export class UserSettingModal extends BaseModal {
         ></setting-toggle>
       </div>
 
-      <div class="flex justify-end pt-2">
+      <div class="flex justify-end px-3 pt-2">
         <button
           id="audio-reset"
           class="px-3 py-1 text-sm font-medium rounded-lg border border-white/10 text-white bg-white/5 hover:bg-white/15 transition-colors"
@@ -797,7 +797,7 @@ export class UserSettingModal extends BaseModal {
       </div>
 
       <h2
-        class="text-blue-200 text-xl font-bold mt-4 mb-3 border-b border-white/10 pb-2"
+        class="text-blue-200 text-lg font-semibold mt-4 mb-3 border-b border-white/10 pb-2"
       >
         ${translateText("user_setting.view_options")}
       </h2>
@@ -846,7 +846,7 @@ export class UserSettingModal extends BaseModal {
       ></setting-keybind>
 
       <h2
-        class="text-blue-200 text-xl font-bold mt-8 mb-3 border-b border-white/10 pb-2"
+        class="text-blue-200 text-lg font-semibold mt-8 mb-3 border-b border-white/10 pb-2"
       >
         ${translateText("user_setting.build_controls")}
       </h2>
@@ -952,7 +952,7 @@ export class UserSettingModal extends BaseModal {
       ></setting-keybind>
 
       <h2
-        class="text-blue-200 text-xl font-bold mt-8 mb-3 border-b border-white/10 pb-2"
+        class="text-blue-200 text-lg font-semibold mt-8 mb-3 border-b border-white/10 pb-2"
       >
         ${translateText("user_setting.menu_shortcuts")}
       </h2>
@@ -1028,7 +1028,7 @@ export class UserSettingModal extends BaseModal {
       ></setting-keybind>
 
       <h2
-        class="text-blue-200 text-xl font-bold mt-8 mb-3 border-b border-white/10 pb-2"
+        class="text-blue-200 text-lg font-semibold mt-8 mb-3 border-b border-white/10 pb-2"
       >
         ${translateText("user_setting.attack_ratio_controls")}
       </h2>
@@ -1058,7 +1058,7 @@ export class UserSettingModal extends BaseModal {
       ></setting-keybind>
 
       <h2
-        class="text-blue-200 text-xl font-bold mt-8 mb-3 border-b border-white/10 pb-2"
+        class="text-blue-200 text-lg font-semibold mt-8 mb-3 border-b border-white/10 pb-2"
       >
         ${translateText("user_setting.attack_keybinds")}
       </h2>
@@ -1104,7 +1104,7 @@ export class UserSettingModal extends BaseModal {
       ></setting-keybind>
 
       <h2
-        class="text-blue-200 text-xl font-bold mt-8 mb-3 border-b border-white/10 pb-2"
+        class="text-blue-200 text-lg font-semibold mt-8 mb-3 border-b border-white/10 pb-2"
       >
         ${translateText("user_setting.ally_keybinds")}
       </h2>
@@ -1160,7 +1160,7 @@ export class UserSettingModal extends BaseModal {
       ></setting-keybind>
 
       <h2
-        class="text-blue-200 text-xl font-bold mt-8 mb-3 border-b border-white/10 pb-2"
+        class="text-blue-200 text-lg font-semibold mt-8 mb-3 border-b border-white/10 pb-2"
       >
         ${translateText("user_setting.zoom_controls")}
       </h2>
@@ -1226,7 +1226,7 @@ export class UserSettingModal extends BaseModal {
       ></setting-keybind>
 
       <h2
-        class="text-blue-200 text-xl font-bold mt-8 mb-3 border-b border-white/10 pb-2"
+        class="text-blue-200 text-lg font-semibold mt-8 mb-3 border-b border-white/10 pb-2"
       >
         ${translateText("user_setting.camera_movement")}
       </h2>
@@ -1344,14 +1344,12 @@ export class UserSettingModal extends BaseModal {
         }}
       ></setting-slider>
       <!-- 🎨 Graphics preset -->
-      <div
-        class="flex flex-col w-full p-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all gap-3"
-      >
+      <div class="flex flex-col w-full px-3 py-2 gap-3">
         <div class="flex flex-col min-w-0">
-          <div class="text-white font-bold text-base block mb-1">
+          <div class="text-white font-medium text-sm">
             ${translateText("user_setting.graphics_preset_label")}
           </div>
-          <div class="text-white/50 text-sm leading-snug">
+          <div class="text-white/50 text-xs leading-snug">
             ${translateText("user_setting.graphics_preset_desc")}
           </div>
         </div>

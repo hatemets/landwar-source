@@ -100,7 +100,7 @@ export class EmojiTable extends LitElement {
 
   private handleBackdropClick = (e: MouseEvent) => {
     const panelContent = this.querySelector(
-      'div[class*="bg-zinc-900"]',
+      "[data-emoji-panel]",
     ) as HTMLElement;
     if (panelContent && !panelContent.contains(e.target as Node)) {
       this.hideTable();
@@ -114,7 +114,7 @@ export class EmojiTable extends LitElement {
 
     return html`
       <div
-        class="fixed inset-0 bg-black/15 backdrop-brightness-110 flex items-start sm:items-center justify-center z-10002 pt-4 sm:pt-0"
+        class="fixed inset-0 bg-black/15 flex items-start sm:items-center justify-center z-10002 pt-4 sm:pt-0"
         @click=${this.handleBackdropClick}
         @dragover=${this.dragOverElsewhere}
         @drop=${this.dropElsewhere}
@@ -123,14 +123,15 @@ export class EmojiTable extends LitElement {
           <!-- Close button -->
           <button
             class="absolute -top-3 -right-3 w-7 h-7 flex items-center justify-center
-                    bg-zinc-700 hover:bg-red-500 text-white rounded-full shadow-sm transition-colors z-10004"
+                    bg-gray-800 hover:bg-gray-700 text-white rounded-md transition-colors z-10004"
             @click=${this.hideTable}
           >
             ✕
           </button>
 
           <div
-            class="bg-zinc-900/95 p-3 rounded-xl z-10003 shadow-2xl shadow-black/50 ring-1 ring-white/10
+            data-emoji-panel
+            class="bg-gray-900 p-4 rounded-lg z-10003
                    max-w-[calc(100vw-32px)] max-h-[calc(100vh-60px)] overflow-y-auto
                    flex flex-col gap-3"
             @contextmenu=${(e: MouseEvent) => e.preventDefault()}
@@ -160,16 +161,14 @@ export class EmojiTable extends LitElement {
     const showKeys = !Platform.isTouch;
     return html`
       <section class="hidden sm:block">
-        <h3
-          class="mb-1 text-center text-[11px] font-semibold uppercase tracking-wider text-zinc-400"
-        >
+        <h3 class="mb-2 text-center text-xs font-medium text-gray-400">
           ${translateText("emoji_table.favorites")}
         </h3>
         <div class="flex justify-center gap-1">
           ${this.favorites.map((emoji, slot) => {
-            let look = "border border-dashed border-zinc-600";
-            if (emoji) look = "cursor-pointer bg-white/5 hover:bg-white/10";
-            if (this.dragOverSlot === slot) look += " bg-white/20";
+            let look = "bg-gray-800/50";
+            if (emoji) look = "cursor-pointer bg-gray-800 hover:bg-gray-700";
+            if (this.dragOverSlot === slot) look += " bg-gray-600";
             return html`
               <button
                 class="relative flex items-center justify-center size-16 rounded-lg text-5xl transition-colors ${look}"
@@ -188,7 +187,7 @@ export class EmojiTable extends LitElement {
                 ${emoji ?? ""}
                 ${showKeys
                   ? html`<span
-                      class="pointer-events-none absolute top-0.5 left-1.5 text-xs leading-tight font-mono text-zinc-400"
+                      class="pointer-events-none absolute top-0.5 left-1.5 text-xs leading-tight font-medium text-gray-400"
                       translate="no"
                       >${favoriteKeyLabel(slot)}</span
                     >`
@@ -198,7 +197,7 @@ export class EmojiTable extends LitElement {
           })}
         </div>
         ${empty
-          ? html`<p class="mt-1 text-center text-xs text-zinc-500">
+          ? html`<p class="mt-1 text-center text-xs text-gray-500">
               ${translateText(
                 showKeys
                   ? "emoji_table.favorites_hint"
@@ -268,9 +267,7 @@ export class EmojiTable extends LitElement {
     if (section.columns === 3) grid = "grid-cols-[repeat(3,auto)]";
     return html`
       <section>
-        <h3
-          class="mb-1 text-[11px] font-semibold uppercase tracking-wider text-zinc-400"
-        >
+        <h3 class="mb-2 text-xs font-medium text-gray-400">
           ${translateText(section.title)}
         </h3>
         <div class="grid ${grid} gap-1">
@@ -278,7 +275,7 @@ export class EmojiTable extends LitElement {
             (emoji) => html`
               <button
                 class="flex items-center justify-center cursor-pointer size-12 sm:size-14 rounded-lg
-                       text-3xl sm:text-4xl hover:bg-white/10 active:bg-white/20 transition-colors"
+                       text-3xl sm:text-4xl hover:bg-gray-800 active:bg-gray-700 transition-colors"
                 draggable="true"
                 @click=${() => this.onEmojiClicked(emoji)}
                 @dragstart=${(e: DragEvent) => this.startDrag(e, emoji, null)}

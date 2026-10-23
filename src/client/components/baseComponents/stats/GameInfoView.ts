@@ -125,10 +125,10 @@ export class GameInfoView extends LitElement {
     return html`
       <div
         role="alert"
-        class="flex min-h-80 flex-col items-center justify-center rounded-2xl border border-red-400/15 bg-red-400/[0.04] p-8 text-center text-white"
+        class="flex min-h-80 flex-col items-center justify-center rounded-lg bg-[var(--field-raised)] p-6 text-center text-[var(--field-paper)]"
       >
         <div
-          class="mb-4 flex size-12 items-center justify-center rounded-xl border border-red-300/15 bg-red-400/10 text-red-200/70"
+          class="mb-4 flex size-12 items-center justify-center rounded-lg bg-[var(--field-danger-soft)] text-[var(--field-danger)]"
           aria-hidden="true"
         >
           <svg
@@ -145,7 +145,7 @@ export class GameInfoView extends LitElement {
             />
           </svg>
         </div>
-        <p class="mb-5 text-sm text-white/65">
+        <p class="mb-6 text-sm text-[var(--field-muted)]">
           ${translateText("game_info_modal.load_failed")}
         </p>
         <button
@@ -188,7 +188,7 @@ export class GameInfoView extends LitElement {
     return html`
       <div
         data-game-summary
-        class="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.08] to-white/[0.025] shadow-[0_18px_50px_rgba(0,0,0,0.2)]"
+        class="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.08] to-white/[0.025]"
       >
         <div class="grid sm:grid-cols-[240px_minmax(0,1fr)]">
           <div
@@ -333,7 +333,7 @@ export class GameInfoView extends LitElement {
     return html`
       <section
         aria-label=${translateText(RANK_TYPE_LABEL_KEYS[this.rankType])}
-        class="overflow-hidden rounded-2xl border border-white/10 bg-black/15 shadow-[0_12px_35px_rgba(0,0,0,0.16)]"
+        class="overflow-hidden rounded-2xl border border-white/10 bg-black/15"
       >
         <ol class="divide-y divide-white/[0.06]">
           ${this.rankedPlayers.map(

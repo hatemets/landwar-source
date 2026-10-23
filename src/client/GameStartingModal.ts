@@ -1,60 +1,98 @@
-import { LitElement, html } from "lit";
+import { LitElement, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
+import "./components/ConquestGlobe";
+import {
+  CONQUEST_NATION_COLORS,
+  type ConquestGlobe,
+} from "./components/ConquestGlobe";
 import { translateText } from "./Utils";
 
+/** Full-screen loading screen shown while a game starts. */
 @customElement("game-starting-modal")
 export class GameStartingModal extends LitElement {
   @state()
   isVisible = false;
 
+  @state()
+  private shares = [0, 0, 0];
+
+  private shareTimer = 0;
+
   createRenderRoot() {
     return this;
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    clearInterval(this.shareTimer);
   }
 
   render() {
     const isVisible = this.isVisible;
     return html`
       <div
-        class="fixed inset-0 bg-black/30 backdrop-blur-[4px] z-[9998] transition-all duration-300 ${isVisible
+        class="fixed inset-0 z-[9998] bg-[var(--field-ink)] text-[var(--field-paper)] transition-opacity duration-150 ${isVisible
           ? "opacity-100 visible"
           : "opacity-0 invisible"}"
-      ></div>
-      <div
-        class="fixed top-1/2 left-1/2 bg-zinc-900/90 backdrop-blur-md border border-white/10 p-6 rounded-2xl z-[9999] shadow-2xl text-white w-[400px] text-center transition-all duration-300 -translate-x-1/2 ${isVisible
-          ? "opacity-100 visible -translate-y-1/2"
-          : "opacity-0 invisible -translate-y-[48%]"}"
+        role="status"
+        aria-live="polite"
       >
+        ${isVisible
+          ? html`<conquest-globe
+              class="absolute inset-0"
+              stars
+              exclusive
+              fill="0.62"
+              lift="0.06"
+            ></conquest-globe>`
+          : nothing}
         <div
-          class="text-base font-medium tracking-wider uppercase text-white/40 mb-3"
+          class="absolute inset-x-0 bottom-0 flex flex-col items-center gap-3 px-4 pb-[calc(32px+env(safe-area-inset-bottom,0px))] text-center pointer-events-none"
         >
-          ${translateText("main.copyright")}
+          <p class="text-xl font-semibold">
+            ${translateText("game_starting_modal.title")}
+          </p>
+          <div
+            class="flex h-1 w-60 max-w-full overflow-hidden rounded-sm bg-[var(--field-line)]"
+            aria-hidden="true"
+          >
+            ${this.shares.map(
+              (share, i) =>
+                html`<span
+                  class="block h-full"
+                  style="width: ${share *
+                  100}%; background: ${CONQUEST_NATION_COLORS[i]}"
+                ></span>`,
+            )}
+          </div>
+          <p class="mt-3 text-xs text-[var(--field-faint)] pointer-events-auto">
+            ${translateText("main.copyright")} ·
+            <a
+              href="https://github.com/openfrontio/OpenFrontIO/blob/main/CREDITS.md"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-[var(--field-muted)] underline"
+              >${translateText("game_starting_modal.credits")}</a
+            >
+            · ${translateText("game_starting_modal.code_license")}
+          </p>
         </div>
-        <a
-          href="https://github.com/openfrontio/OpenFrontIO/blob/main/CREDITS.md"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="block mb-4 text-lg font-medium tracking-wider uppercase text-malibu-blue no-underline transition-colors duration-200 hover:text-aquarius"
-          >${translateText("game_starting_modal.credits")}</a
-        >
-        <p class="text-base text-white/40 mb-4">
-          ${translateText("game_starting_modal.code_license")}
-        </p>
-        <p
-          class="text-xl font-medium tracking-wider text-white bg-white/5 border border-white/10 px-4 py-3 rounded-xl"
-        >
-          ${translateText("game_starting_modal.title")}
-        </p>
       </div>
     `;
   }
 
   show() {
     this.isVisible = true;
-    this.requestUpdate();
+    clearInterval(this.shareTimer);
+    this.shareTimer = window.setInterval(() => {
+      const globe = this.querySelector<ConquestGlobe>("conquest-globe");
+      if (globe) this.shares = globe.shares();
+    }, 150);
   }
 
   hide() {
     this.isVisible = false;
-    this.requestUpdate();
+    clearInterval(this.shareTimer);
+    this.shares = [0, 0, 0];
   }
 }

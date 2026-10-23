@@ -203,20 +203,13 @@ void main() {
   vec3 spawnColor = mix(territoryColor, borderColor, 0.5);
   vec3 centerColor = mix(territoryColor, vec3(0.0), retreatBlink);
 
-  vec3 color;
-  if (gray > 0.6) {
-    // Light band (180) -> territory color
-    color = territoryColor;
-  } else if (gray > 0.45) {
-    // Mid band (130) -> spawn color
-    color = spawnColor;
-  } else if (gray > 0.34) {
-    // Center accent band (100) -> center color
-    color = centerColor;
-  } else {
-    // Dark band (70) -> border color
-    color = borderColor;
-  }
+  // Blend across band boundaries over about one atlas texel instead of
+  // switching hard, so seams between bands stay smooth at any zoom.
+  float w = max(fwidth(gray), 0.012);
+  vec3 color = borderColor;
+  color = mix(color, centerColor, smoothstep(0.34 - w, 0.34 + w, gray));
+  color = mix(color, spawnColor, smoothstep(0.45 - w, 0.45 + w, gray));
+  color = mix(color, territoryColor, smoothstep(0.6 - w, 0.6 + w, gray));
 
   fragColor = vec4(color, texel.a * alphaMul);
 }

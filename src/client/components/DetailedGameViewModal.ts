@@ -1,5 +1,6 @@
 import { GameMapType } from "@openfront/engine-api/game/GameTypes";
 import { UserMeResponse } from "@openfront/shared/ApiSchemas";
+import { assetUrl } from "@openfront/shared/AssetUrls";
 import { PublicGameInfo, PublicGames } from "@openfront/shared/WireSchemas";
 import { html, nothing, TemplateResult } from "lit";
 import { customElement, state } from "lit/decorators.js";
@@ -59,7 +60,7 @@ const PANE_SLOTS = 2;
 const ALL_TAB = "all";
 
 /** Slot height; cards and the spawning placeholder both fill it exactly. */
-const SLOT_CLASS = "h-40";
+const SLOT_CLASS = "h-16";
 
 /** How long a card takes to slide into a freed slot. */
 const SLIDE_MS = 220;
@@ -78,8 +79,7 @@ const CHIP_BASE =
 const CHIP_ON = "bg-malibu-blue text-white border-malibu-blue";
 const CHIP_OFF =
   "bg-white/5 text-white/60 border-white/10 hover:bg-white/10 hover:text-white";
-const PANE_HEADING =
-  "block text-sm font-bold uppercase tracking-widest text-white";
+const PANE_HEADING = "block text-sm font-medium text-[var(--field-paper)]";
 const SECTION_LABEL =
   "block text-[10px] font-bold uppercase tracking-widest text-white/40 mb-1.5";
 const FIELD_CLASS =
@@ -284,17 +284,13 @@ export class DetailedGameViewModal extends BaseModal {
         ${this.showFilters ? this.renderFilterPanel() : nothing}
         ${shown.length === 0
           ? html`<div class="lobby-empty-state lobby-browser__empty">
-              <svg
-                class="lobby-empty-state__icon"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 32 32"
-                fill="none"
+              <img
+                class="lobby-empty-state__art"
+                src=${assetUrl("images/illustrations/Camp.webp")}
+                alt=""
                 aria-hidden="true"
-              >
-                <circle cx="16" cy="16" r="11" stroke="currentColor" />
-                <circle cx="16" cy="16" r="4" stroke="currentColor" />
-                <path d="M16 2v6m0 16v6M2 16h6m16 0h6" stroke="currentColor" />
-              </svg>
+                draggable="false"
+              />
               <p class="lobby-empty-state__message">
                 ${translateText(emptyMessageKey)}
               </p>
@@ -330,7 +326,7 @@ export class DetailedGameViewModal extends BaseModal {
       </p>`;
     }
     return html`
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="lw-lobby-rows">
         ${this.renderSlots(lobbies, placeholders)}
       </div>
     `;
@@ -361,11 +357,9 @@ export class DetailedGameViewModal extends BaseModal {
         <h3 class="${PANE_HEADING}">
           ${this.paneHeading(name, lobbies.length)}
         </h3>
-        <div class="flex flex-col gap-4">
+        <div class="lw-lobby-rows">
           ${lobbies.length === 0 && placeholders === 0
-            ? html`<p
-                class="py-6 text-center text-xs text-white/30 rounded-xl border border-dashed border-white/10"
-              >
+            ? html`<p class="px-4 py-6 text-xs text-[var(--field-muted)]">
                 ${translateText("detailed_view.pane_empty")}
               </p>`
             : nothing}
@@ -393,13 +387,15 @@ export class DetailedGameViewModal extends BaseModal {
   /** Placeholder for a lobby the master hasn't created yet. */
   private renderSpawningSlot() {
     return html`
-      <div
-        class="${SLOT_CLASS} flex flex-col items-center justify-center gap-3 rounded-2xl bg-surface border border-white/10"
-      >
+      <div class="${SLOT_CLASS} flex items-center gap-4 px-4">
         <span
-          class="w-8 h-8 border-[3px] border-blue-500/30 border-t-blue-500 rounded-full animate-spin"
-        ></span>
-        <span class="text-xs uppercase tracking-widest text-white/50">
+          class="size-12 shrink-0 flex items-center justify-center rounded-md bg-[var(--field-hover)]"
+        >
+          <span
+            class="size-5 rounded-full border-2 border-[var(--field-accent-soft)] border-t-[var(--field-accent)] animate-spin"
+          ></span>
+        </span>
+        <span class="text-xs text-[var(--field-muted)]">
           ${translateText("detailed_view.spawning")}
         </span>
       </div>
@@ -420,9 +416,7 @@ export class DetailedGameViewModal extends BaseModal {
             lobbies.length,
           )}
         </h3>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          ${this.renderSlots(lobbies, 0)}
-        </div>
+        <div class="lw-lobby-rows">${this.renderSlots(lobbies, 0)}</div>
       </section>
     `;
   }

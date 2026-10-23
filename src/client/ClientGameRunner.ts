@@ -731,10 +731,7 @@ async function createClientGame(
     // so they switch live, like the leaderboard.
     globalThis.addEventListener(
       `${USER_SETTINGS_CHANGED_EVENT}:settings.anonymousNames`,
-      () => {
-        webglBuilder.refreshNames(gameView);
-        gameView.invalidateTeamClanTags();
-      },
+      () => webglBuilder.refreshNames(gameView),
       { signal: graphicsListenerAbort.signal },
     );
 
@@ -1200,7 +1197,9 @@ export class ClientGameRunner {
           this.eventBus.emit(
             new SendAttackIntentEvent(
               this.gameView.owner(tile).id(),
-              this.myPlayer!.troops() * this.renderer.uiState.attackRatio,
+              this.myPlayer!.takeAttackTroops(
+                this.renderer.uiState.attackRatio,
+              ),
             ),
           );
         } else if (this.canAutoBoat(actions.buildableUnits, tile)) {
@@ -1371,7 +1370,9 @@ export class ClientGameRunner {
           this.eventBus.emit(
             new SendAttackIntentEvent(
               this.gameView.owner(tile).id(),
-              this.myPlayer!.troops() * this.renderer.uiState.attackRatio,
+              this.myPlayer!.takeAttackTroops(
+                this.renderer.uiState.attackRatio,
+              ),
             ),
           );
         }
@@ -1411,7 +1412,10 @@ export class ClientGameRunner {
 
     const counterTroops = counterAttackTroops(
       mostRecentAttack.troops,
-      this.renderer.uiState.attackRatio * this.myPlayer.troops(),
+      this.myPlayer.takeAttackTroops(
+        this.renderer.uiState.attackRatio,
+        mostRecentAttack.troops,
+      ),
     );
     this.eventBus.emit(new SendAttackIntentEvent(attacker.id(), counterTroops));
   }
@@ -1546,7 +1550,7 @@ export class ClientGameRunner {
     this.eventBus.emit(
       new SendBoatAttackIntentEvent(
         tile,
-        this.myPlayer.troops() * this.renderer.uiState.attackRatio,
+        this.myPlayer.takeAttackTroops(this.renderer.uiState.attackRatio),
       ),
     );
   }

@@ -132,16 +132,12 @@ export class OModal extends LitElement {
               role="tab"
               data-key=${tab.key}
               aria-selected=${active}
-              class="shrink-0 whitespace-nowrap min-h-10 px-2 py-3 text-[11px] leading-4 tracking-wide sm:px-4 sm:text-sm sm:leading-5 sm:tracking-wider font-bold uppercase transition-all relative cursor-pointer ${active
-                ? "text-aquarius"
-                : "text-white/40 hover:text-white/70"}"
+              class="shrink-0 whitespace-nowrap relative cursor-pointer transition-colors"
               @click=${() => this.handleTabClick(tab.key)}
             >
               ${tab.label}
               ${active
-                ? html`<div
-                    class="absolute bottom-0 left-0 right-0 h-0.5 bg-malibu-blue"
-                  ></div>`
+                ? html`<div class="absolute bottom-0 left-3 right-3"></div>`
                 : ""}
             </button>
           `;
@@ -169,10 +165,12 @@ export class OModal extends LitElement {
       !this.inline && this.maxWidth ? `max-width: ${this.maxWidth};` : "";
 
     const hasTabs = this.tabs.length > 0;
-    const sectionClass = `relative flex-1 min-h-0 flex flex-col text-white overflow-hidden ${
-      this.appearance === "field"
-        ? "field-modal-shell"
-        : "bg-black/70 backdrop-blur-xl lg:rounded-2xl lg:border border-white/10"
+    // Every modal shares one shell; `appearance` is kept for callers but no
+    // longer changes the look.
+    // An inline modal is a page: it sits flat on the page background, not on
+    // a raised card.
+    const sectionClass = `relative flex-1 min-h-0 flex flex-col text-white overflow-hidden field-modal-shell ${
+      this.inline ? "field-modal-shell--flat" : ""
     }`;
 
     return html`
@@ -195,7 +193,7 @@ export class OModal extends LitElement {
               </div>`}
           ${!this.hideHeader && this.title
             ? html`<div
-                class="px-[1.4rem] py-[1rem] text-2xl font-bold text-white"
+                class="px-6 py-4 text-xl font-semibold text-[var(--field-paper)]"
               >
                 ${this.title}
               </div>`

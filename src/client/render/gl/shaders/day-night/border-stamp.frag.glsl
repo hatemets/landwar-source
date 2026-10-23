@@ -16,15 +16,24 @@ uniform float uFriendlyTintRatio;
 uniform vec3 uEmbargoTint;
 uniform vec3 uFriendlyTint;
 
+uniform int uSmoothEdges;         // 1 = curved territory edges (smooth-owner)
+uniform float uBorderBand;        // smooth-mode border width, in score units (0..1]
+
 in vec2 vWorldPos;
 out vec4 fragColor;
 
-void main() {
-  ivec2 tc = ivec2(floor(vWorldPos));
-  if (tc.x < 0 || tc.y < 0 || tc.x >= int(uMapSize.x) || tc.y >= int(uMapSize.y)) discard;
+// @include smooth-owner
 
-  uint raw = texelFetch(uTileTex, tc, 0).r;
-  uint owner = raw & uint(OWNER_MASK);
+void main() {
+  ivec2 here = ivec2(floor(vWorldPos));
+  if (here.x < 0 || here.y < 0 || here.x >= int(uMapSize.x) || here.y >= int(uMapSize.y)) discard;
+
+  SmoothOwner so = smoothOwner(vWorldPos);
+  float aa = max(fwidth(so.edge), 1e-4);
+
+  ivec2 tc = so.tile;
+  uint owner = so.key & uint(OWNER_MASK);
+  if (owner == 0u) discard;
 
   // Read pre-computed border flags from BorderComputePass
   vec4 borderData = texelFetch(uBorderTex, tc, 0);
@@ -35,8 +44,26 @@ void main() {
   bool isBorder = borderType > 0.25;
   bool isHighlightBorder = borderType > 0.75;
 
+  // Coverage of the border stroke at this fragment.
+  float alpha;
+  if (so.rivalScore > 0.0 || !so.smoothed) {
+    // A different owner (or empty ground) shares this cell: the stroke runs
+    // along the smooth boundary, uBorderBand wide, anti-aliased on both
+    // sides. In tile mode the tile flag decides, as before.
+    bool sameOwnerRival = (so.rival & uint(OWNER_MASK)) == owner;
+    float inner = 1.0 - smoothstep(uBorderBand - aa, uBorderBand, so.edge);
+    float outer = so.rival == 0u ? smoothstep(0.0, aa, so.edge) : 1.0;
+    alpha = !so.smoothed
+      ? (isBorder ? 1.0 : 0.0)
+      : (sameOwnerRival ? 0.0 : inner * outer);
+  } else {
+    // Interior cell: only the thickened hover highlight draws here.
+    alpha = isHighlightBorder ? 1.0 : 0.0;
+  }
+  if (alpha <= 0.0) discard;
+
   // --- Border stamp: full-brightness border color ---
-  if (isBorder && owner != 0u) {
+  {
     vec3 bc;
     if (uAltView != 0) {
       // Alt-view: pure affiliation color from palette row 0
@@ -59,9 +86,6 @@ void main() {
         if (checker) bc *= uDefenseCheckerDarken;
       }
     }
-    fragColor = vec4(bc, 1.0);
-    return;
+    fragColor = vec4(bc, alpha);
   }
-
-  discard;
 }

@@ -14,7 +14,12 @@
 
 import type { RenderSettings } from "../RenderSettings";
 import { getPaletteSize } from "../utils/ColorUtils";
-import { createMapQuad, createProgram, shaderSrc } from "../utils/GlUtils";
+import {
+  createMapQuad,
+  createProgram,
+  includeSmoothOwner,
+  shaderSrc,
+} from "../utils/GlUtils";
 import { FALLOUT_BIT, OWNER_MASK, TILE_DEFINES } from "../utils/TileCodec";
 
 import overlayVertSrc from "../shaders/map-overlay/overlay.vert.glsl?raw";
@@ -43,6 +48,7 @@ export class TerritoryPass {
   private uSaturation: WebGLUniformLocation;
   private uTerritoryAlpha: WebGLUniformLocation;
   private uAltFillAlpha: WebGLUniformLocation;
+  private uSmoothEdges: WebGLUniformLocation;
   private highlightOwner = 0;
   private isTeamMode = false;
 
@@ -138,7 +144,7 @@ export class TerritoryPass {
     this.program = createProgram(
       gl,
       overlayVertSrc,
-      shaderSrc(territoryFragSrc, {
+      shaderSrc(includeSmoothOwner(territoryFragSrc), {
         PALETTE_SIZE: getPaletteSize(),
         ...TILE_DEFINES,
       }),
@@ -183,6 +189,7 @@ export class TerritoryPass {
       "uTerritoryAlpha",
     )!;
     this.uAltFillAlpha = gl.getUniformLocation(this.program, "uAltFillAlpha")!;
+    this.uSmoothEdges = gl.getUniformLocation(this.program, "uSmoothEdges")!;
 
     gl.useProgram(this.program);
     gl.uniform1i(gl.getUniformLocation(this.program, "uTileTex"), 0);
@@ -448,6 +455,7 @@ export class TerritoryPass {
     gl.uniform1f(this.uSaturation, mo.territorySaturation);
     gl.uniform1f(this.uTerritoryAlpha, mo.territoryAlpha);
     gl.uniform1f(this.uAltFillAlpha, this.settings.altView.fillAlpha);
+    gl.uniform1i(this.uSmoothEdges, mo.smoothEdges ? 1 : 0);
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.tileTex);

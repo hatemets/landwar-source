@@ -90,8 +90,6 @@ export interface ToggleOptionConfig {
 export interface GameConfigSettingsData {
   map: {
     selected: GameMapType;
-    useRandom: boolean;
-    randomMapDivider?: boolean;
     showMedals?: boolean;
     mapWins?: Map<GameMapType, Set<Difficulty>>;
   };
@@ -180,39 +178,24 @@ export class GameConfigSettings extends LitElement {
         });
     };
     return html`<div
-      class="setup-difficulty ${setting.disabled ? "is-disabled" : ""}"
+      class="setup-segmented ${setting.disabled ? "is-disabled" : ""}"
+      role="group"
+      aria-label=${translateText("difficulty.difficulty")}
     >
-      <input
-        class="setup-difficulty__range"
-        type="range"
-        min="0"
-        max=${DIFFICULTY_OPTIONS.length - 1}
-        step="1"
-        .value=${String(selected)}
-        ?disabled=${setting.disabled}
-        aria-label=${translateText("difficulty.difficulty")}
-        aria-valuetext=${translateText(
-          `difficulty.${DIFFICULTY_OPTIONS[selected][0].toLowerCase()}`,
-        )}
-        style=${`--range-progress:${(selected / (DIFFICULTY_OPTIONS.length - 1)) * 100}%`}
-        @input=${(e: Event) =>
-          choose(Number((e.target as HTMLInputElement).value))}
-      />
-      <div class="setup-difficulty__labels">
-        ${DIFFICULTY_OPTIONS.map(
-          ([key], index) =>
-            html`<button
-              type="button"
-              class=${selected === index ? "is-selected" : ""}
-              style=${`--difficulty-position:${index / (DIFFICULTY_OPTIONS.length - 1)}`}
-              aria-pressed=${selected === index}
-              ?disabled=${setting.disabled}
-              @click=${() => choose(index)}
-            >
-              <span>${translateText(`difficulty.${key.toLowerCase()}`)}</span>
-            </button>`,
-        )}
-      </div>
+      ${DIFFICULTY_OPTIONS.map(
+        ([key], index) =>
+          html`<button
+            type="button"
+            class="setup-segmented__option ${selected === index
+              ? "is-selected"
+              : ""}"
+            aria-pressed=${selected === index}
+            ?disabled=${setting.disabled}
+            @click=${() => choose(index)}
+          >
+            ${translateText(`difficulty.${key.toLowerCase()}`)}
+          </button>`,
+      )}
     </div>`;
   }
   private renderMode() {
@@ -310,13 +293,10 @@ export class GameConfigSettings extends LitElement {
         "map.map",
         html`<map-picker
           .selectedMap=${settings.map.selected}
-          .useRandomMap=${settings.map.useRandom}
-          .randomMapDivider=${false}
           .showMedals=${settings.map.showMedals ?? false}
           .mapWins=${settings.map.mapWins ?? new Map()}
           .onSelectMap=${(map: GameMapType) =>
             this.emit("map-selected", { map })}
-          .onSelectRandom=${() => this.emit("random-map-selected", {})}
           .searchQuery=${this.mapSearchQuery}
         ></map-picker>`,
         this.renderMapSearch(),

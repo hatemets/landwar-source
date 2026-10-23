@@ -17,10 +17,6 @@ if (!document.getElementById(COSMETIC_CARD_STYLE_ID)) {
   const style = document.createElement("style");
   style.id = COSMETIC_CARD_STYLE_ID;
   style.textContent = `
-    @keyframes cosmetic-card-legendary-pulse {
-      0%, 100% { box-shadow: 0 0 15px rgba(251,146,60,0.8), 0 0 30px rgba(251,146,60,0.4); }
-      50% { box-shadow: 0 0 25px rgba(251,146,60,0.9), 0 0 45px rgba(251,146,60,0.5); }
-    }
     @keyframes cosmetic-card-shimmer {
       0% { left: -60%; }
       100% { left: 160%; }
@@ -70,23 +66,18 @@ if (!document.getElementById(COSMETIC_CARD_STYLE_ID)) {
     cosmetic-card:hover { position: relative; z-index: 10; }
     cosmetic-card:hover [data-cosmetic-shell][data-cosmetic-rarity="common"] {
       transform: translateY(-4px);
-      box-shadow: 0 0 10px rgba(255,255,255,0.5);
     }
     cosmetic-card:hover [data-cosmetic-shell][data-cosmetic-rarity="uncommon"] {
       transform: translateY(-4px);
-      box-shadow: 0 0 12px rgba(74,222,128,0.6);
     }
     cosmetic-card:hover [data-cosmetic-shell][data-cosmetic-rarity="rare"] {
       transform: translateY(-4px);
-      box-shadow: 0 0 14px rgba(96,165,250,0.7);
     }
     cosmetic-card:hover [data-cosmetic-shell][data-cosmetic-rarity="epic"] {
       transform: translateY(-4px);
-      box-shadow: 0 0 14px rgba(192,132,252,0.85);
     }
     cosmetic-card:hover [data-cosmetic-shell][data-cosmetic-rarity="legendary"] {
       transform: translateY(-6px) scale(1.12);
-      animation: cosmetic-card-legendary-pulse 1.4s ease-in-out infinite;
     }
 
     [data-cosmetic-main], [data-cosmetic-action] {
@@ -168,7 +159,6 @@ if (!document.getElementById(COSMETIC_CARD_STYLE_ID)) {
       font-size: 10px;
       line-height: 1;
       opacity: 0;
-      text-shadow: 0 0 6px rgba(255,200,60,1);
     }
     cosmetic-card:hover [data-cosmetic-sparkle="0"] { animation: cosmetic-card-sparkle-0 1.6s ease-in-out infinite; }
     cosmetic-card:hover [data-cosmetic-sparkle="1"] { animation: cosmetic-card-sparkle-1 1.9s ease-in-out infinite 0.3s; }
@@ -290,19 +280,9 @@ export class CosmeticCard extends LitElement {
     }
   }
 
-  private rarityHoverClass(rarity: string): string {
-    switch (rarity) {
-      case "uncommon":
-        return "hover:shadow-[0_14px_30px_rgba(74,222,128,0.22)]";
-      case "rare":
-        return "hover:shadow-[0_14px_30px_rgba(96,165,250,0.28)]";
-      case "epic":
-        return "hover:shadow-[0_14px_34px_rgba(232,121,249,0.32)]";
-      case "legendary":
-        return "hover:shadow-[0_16px_38px_rgba(251,191,36,0.38)]";
-      default:
-        return "hover:shadow-[0_12px_26px_rgba(255,255,255,0.14)]";
-    }
+  /** No coloured hover glows: hover only lifts the card (see styles). */
+  private rarityHoverClass(_rarity: string): string {
+    return "";
   }
 
   private renderSwatches() {
@@ -380,9 +360,7 @@ export class CosmeticCard extends LitElement {
     const isFocused = this.state === "focused";
     const isEquipped = this.state === "equipped";
     const shellClass = `${this.rarityClass(rarity)} ${
-      isEquipped
-        ? "ring-2 ring-emerald-400/70 shadow-[0_0_24px_rgba(52,211,153,0.45)]"
-        : ""
+      isEquipped ? "ring-2 ring-emerald-400/70" : ""
     } ${this.rarityHoverClass(rarity)}`;
     const priced = active.cosmetic as {
       artist?: string;

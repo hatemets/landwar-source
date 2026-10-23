@@ -17,12 +17,12 @@
     "nameDebug": false
   },
   "terrain": {
-    "backgroundColor": "#3c3c3c",
-    "oceanColor": "#4785b5",
-    "sandColor": "#CCCB9E",
-    "plainsColor": "#BEDC8A",
-    "highlandColor": "#DCCB9E",
-    "mountainColor": "#e6e6e6"
+    "backgroundColor": "#101317",
+    "oceanColor": "#3b6585",
+    "sandColor": "#d2c8a6",
+    "plainsColor": "#b7c99a",
+    "highlandColor": "#cdbf9c",
+    "mountainColor": "#e4e2dc"
   },
   "falloutBloom": {
     "broilSpeedCold": 0.0018,
@@ -98,7 +98,9 @@
     "embargoTintB": 0,
     "friendlyTintR": 0,
     "friendlyTintG": 1,
-    "friendlyTintB": 0
+    "friendlyTintB": 0,
+    "smoothEdges": true,
+    "borderBand": 0.8
   },
   "affiliation": {
     "selfR": 0,
@@ -167,7 +169,7 @@
     "scale": 1,
     "outlineWidth": 8,
     "offsetY": -0.4,
-    "classicFont": true
+    "classicFont": false
   },
   "bar": {
     "healthBarW": 11,
@@ -297,11 +299,10 @@
     "allyColorB": 0
   },
   "moveIndicator": {
-    "startRadius": 13,
-    "chevronSize": 5,
-    "lineWidth": 2,
-    "duration": 800,
-    "converge": 0.7
+    "rippleRadius": 22,
+    "pinSize": 8,
+    "lineWidth": 1.75,
+    "duration": 1100
   },
   "samRadius": {
     "strokeWidth": 1.5,
@@ -331,8 +332,9 @@
   "spawnOverlay": {
     "highlightRadius": 9,
     "highlightAlpha": 1.0,
-    "selfMinRad": 10,
-    "selfMaxRad": 30,
+    "selfOrbitRadius": 6,
+    "selfDotRadius": 1.1,
+    "selfOrbitSpeed": 2.4,
     "mateMinRad": 5,
     "mateMaxRad": 14,
     "animSpeed": 0.008,

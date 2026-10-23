@@ -68,43 +68,34 @@ export class SettingSlider extends LitElement {
 
     return html`
       <div
-        class="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full p-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all gap-3 sm:gap-4 ${rainbowClass}"
+        class="flex flex-col w-full px-3 py-2 gap-1 rounded-lg transition-colors duration-150 ${rainbowClass}"
       >
-        <div class="flex flex-col flex-1 min-w-0 sm:mr-4">
-          <label class="text-white font-bold text-base block mb-1"
+        <div class="flex items-center gap-2 min-h-6">
+          <label class="flex-1 min-w-0 text-white text-sm font-medium"
             >${this.label}</label
           >
-          <div class="text-white/50 text-sm leading-snug">
-            ${this.description}
-          </div>
+          <span
+            class="shrink-0 min-w-[3ch] text-right text-sm font-medium tabular-nums text-white"
+            >${this.formatValue
+              ? this.formatValue(this.value)
+              : `${this.value}${this.unit}`}</span
+          >
         </div>
-
-        <div
-          class="flex flex-col items-start sm:items-end gap-2 shrink-0 sm:w-auto sm:w-[200px]"
-        >
-          <div class="flex items-center gap-2 w-full">
-            <span
-              class="text-white font-bold text-sm shrink-0 text-right min-w-[3ch]"
-              >${this.formatValue
-                ? this.formatValue(this.value)
-                : `${this.value}${this.unit}`}</span
-            >
-            <input
-              type="range"
-              class="flex-1 w-auto appearance-none h-2 bg-transparent rounded outline-none 
-              [&::-webkit-slider-runnable-track]:h-2 [&::-webkit-slider-runnable-track]:rounded [&::-webkit-slider-runnable-track]:bg-[image:linear-gradient(to_right,var(--color-malibu-blue)_0%,var(--color-malibu-blue)_var(--fill),rgba(255,255,255,0.1)_var(--fill),rgba(255,255,255,0.1)_100%)]
-              [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-[18px] [&::-webkit-slider-thumb]:w-[18px] [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-malibu-blue [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:-mt-[6px] [&::-webkit-slider-thumb]:shadow-[var(--shadow-malibu-blue-ring-sm)] [&::-webkit-slider-thumb]:transition-all active:[&::-webkit-slider-thumb]:scale-110 active:[&::-webkit-slider-thumb]:shadow-[var(--shadow-malibu-blue-ring-lg)]
-              [&::-moz-range-track]:h-2 [&::-moz-range-track]:rounded [&::-moz-range-track]:bg-white/10
-              [&::-moz-range-progress]:h-2 [&::-moz-range-progress]:rounded [&::-moz-range-progress]:bg-malibu-blue
-              [&::-moz-range-thumb]:h-[18px] [&::-moz-range-thumb]:w-[18px] [&::-moz-range-thumb]:border-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-malibu-blue [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:shadow-[var(--shadow-malibu-blue-ring-sm)] [&::-moz-range-thumb]:transition-all active:[&::-moz-range-thumb]:scale-110 active:[&::-moz-range-thumb]:shadow-[var(--shadow-malibu-blue-ring-lg)]"
-              min=${this.min}
-              max=${this.max}
-              step=${this.step}
-              .value=${String(this.value)}
-              @input=${this.handleInput}
-            />
-          </div>
-        </div>
+        ${this.description
+          ? html`<div class="text-white/50 text-xs leading-snug">
+              ${this.description}
+            </div>`
+          : null}
+        <input
+          type="range"
+          class="lw-range"
+          aria-label=${this.label}
+          min=${this.min}
+          max=${this.max}
+          step=${this.step}
+          .value=${String(this.value)}
+          @input=${this.handleInput}
+        />
       </div>
     `;
   }

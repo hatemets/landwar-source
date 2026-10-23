@@ -78,9 +78,10 @@ export class ReplayPanel extends LitElement implements Controller {
             ? translateText("replay_panel.replay_speed")
             : translateText("replay_panel.game_speed")}
         </label>
-        <div class="grid grid-cols-4 gap-2">
+        <div class="grid grid-cols-5 gap-1">
           ${this.renderSpeedButton(ReplaySpeedMultiplier.slow, "×0.5")}
           ${this.renderSpeedButton(ReplaySpeedMultiplier.normal, "×1")}
+          ${this.renderSpeedButton(ReplaySpeedMultiplier.brisk, "×1.5")}
           ${this.renderSpeedButton(ReplaySpeedMultiplier.fast, "×2")}
           ${this.renderSpeedButton(
             ReplaySpeedMultiplier.fastest,
@@ -92,12 +93,14 @@ export class ReplayPanel extends LitElement implements Controller {
   }
 
   private renderSpeedButton(value: ReplaySpeedMultiplier, label: string) {
-    const backgroundColor =
-      this._replaySpeedMultiplier === value ? "bg-malibu-blue" : "";
+    const selected = this._replaySpeedMultiplier === value;
 
     return html`
       <button
-        class="py-0.5 px-1 text-sm text-white rounded-sm border transition border-gray-500 ${backgroundColor} hover:border-gray-200"
+        aria-pressed=${selected}
+        class="py-1 px-1 text-sm font-medium tabular-nums rounded-md transition-colors ${selected
+          ? "bg-malibu-blue text-white"
+          : "bg-white/[0.06] text-white/70 hover:bg-white/[0.12] hover:text-white"}"
         @click=${() => this.onReplaySpeedChange(value)}
       >
         ${label}

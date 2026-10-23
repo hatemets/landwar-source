@@ -69,7 +69,7 @@ export class PlayerProfileModal extends BaseModal {
       // right chip then always shows the publicId.
       titleContent: this.username
         ? html`<span
-            class="text-white text-xl lg:text-2xl font-bold tracking-wide break-words hyphens-auto min-w-0 inline-flex items-center gap-2"
+            class="field-modal-title break-words hyphens-auto min-w-0 inline-flex items-center gap-2"
           >
             ${usernameText(this.username)}
             ${isVerifiedUsername(this.username)

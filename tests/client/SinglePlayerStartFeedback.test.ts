@@ -142,8 +142,7 @@ describe("SinglePlayerModal start feedback", () => {
   // runs if the promise it is waiting on never settles. A stalled connection
   // (captive portal, DNS blackhole) reaching any unbounded fetch beneath
   // getPlayerCosmetics used to pin the button at "Starting…" for the rest of
-  // the session — surviving close and reopen, and silently no-opping the
-  // Tutorial entry point on the re-entrancy guard.
+  // the session, surviving close and reopen.
   it("does not stay busy when cosmetics never settle", async () => {
     vi.useFakeTimers();
     vi.spyOn(console, "warn").mockImplementation(() => undefined);
@@ -288,12 +287,5 @@ describe("SinglePlayerModal start feedback", () => {
     internals(modal).onOpen();
 
     expect(cosmeticsMocks.prewarmCosmetics).toHaveBeenCalledTimes(1);
-  });
-
-  it("prewarms cosmetics on the tutorial path, which never opens the modal", async () => {
-    await modal.startTutorial();
-
-    expect(cosmeticsMocks.prewarmCosmetics).toHaveBeenCalled();
-    expect(joins).toHaveLength(1);
   });
 });

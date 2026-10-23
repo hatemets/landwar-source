@@ -127,7 +127,7 @@ export class SpawnTimer extends LitElement implements Controller {
           const color = this.colors[i] || "rgba(0, 0, 0, 0.5)";
           return html`
             <div
-              class="h-full pointer-events-auto transition-all duration-100 ease-in-out w-(--width) bg-(--bg) border-b-3 border-r-2 border-black"
+              class="h-full pointer-events-auto transition-all duration-100 ease-in-out w-(--width) bg-(--bg)"
               style="--width: ${ratio * 100}%; --bg: ${color};"
               @mouseenter=${() => (this.hoveredIndex = i)}
               @mouseleave=${() => (this.hoveredIndex = null)}
@@ -168,7 +168,7 @@ export class SpawnTimer extends LitElement implements Controller {
 
     return html`
       <div
-        class="absolute top-3.5 -translate-x-1/2 z-999 px-2 py-1 rounded bg-black/85 text-white text-xs text-center break-words pointer-events-none"
+        class="absolute top-3.5 -translate-x-1/2 z-999 px-2 py-1 rounded-md bg-gray-900/90 text-white text-xs text-center break-words pointer-events-none"
         style="left: ${clampedLeft}; max-width: 128px"
       >
         ${translateText("spawn_timer.team_percent_tooltip", {

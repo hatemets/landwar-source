@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import "../../../src/client/components/baseComponents/Modal";
 import type { OModal } from "../../../src/client/components/baseComponents/Modal";
 
-const tabs = ["stats", "games", "clans", "progression"].map((key) => ({
+const tabs = ["stats", "games", "friends", "progression"].map((key) => ({
   key,
   label: key,
 }));
@@ -38,38 +38,20 @@ describe("o-modal tab row", () => {
     }
   });
 
-  it("compacts the tabs below sm, keeping the tap target, and not above", async () => {
-    const row = tabRow(await render("stats"));
-    // Narrow row padding and no gaps on a phone; as before from sm up.
+  it("uses plain sentence-case labels and marks the active tab", async () => {
+    const row = tabRow(await render("games"));
     expect(row.className).toMatch(/(^| )px-2( |$)/);
     expect(row.className).toContain("sm:px-4");
-    expect(row.className).toContain("lg:px-6");
-    expect(row.className).toContain("sm:gap-1");
     for (const tab of row.querySelectorAll('[role="tab"]')) {
-      const cls = tab.className.split(/\s+/);
-      // Phone: smaller, less tracked, less padded labels, still 40px tall.
-      expect(cls).toEqual(
-        expect.arrayContaining([
-          "px-2",
-          "text-[11px]",
-          "tracking-wide",
-          "min-h-10",
-          "py-3",
-        ]),
-      );
-      // From sm up, the row as it was.
-      expect(cls).toEqual(
-        expect.arrayContaining([
-          "sm:px-4",
-          "sm:text-sm",
-          "sm:leading-5",
-          "sm:tracking-wider",
-        ]),
-      );
+      expect(tab.className).not.toContain("uppercase");
     }
-    // The active tab keeps its underline.
+    // Only the active tab carries the underline.
     const active = row.querySelector('[aria-selected="true"]')!;
-    expect(active.querySelector(".bg-malibu-blue")).not.toBeNull();
+    expect(active.getAttribute("data-key")).toBe("games");
+    expect(active.querySelector("div")).not.toBeNull();
+    for (const tab of row.querySelectorAll('[aria-selected="false"]')) {
+      expect(tab.querySelector("div")).toBeNull();
+    }
   });
 
   // jsdom does no layout: give the row a width and each tab a box, 100px

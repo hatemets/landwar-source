@@ -49,16 +49,17 @@ export class LanguageModal extends BaseModal {
             const isDebug = lang.code === "debug";
 
             let buttonClasses =
-              "relative group rounded-xl border transition-all duration-200 flex items-center p-3 gap-3 w-full cursor-pointer";
+              "relative group rounded-lg border-0 transition-colors duration-150 flex items-center p-3 gap-3 w-full cursor-pointer";
 
             if (isDebug) {
               buttonClasses +=
-                " animate-pulse font-bold text-white border-2 border-dashed border-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.2)] bg-gradient-to-r from-red-600 via-yellow-600 via-green-600 via-blue-600 to-purple-600";
+                " font-medium text-white bg-gradient-to-r from-red-600 via-yellow-600 via-green-600 via-blue-600 to-purple-600";
             } else if (isActive) {
-              buttonClasses += " bg-malibu-blue/20 border-malibu-blue/50";
+              buttonClasses +=
+                " bg-[var(--field-raised)] outline-2 outline-[var(--field-accent)]";
             } else {
               buttonClasses +=
-                " bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20";
+                " bg-[var(--field-raised)] hover:bg-[var(--field-hover)]";
             }
 
             return html`

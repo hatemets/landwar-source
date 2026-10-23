@@ -8,7 +8,6 @@ import { PlayerRow } from "../../src/client/components/baseComponents/ranking/Pl
 const basePlayer: PlayerInfo = {
   id: "player-1",
   username: "Ada Lovelace",
-  clanTag: null,
   gold: [],
   conquests: [],
   winner: false,
@@ -100,21 +99,6 @@ describe("PlayerRow", () => {
     expect(
       row.querySelector('[data-player-avatar="fallback"]')?.textContent?.trim(),
     ).toBe("AD");
-  });
-
-  it("renders the clan tag inline before the username", async () => {
-    row = await mountRow({
-      player: { clanTag: "UN", username: "kazz" },
-    });
-
-    const identity = row.querySelector("[data-player-identity]")!;
-    const clanTag = row.querySelector("[data-player-clan-tag]")!;
-    const username = row.querySelector("[data-player-name]")!;
-
-    expect(identity.children[0]).toBe(clanTag);
-    expect(identity.children[1]).toBe(username);
-    expect(clanTag.textContent?.trim()).toBe("UN");
-    expect(username.textContent?.trim()).toBe("kazz");
   });
 
   it("preserves an eliminated player's flag and adds eliminated status", async () => {

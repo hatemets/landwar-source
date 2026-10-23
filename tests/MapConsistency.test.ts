@@ -53,13 +53,7 @@ const PREVIEW_FOLDER_EXCEPTIONS: Set<GameMapName> = new Set([
 ]);
 
 // Keys in the en.json "map" section that are UI strings, not map names.
-const EN_JSON_META_KEYS = new Set([
-  "map",
-  "featured",
-  "all",
-  "favorites",
-  "random",
-]);
+const EN_JSON_META_KEYS = new Set(["map", "featured", "all", "random"]);
 
 /** Get the en.json "map" section. */
 function getEnJsonMapSection(): Record<string, string> {

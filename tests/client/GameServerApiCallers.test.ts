@@ -19,7 +19,7 @@ vi.mock("../../src/client/ServerList", async (importOriginal) => {
   return { ...actual, ensureServerList: mocks.ensureServerList };
 });
 
-import { createLobby } from "../../src/client/Api";
+import { createLobby, LobbyCreationError } from "../../src/client/Api";
 import { ClientEnv } from "../../src/client/ClientEnv";
 import { JoinLobbyModal } from "../../src/client/JoinLobbyModal";
 import { MatchmakingModal } from "../../src/client/Matchmaking";
@@ -76,6 +76,27 @@ describe("createLobby", () => {
     // No worker prefix: the edge (nginx in prod, the vite proxy in dev) picks
     // a worker, which mints a self-owned id.
     expect(lastUrl()).toBe(`https://${SERVER_HOST}/api/create_game`);
+  });
+
+  it("reports a sign-in requirement when a guest cannot create a lobby", async () => {
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify({ error: "login_required" }), {
+        status: 403,
+      }),
+    );
+    await expect(createLobby()).rejects.toMatchObject({
+      name: "Error",
+      loginRequired: true,
+    });
+  });
+
+  it("does not label other permission errors as a sign-in requirement", async () => {
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify({ error: "forbidden" }), { status: 403 }),
+    );
+    const error = await createLobby().catch((error) => error);
+    expect(error).toBeInstanceOf(LobbyCreationError);
+    expect(error.loginRequired).toBe(false);
   });
 
   // No server runs this build any more (the rollover moved on without this

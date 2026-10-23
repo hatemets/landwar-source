@@ -24,7 +24,14 @@ import {
   showToast,
   translateText,
 } from "../client/Utils";
-import { createLobby, getUserMe, setLobbyListed } from "./Api";
+import {
+  createLobby,
+  getUserMe,
+  LobbyCreationError,
+  setLobbyListed,
+} from "./Api";
+import { signedOutNotice } from "./components/ui/SignedOutNotice";
+import { statusNotice } from "./components/ui/StatusNotice";
 import "./components/baseComponents/Modal";
 import { BaseModal } from "./components/BaseModal";
 import "./components/ConfirmDialog";
@@ -43,7 +50,6 @@ import { UserSettings } from "./UserSettings";
 import {
   getBotsForCompactMap,
   getNationsForCompactMap,
-  getRandomMapType,
   getUpdatedDisabledUnits,
   parseBoundedFloatFromInput,
   parseBoundedIntegerFromInput,
@@ -96,9 +102,9 @@ export class HostLobbyModal extends BaseModal {
   @state() private allowedPublicIds: string = "";
   @state() private waterNukes: boolean = false;
   @state() private lobbyId = "";
+  @state() private creationError: "login" | "failed" | null = null;
   @state() private lobbyUrlSuffix = "";
   @state() private clients: ClientInfo[] = [];
-  @state() private useRandomMap: boolean = false;
   @state() private disabledUnits: UnitType[] = [];
   @state() private hostCheatsEnabled: boolean = false;
   @state() private hostCheatInfiniteGold: boolean = false;
@@ -227,7 +233,7 @@ export class HostLobbyModal extends BaseModal {
           <span class="lobby-experience__title">
             ${translateText("host_modal.title")}
           </span>
-          ${this.renderVisibilityToggle()}
+          ${this.creationError ? nothing : this.renderVisibilityToggle()}
         </div>
       `,
       onBack: () => {
@@ -240,11 +246,15 @@ export class HostLobbyModal extends BaseModal {
       // was the one surface the invite button originally missed. Paired behind
       // a wrapper only when the invite is present, so a browser renders exactly
       // the markup it did before.
-      rightContent: html`<copy-button
-        .lobbyId=${this.lobbyId}
-        .lobbySuffix=${this.lobbyUrlSuffix}
-        include-lobby-query
-      ></copy-button>`,
+      rightContent: this.creationError
+        ? undefined
+        : !this.lobbyId
+          ? html`<span role="status">${translateText("common.loading")}</span>`
+          : html`<copy-button
+              .lobbyId=${this.lobbyId}
+              .lobbySuffix=${this.lobbyUrlSuffix}
+              include-lobby-query
+            ></copy-button>`,
     });
   }
 
@@ -256,19 +266,19 @@ export class HostLobbyModal extends BaseModal {
   private renderVisibilityToggle() {
     const segment = (labelKey: string, isPublic: boolean) => html`
       <button
-        class="px-3 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full transition-all ${this
-          .publiclyListed === isPublic
-          ? "bg-malibu-blue text-white"
-          : "text-white/50 hover:text-white"}"
+        class="lw-segmented__option ${this.publiclyListed === isPublic
+          ? "is-selected"
+          : ""}"
+        type="button"
+        ?disabled=${!this.lobbyId || this.listingRequestInFlight}
+        aria-pressed=${this.publiclyListed === isPublic}
         @click=${() => this.handleVisibilitySelect(isPublic)}
       >
         ${translateText(labelKey)}
       </button>
     `;
     return html`
-      <div
-        class="flex items-center rounded-full border border-white/10 bg-white/5 p-0.5 shrink-0"
-      >
+      <div class="lw-segmented shrink-0">
         ${this.publiclyListed
           ? nothing
           : segment("host_modal.visibility_private", false)}
@@ -325,6 +335,20 @@ export class HostLobbyModal extends BaseModal {
   }
 
   protected renderBody() {
+    if (this.creationError === "login") {
+      return signedOutNotice(() => {
+        this.close();
+        window.showPage?.("page-signin");
+      }, translateText("host_modal.create_login_required"));
+    }
+    if (this.creationError === "failed") {
+      return html`<div class="p-6 flex flex-col gap-4">
+        ${statusNotice("danger", translateText("new_lobby_prompt.failed"))}
+        <button class="field-button" @click=${() => this.onOpen()}>
+          ${translateText("host_modal.create_retry")}
+        </button>
+      </div>`;
+    }
     const secondsRemaining =
       this.lobbyStartAt !== null
         ? getSecondsUntilServerTimestamp(
@@ -528,7 +552,7 @@ export class HostLobbyModal extends BaseModal {
         >
           ${this.publiclyListed
             ? html`<div
-                class="mb-6 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm font-medium text-amber-300"
+                class="mb-6 rounded-md bg-[var(--field-warning-soft)] px-4 py-3 text-sm text-[var(--field-paper)]"
               >
                 ${translateText("host_modal.settings_locked_listed")}
               </div>`
@@ -542,8 +566,6 @@ export class HostLobbyModal extends BaseModal {
             .settings=${{
               map: {
                 selected: this.selectedMap,
-                useRandom: this.useRandomMap,
-                randomMapDivider: true,
               },
               difficulty: {
                 selected: this.selectedDifficulty,
@@ -645,7 +667,6 @@ export class HostLobbyModal extends BaseModal {
               },
             }}
             @map-selected=${this.handleConfigMapSelected}
-            @random-map-selected=${this.handleConfigRandomMapSelected}
             @difficulty-selected=${this.handleConfigDifficultySelected}
             @doomsday-clock-speed-selected=${this
               .handleConfigDoomsdayClockSpeedSelected}
@@ -685,7 +706,6 @@ export class HostLobbyModal extends BaseModal {
             width="block"
             size="lg"
             .title=${statusLabel}
-            .uppercase=${secondsRemaining === null}
             ?disable=${this.lobbyStartAt === null && this.clients.length < 2}
             @click=${this.toggleGameStartTimer}
           ></o-button>
@@ -726,6 +746,7 @@ export class HostLobbyModal extends BaseModal {
   }
 
   protected onOpen(args?: Record<string, unknown>): void {
+    this.creationError = null;
     setMenuMap(this.selectedMap);
     // Re-armed here (not in onClose's reset) so that once
     // closeWithoutLeaving() disarms it, no close cascade — e.g. another
@@ -788,8 +809,13 @@ export class HostLobbyModal extends BaseModal {
           }),
         );
       })
-      .catch(() => {
-        // Clear clipboard so the host doesn't accidentally share a dead link
+      .catch((error) => {
+        this.lobbyId = "";
+        this.creationError =
+          error instanceof LobbyCreationError && error.loginRequired
+            ? "login"
+            : "failed";
+        this.updateHistory("/");
         void navigator.clipboard.writeText("").catch(() => {});
       });
     // BaseModal.firstUpdated() owns modalEl.onClose so the o-modal close path
@@ -896,9 +922,9 @@ export class HostLobbyModal extends BaseModal {
     this.instantBuild = false;
     this.randomSpawn = false;
     this.compactMap = false;
-    this.useRandomMap = false;
     this.disabledUnits = [];
     this.lobbyId = "";
+    this.creationError = null;
     this.clients = [];
     this.lobbyCreatorClientID = "";
     this.goldMultiplier = true;
@@ -929,20 +955,8 @@ export class HostLobbyModal extends BaseModal {
     this.autoStartAt = null;
   }
 
-  private async handleSelectRandomMap() {
-    this.useRandomMap = true;
-    this.selectedMap = getRandomMapType();
-    await this.loadNationCount();
-    this.putGameConfig();
-  }
-
-  private handleConfigRandomMapSelected = () => {
-    void this.handleSelectRandomMap();
-  };
-
   private async handleMapSelection(value: GameMapType) {
     this.selectedMap = value;
-    this.useRandomMap = false;
     await this.loadNationCount();
     this.putGameConfig();
   }
@@ -1496,8 +1510,10 @@ export class HostLobbyModal extends BaseModal {
     const spawnImmunityTicks = this.spawnImmunityDurationMinutes
       ? this.spawnImmunityDurationMinutes * 60 * 10
       : 0;
-    const url = await this.constructUrl();
-    this.updateLobbyHistory(url);
+    if (this.lobbyId) {
+      const url = await this.constructUrl();
+      this.updateLobbyHistory(url);
+    }
     this.dispatchEvent(
       new CustomEvent("update-game-config", {
         detail: {
@@ -1597,7 +1613,7 @@ export class HostLobbyModal extends BaseModal {
   private async toggleGameStartTimer() {
     await this.putGameConfig();
     console.log(
-      `Starting private game with map: ${GameMapType[this.selectedMap as keyof typeof GameMapType]} ${this.useRandomMap ? " (Randomly selected)" : ""}`,
+      `Starting private game with map: ${GameMapType[this.selectedMap as keyof typeof GameMapType]} `,
     );
 
     // If the modal closes as part of starting the game, do not leave the lobby

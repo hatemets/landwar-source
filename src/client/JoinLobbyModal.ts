@@ -29,6 +29,7 @@ import { terrainMapFileLoader } from "./TerrainMapFileLoader";
 import { normaliseMapKey } from "./Utils";
 import { findVersionedShell } from "./VersionedReplay";
 import { BaseModal } from "./components/BaseModal";
+import { renderGlobeLoader } from "./components/ConquestGlobe";
 import "./components/CopyButton";
 import { GameStartAlertController } from "./components/GameStartAlertController";
 import "./components/LobbyPlayerView";
@@ -225,16 +226,7 @@ export class JoinLobbyModal extends BaseModal {
         <div class="flex-1 custom-scrollbar p-6 space-y-4 mr-1">
           ${this.isConnecting
             ? html`
-                <div
-                  class="min-h-[240px] flex flex-col items-center justify-center gap-4"
-                >
-                  <div
-                    class="w-12 h-12 border-4 border-white/20 border-t-white rounded-full animate-spin"
-                  ></div>
-                  <p class="text-center text-white/80 text-sm">
-                    ${translateText("public_lobby.connecting")}
-                  </p>
-                </div>
+                ${renderGlobeLoader(translateText("public_lobby.connecting"))}
               `
             : html`
                 ${this.gameConfig ? this.renderGameConfig() : html``}
@@ -314,10 +306,12 @@ export class JoinLobbyModal extends BaseModal {
                 id="lobbyIdInput"
                 placeholder=${translateText("private_lobby.enter_id")}
                 @keyup=${this.handleChange}
-                class="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-mono text-sm tracking-wider"
+                class="field-input flex-1"
+                autocomplete="off"
+                spellcheck="false"
               />
               <o-button
-                variant="ghost"
+                variant="secondary"
                 size="md"
                 iconPosition="only"
                 .title=${translateText("common.paste")}
@@ -347,7 +341,7 @@ export class JoinLobbyModal extends BaseModal {
               </div>
               <div class="flex-1">
                 <o-button
-                  variant="ghost"
+                  variant="secondary"
                   title=${translateText("private_lobby.spectate")}
                   width="block"
                   @click=${this.spectateLobbyFromInput}
@@ -366,7 +360,7 @@ export class JoinLobbyModal extends BaseModal {
     if (!this.hostedLobbiesLoaded) {
       content = html`<div class="flex justify-center py-3">
         <div
-          class="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin"
+          class="w-5 h-5 border-2 border-white/15 border-t-[var(--field-accent)] rounded-full animate-spin"
         ></div>
       </div>`;
     } else if (this.hostedLobbies.length === 0) {
@@ -379,12 +373,10 @@ export class JoinLobbyModal extends BaseModal {
       </div>`;
     }
     return html`
-      <div class="pt-2">
-        <div
-          class="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-2"
-        >
+      <div class="pt-4">
+        <h3 class="text-sm font-semibold text-white mb-3">
           ${translateText("private_lobby.open_lobbies")}
-        </div>
+        </h3>
         ${content}
       </div>
     `;

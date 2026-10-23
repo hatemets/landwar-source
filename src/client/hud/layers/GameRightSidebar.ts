@@ -321,7 +321,7 @@ export class GameRightSidebar extends LitElement implements Controller {
         @keyframes game-end-timer-sidebar-flash {
           0%,
           100% {
-            background-color: rgb(0 0 0 / 0.92);
+            background-color: rgb(15 22 36 / 0.9);
           }
           50% {
             background-color: rgb(185 28 28 / 0.96);
@@ -348,7 +348,7 @@ export class GameRightSidebar extends LitElement implements Controller {
         }
       </style>
       <aside
-        class=${`w-fit flex flex-row items-center gap-3 py-2 px-3 bg-gray-800/92 backdrop-blur-sm shadow-xs rounded-bl-lg transition-transform duration-300 ease-out transform text-white ${shouldFlashSidebar ? "game-end-timer-sidebar-flash" : ""} ${
+        class=${`w-fit flex flex-row items-center gap-3 py-2 px-3 bg-gray-900/90 rounded-bl-lg transition-transform duration-300 ease-out transform text-white ${shouldFlashSidebar ? "game-end-timer-sidebar-flash" : ""} ${
           this._isVisible ? "translate-x-0" : "translate-x-full"
         }`}
         @contextmenu=${(e: Event) => e.preventDefault()}

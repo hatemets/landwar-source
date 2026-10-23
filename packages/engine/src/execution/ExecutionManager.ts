@@ -21,6 +21,7 @@ import { EmbargoAllExecution } from "./EmbargoAllExecution";
 import { EmbargoExecution } from "./EmbargoExecution";
 import { EmojiExecution } from "./EmojiExecution";
 import { MarkDisconnectedExecution } from "./MarkDisconnectedExecution";
+import { MaxUpgradeExecution } from "./MaxUpgradeExecution";
 import { MoveWarshipExecution } from "./MoveWarshipExecution";
 import { NationExecution } from "./NationExecution";
 import { NoOpExecution } from "./NoOpExecution";
@@ -131,6 +132,8 @@ export class Executor {
           intent.unitId,
           intent.amount,
         );
+      case "max_upgrade":
+        return new MaxUpgradeExecution(player, intent.units);
       case "delete_unit":
         return new DeleteUnitExecution(player, intent.unitId);
       case "quick_chat":

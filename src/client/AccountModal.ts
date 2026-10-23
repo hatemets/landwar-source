@@ -5,7 +5,7 @@ import { customElement, state } from "lit/decorators.js";
 import { ClientEnv } from "src/client/ClientEnv";
 import { hasLinkedIdentity } from "./AccountIdentity";
 import { fetchPlayerById, getUserMe } from "./Api";
-import { googleLogin, linkGoogle } from "./Auth";
+import { linkGoogle } from "./Auth";
 import "./components/baseComponents/stats/PlayerGameHistoryView";
 import type { PlayerGameHistoryCache } from "./components/baseComponents/stats/PlayerGameHistoryView";
 import "./components/baseComponents/stats/PlayerStatsTable";
@@ -20,25 +20,14 @@ import { modalHeader } from "./components/ui/ModalHeader";
 import "./GameStatsModal";
 import { showInGameAlert } from "./InGameModal";
 import { consumeLinkResult } from "./LinkResult";
-import { consumeLoginResult, LoginResult } from "./LoginResult";
 import "./PlayerProfileModal";
 import { playerProfileUrl } from "./utilities/PlayerProfileUrl";
 import { currentPagePath, translateText } from "./Utils";
-
-// Each login refusal says its own thing. A player refused because their
-// account is pending deletion must not be told their email is already in use.
-const LOGIN_ERROR_KEYS: Record<LoginResult, string> = {
-  email_exists: "account_modal.login_email_exists",
-  deleted: "account_modal.login_deleted",
-  error: "account_modal.login_error",
-  no_account: "account_modal.login_no_account",
-};
 
 @customElement("account-modal")
 export class AccountModal extends BaseModal {
   protected routerName = "account";
 
-  @state() private authIntent: "signin" | "signup" = "signin";
   @state() private isLoadingUser: boolean = false;
   // Counts openings, so a slow /users/@me read from an earlier opening can't
   // finish a later one.
@@ -47,10 +36,6 @@ export class AccountModal extends BaseModal {
   // listed at open, but the tabs wait for the account: an opening lists none
   // while it reads /users/@me. Picked once that lands.
   private requestedTab: string | null = null;
-  // One-shot outcome of a rejected sign-in, read from the `login=` router
-  // arg on open. Reassigned on every open, so reopening clears it.
-  @state() private loginError: LoginResult | undefined;
-
   private userMeResponse: UserMeResponse | null = null;
   private statsTree: PlayerStatsTree | null = null;
   // Preserves the Games tab's accumulated list + cursor across tab switches.
@@ -94,17 +79,9 @@ export class AccountModal extends BaseModal {
 
   protected renderHeaderSlot() {
     const isLoggedIn = !!this.userMeResponse?.user;
-    const isAuthView = !this.isLinkedAccount();
     const publicId = this.userMeResponse?.player?.publicId ?? "";
     return modalHeader({
-      title: translateText(
-        isAuthView
-          ? this.authIntent === "signup"
-            ? "main.sign_up"
-            : "main.sign_in"
-          : "account_modal.title",
-      ),
-      titleClassName: "field-modal-title",
+      title: translateText("account_modal.title"),
       onBack: () => this.close(),
       ariaLabel: translateText("common.back"),
       rightContent:
@@ -147,11 +124,7 @@ export class AccountModal extends BaseModal {
         translateText("account_modal.fetching_account"),
       );
     }
-    if (!this.isLinkedAccount()) {
-      return html`<div class="custom-scrollbar mr-1">
-        ${this.renderLoginOptions()}
-      </div>`;
-    }
+    if (!this.isLinkedAccount()) return html``;
     return html`
       <div class="custom-scrollbar mr-1">
         <div class="p-6">${this.renderTab(tab)}</div>
@@ -349,6 +322,12 @@ export class AccountModal extends BaseModal {
     if (opening !== this.openCount) return;
     this.isLoadingUser = false;
     this.requestUpdate();
+    // Signing in has a page of its own: a visitor with no account goes there.
+    if (!this.isLinkedAccount() && this.isOpen()) {
+      this.close();
+      window.showPage?.("page-signin");
+      return;
+    }
     // The tabs are listed now: pick the one asked for. The modal can have been
     // closed meanwhile; the tab is then left for the next opening to decide.
     const tab = this.requestedTab;
@@ -367,76 +346,6 @@ export class AccountModal extends BaseModal {
     this.restoreGamesScrollAfterOpen = false;
   }
 
-  // Shown when a sign-in was rejected because the provider's verified email
-  // already belongs to an account. We deliberately don't name which provider
-  // that account uses — the visitor has only proven control of the email.
-  private renderLoginError(): TemplateResult {
-    if (this.loginError === undefined) return html``;
-    return html`
-      <div
-        class="mb-6 flex items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/10 p-4"
-      >
-        <span class="text-red-400 text-lg leading-none" aria-hidden="true">
-          &#9888;
-        </span>
-        <p class="flex-1 text-sm text-red-200">
-          ${translateText(LOGIN_ERROR_KEYS[this.loginError])}
-        </p>
-        <button
-          class="text-red-200/60 hover:text-red-200 text-lg leading-none"
-          aria-label=${translateText("common.close")}
-          @click=${() => (this.loginError = undefined)}
-        >
-          &times;
-        </button>
-      </div>
-    `;
-  }
-
-  private renderLoginOptions() {
-    // Google is the only sign-in provider configured by LandWar's backend.
-    return html`
-      <div class="auth-experience">
-        <div class="auth-form-column">
-          <div class="auth-heading">
-            <p class="auth-description">
-              ${translateText(
-                this.authIntent === "signup"
-                  ? "account_modal.sign_up_desc"
-                  : "account_modal.sign_in_desc",
-              )}
-            </p>
-            ${this.renderCurrency()}
-          </div>
-
-          ${this.renderLoginError()}
-
-          <div class="auth-options">
-            <!-- Google Login Button (Google brand guidelines: white surface,
-                 dark text, the multicolor "G" mark) -->
-            <button
-              @click="${this.handleGoogleLogin}"
-              class="auth-provider-button auth-provider-google w-full px-6 py-4 text-[#1f1f1f] bg-white hover:bg-[#f7f8f8] border border-[#dadce0] rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4285F4] transition-colors duration-200 flex items-center justify-center gap-3 group relative overflow-hidden shadow-lg"
-            >
-              <img
-                src=${assetUrl("images/GoogleLogo.svg")}
-                alt=${translateText("account_modal.google_alt")}
-                class="w-6 h-6 relative z-10"
-              />
-              <span class="font-bold relative z-10 tracking-wide"
-                >${translateText("main.login_google")}</span
-              >
-            </button>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  private handleGoogleLogin() {
-    googleLogin();
-  }
-
   private handleLinkGoogle = async (): Promise<void> => {
     // On success linkGoogle navigates to Google; the result comes back as a
     // `link=...` router arg handled by consumeLinkResult. A false return
@@ -448,12 +357,10 @@ export class AccountModal extends BaseModal {
   };
 
   protected onOpen(args?: Record<string, unknown>): void {
-    this.authIntent = args?.intent === "signup" ? "signup" : "signin";
     const opening = ++this.openCount;
     this.isLoadingUser = true;
     this.requestedTab = typeof args?.tab === "string" ? args.tab : null;
     consumeLinkResult(args);
-    this.loginError = consumeLoginResult(args);
 
     void getUserMe()
       .then((userMe) => {

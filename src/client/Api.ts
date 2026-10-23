@@ -1,8 +1,6 @@
-import type { NewsItem } from "@openfront/shared/ApiSchemas";
 import {
   GetMyTribeNamesResponse,
   GetMyTribeNamesResponseSchema,
-  NewsItemSchema,
   PlayerGameModeFilter,
   PlayerGameTypeFilter,
   PlayerProfile,
@@ -26,8 +24,6 @@ import {
   ArchivedAnalyticsRecordSchema,
   GameInfo,
 } from "@openfront/shared/WireSchemas";
-import newsItemsFallback from "resources/news.json";
-import { z } from "zod";
 import { getApiBase, getAudience } from "./ApiBase";
 import {
   getAuthHeader,
@@ -926,6 +922,12 @@ export async function queueLobby(
   }
 }
 
+export class LobbyCreationError extends Error {
+  constructor(public readonly loginRequired: boolean) {
+    super(loginRequired ? "login_required" : "lobby_creation_failed");
+  }
+}
+
 // POST /api/create_game on the game server — mints a fresh private lobby with
 // the caller as creator. Deliberately has no worker prefix and no id: the edge
 // (nginx in prod, the vite dev proxy locally) picks a worker, which mints a
@@ -978,6 +980,10 @@ export async function createLobby(): Promise<{
       },
     );
 
+    if (response.status === 403) {
+      const body = await response.json().catch(() => null);
+      throw new LobbyCreationError(body?.error === "login_required");
+    }
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Server error response:", errorText);
@@ -1182,26 +1188,4 @@ export async function fetchTribeLeaderboard(): Promise<
   if (second === false) return first;
 
   return { ...first, tribes: [...first.tribes, ...second.tribes] };
-}
-
-export async function getNews(): Promise<NewsItem[]> {
-  try {
-    const res = await fetch("/api/news.json", {
-      headers: { Accept: "application/json" },
-    });
-    if (res.status !== 200) {
-      console.warn("getNews: unexpected status", res.status);
-      return newsItemsFallback as NewsItem[];
-    }
-    const json = await res.json();
-    const parsed = z.array(NewsItemSchema).safeParse(json);
-    if (!parsed.success) {
-      console.warn("getNews: Zod validation failed", parsed.error);
-      return newsItemsFallback as NewsItem[];
-    }
-    return parsed.data;
-  } catch (err) {
-    console.warn("getNews: request failed, using fallback", err);
-    return newsItemsFallback as NewsItem[];
-  }
 }

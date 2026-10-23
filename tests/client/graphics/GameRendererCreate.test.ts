@@ -40,7 +40,6 @@ const HUD_TAGS = [
   "alert-frame",
   "spawn-timer",
   "immunity-timer",
-  "tutorial-panel",
 ] as const;
 
 describe("createRenderer", () => {

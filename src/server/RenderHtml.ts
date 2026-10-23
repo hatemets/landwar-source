@@ -91,6 +91,11 @@ export async function renderHtmlContent(
     jwtAudience: JSON.stringify(ServerEnv.jwtAudience()),
     manifestHref: buildAssetUrl("manifest.json", assetManifest, cdnBase),
     faviconHref: buildAssetUrl("images/Favicon.svg", assetManifest, cdnBase),
+    appleTouchIconHref: buildAssetUrl(
+      "icons/apple-touch-icon.png",
+      assetManifest,
+      cdnBase,
+    ),
     gameplayScreenshotUrl: buildAssetUrl(
       "images/GameplayScreenshot.png",
       assetManifest,
@@ -102,7 +107,7 @@ export async function renderHtmlContent(
       cdnBase,
     ),
     desktopLogoImageUrl: buildAssetUrl(
-      "images/LandWarLogo.svg",
+      "images/CleoLogo.svg",
       assetManifest,
       cdnBase,
     ),

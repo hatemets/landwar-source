@@ -1,9 +1,19 @@
-import { ClientID } from "@openfront/engine-api/Schemas";
+import {
+  ClientID,
+  MAX_MOVE_WARSHIP_UNITS,
+  MAX_UNIT_ID_WIRE_BYTES,
+} from "@openfront/engine-api/Schemas";
 import { RateLimiter } from "limiter";
 
 const INTENTS_PER_SECOND = 10;
 const INTENTS_PER_MINUTE = 150;
-const MAX_INTENT_SIZE = 2000;
+// Largest size of any intent except the variable-length ones below.
+const BASE_INTENT_SIZE = 2000;
+// The largest legal variable-length intent is a move_warship with the most
+// unit ids the schema allows, each at its worst-case varint size. Its other
+// fields fit in BASE_INTENT_SIZE.
+export const MAX_INTENT_SIZE =
+  BASE_INTENT_SIZE + MAX_MOVE_WARSHIP_UNITS * MAX_UNIT_ID_WIRE_BYTES;
 // A rejoin makes the server serialize and send the turn history since
 // `lastTurn`, which is the full game so far when lastTurn is 0. A real client
 // only sends one per (re)connect, so anything beyond a handful per minute is

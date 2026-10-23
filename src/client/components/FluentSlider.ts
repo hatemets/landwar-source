@@ -76,39 +76,33 @@ export class FluentSlider extends LitElement {
       this.max === this.min
         ? 0
         : ((this.value - this.min) / (this.max - this.min)) * 100;
+    // Some label strings end in ": " for older layouts; the row layout
+    // separates label and value itself.
+    const label = this.labelKey
+      ? translateText(this.labelKey).replace(/:\s*$/, "")
+      : "";
+    const isDefault =
+      this.defaultValue !== undefined &&
+      this.value === this.defaultValue &&
+      this.defaultLabelKey !== "" &&
+      !(this.value === 0 && this.disabledKey);
     return html`
-      <div
-        class="flex flex-col items-center justify-center gap-1 w-full text-center"
-      >
-        <input
-          type="range"
-          .min=${this.min}
-          .max=${this.max}
-          .step=${this.step}
-          .valueAsNumber=${this.value}
-          style="background: linear-gradient(to right, var(--color-malibu-blue) 0%, var(--color-malibu-blue) ${percentage}%, rgba(255, 255, 255, 0.15) ${percentage}%, rgba(255, 255, 255, 0.15) 100%); background-size: 100% 6px; background-repeat: no-repeat; background-position: center; border-radius: 9999px;"
-          class="w-full h-6 p-0 m-0 bg-transparent appearance-none cursor-pointer focus:outline-none 
-                 [&::-webkit-slider-runnable-track]:w-full [&::-webkit-slider-runnable-track]:h-[6px] [&::-webkit-slider-runnable-track]:cursor-pointer [&::-webkit-slider-runnable-track]:bg-transparent [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:transition-colors
-                 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-[18px] [&::-webkit-slider-thumb]:w-[18px] [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-malibu-blue [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:-mt-[6px] [&::-webkit-slider-thumb]:shadow-[var(--shadow-malibu-blue-ring-sm)] [&::-webkit-slider-thumb]:transition-all active:[&::-webkit-slider-thumb]:scale-110 active:[&::-webkit-slider-thumb]:shadow-[var(--shadow-malibu-blue-ring-lg)]
-                 [&::-moz-range-track]:w-full [&::-moz-range-track]:h-[6px] [&::-moz-range-track]:cursor-pointer [&::-moz-range-track]:bg-transparent [&::-moz-range-track]:rounded-full [&::-moz-range-track]:transition-colors
-                 [&::-moz-range-thumb]:h-[18px] [&::-moz-range-thumb]:w-[18px] [&::-moz-range-thumb]:border-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-malibu-blue [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:shadow-[var(--shadow-malibu-blue-ring-sm)] [&::-moz-range-thumb]:transition-all active:[&::-moz-range-thumb]:scale-110 active:[&::-moz-range-thumb]:shadow-[var(--shadow-malibu-blue-ring-lg)]"
-          @input=${this.handleSliderInput}
-          @change=${this.handleSliderChange}
-        />
-        <div
-          class="text-xs normal-case font-medium tracking-normal text-center w-full leading-tight mb-1 flex flex-col items-center ${this
-            .value > 0
-            ? "text-white"
-            : "text-white/60"}"
-        >
-          <span>${this.labelKey ? translateText(this.labelKey) : ""}</span>
+      <div class="lw-slider">
+        <div class="lw-slider__head">
+          <span class="lw-slider__label">${label}</span>
+          ${isDefault && !this.isEditing
+            ? html`<span class="lw-slider__hint"
+                >${translateText(this.defaultLabelKey)}</span
+              >`
+            : null}
           ${this.isEditing
             ? html`<input
                 type="number"
                 .min=${this.min}
                 .max=${this.max}
                 .valueAsNumber=${this.value}
-                class="w-[60px] bg-black/60 text-white border border-white/20 text-center rounded text-sm p-1 leading-none font-medium font-inherit mt-1 focus:outline-none focus:border-blue-500"
+                class="lw-slider__input"
+                aria-label=${label}
                 @input=${this.handleNumberInput}
                 @blur=${() => {
                   this.isEditing = false;
@@ -117,10 +111,7 @@ export class FluentSlider extends LitElement {
                 @keydown=${this.handleNumberKeyDown}
               />`
             : html`<span
-                class="cursor-pointer min-w-[60px] inline-block text-center text-sm font-medium select-none hover:text-white transition-colors mt-1 ${this
-                  .value > 0
-                  ? "text-white"
-                  : "text-white/60"}"
+                class="lw-slider__value ${this.value > 0 ? "" : "is-off"}"
                 role="button"
                 tabindex="0"
                 @click=${this.enableEditing}
@@ -133,16 +124,21 @@ export class FluentSlider extends LitElement {
               >
                 ${this.value === 0 && this.disabledKey
                   ? translateText(this.disabledKey)
-                  : this.defaultValue !== undefined &&
-                      this.value === this.defaultValue &&
-                      this.defaultLabelKey
-                    ? html`${this.value}
-                        <span class="text-white/40 normal-case"
-                          >(${translateText(this.defaultLabelKey)})</span
-                        >`
-                    : this.value}
+                  : this.value}
               </span>`}
         </div>
+        <input
+          type="range"
+          class="lw-slider__range"
+          aria-label=${label}
+          .min=${this.min}
+          .max=${this.max}
+          .step=${this.step}
+          .valueAsNumber=${this.value}
+          style="--range-progress: ${percentage}%"
+          @input=${this.handleSliderInput}
+          @change=${this.handleSliderChange}
+        />
       </div>
     `;
   }

@@ -1,8 +1,11 @@
 import { GameMapType, GameType } from "@openfront/engine-api/game/GameTypes";
 import { UserMeResponse } from "@openfront/shared/ApiSchemas";
+import { assetUrl } from "@openfront/shared/AssetUrls";
 import { PublicGameInfo, PublicGames } from "@openfront/shared/WireSchemas";
 import { html, LitElement, nothing, type TemplateResult } from "lit";
 import { customElement, state } from "lit/decorators.js";
+import "./components/ConquestGlobe";
+import type { GlobeRegionSelectEvent } from "./components/ConquestGlobe";
 import {
   canJoinTrustedLobby,
   lobbyCard,
@@ -11,6 +14,12 @@ import {
   viewerIsSignedIn,
   viewerIsTrusted,
 } from "./components/LobbyCard";
+import {
+  MAP_REGIONS,
+  mapRegions,
+  type GlobeRegionPin,
+  type MapRegion,
+} from "./globe/MapRegions";
 import type { HostLobbyModal } from "./HostLobbyModal";
 import { showInGameAlert } from "./InGameModal";
 import type { JoinLobbyModal } from "./JoinLobbyModal";
@@ -32,7 +41,6 @@ import { UsernameInput } from "./UsernameInput";
 import {
   calculateServerTimeOffset,
   getGameModeLabel,
-  getGamesPlayed,
   getSecondsUntilServerTimestamp,
   reloadForUpdate,
   renderDuration,
@@ -42,16 +50,8 @@ import {
 import { isReplayShellHost } from "./VersionedReplay";
 
 /** Every action is a full pill of one height. Colour comes from the variant. */
-const ACTION_BASE =
-  "flex h-12 w-full items-center justify-center rounded-full px-5 text-sm font-semibold text-white transition-colors duration-200";
-const PRIMARY_ACTION = "menu-action--primary";
 const SECONDARY_ACTION = "menu-action--secondary";
 const DISABLED = "opacity-50 cursor-not-allowed pointer-events-none";
-/** Tutorial action: the gold accent, dark text for contrast. */
-const TUTORIAL_ACTION = "menu-action--tutorial";
-
-/** The Tutorial card shows beside Solo until the player has played this many games. */
-const TUTORIAL_CARD_MAX_GAMES = 5;
 
 /**
  * THE REACHABILITY RULE (OPE-439). Stated once, here; every other call site
@@ -156,6 +156,8 @@ export class GameModeSelector extends LitElement {
   // multiplayerAllowedForBackend for why one missed heartbeat must not dim
   // these buttons.
   @state() private backendOutage = false;
+  // The region picked on the globe; the upcoming list shows only its lobbies.
+  @state() private regionFilter: MapRegion | null = null;
   private serverTimeOffset: number = 0;
   private countdownTimer: number | null = null;
 
@@ -176,6 +178,8 @@ export class GameModeSelector extends LitElement {
   // (past its 1s floor), so this is what stops a player leaning on it.
   @state() private retryCoolingDown = false;
   private retryCooldownTimer: number | undefined;
+  // A Retry press is waiting on the server list; the globe shows it loading.
+  @state() private retryPending = false;
   // An update/drain signal arrived during a lobby wait; prompt on leave-lobby.
   private updateDeferred = false;
 
@@ -261,6 +265,7 @@ export class GameModeSelector extends LitElement {
     );
     document.addEventListener("join-lobby", this.onJoinLobby);
     document.addEventListener("leave-lobby", this.onLeaveLobby);
+    window.addEventListener("resize", this.onResize);
     // Pick up the current value in case username-input validated before us.
     const usernameInput = document.querySelector(
       "username-input",
@@ -289,12 +294,57 @@ export class GameModeSelector extends LitElement {
     );
     document.removeEventListener("join-lobby", this.onJoinLobby);
     document.removeEventListener("leave-lobby", this.onLeaveLobby);
+    window.removeEventListener("resize", this.onResize);
     super.disconnectedCallback();
   }
 
   private onJoinLobby = () => {
     this.inLobby = true;
   };
+
+  private onResize = () => this.positionGlobe(false);
+
+  protected updated(): void {
+    this.positionGlobe(this.globePlaced);
+  }
+
+  // False until the globe has its first position, which is set without a
+  // transition so it does not slide in on page load.
+  private globePlaced = false;
+
+  /**
+   * While the lobby list loads, the globe sits centred under the "Upcoming"
+   * heading as the loading indicator. Once lobbies arrive (or the feed is
+   * known to be down) it slides back to its own column. Offsets use layout
+   * positions, which ignore the transform, so repeated calls are stable.
+   */
+  private positionGlobe(animate: boolean): void {
+    const globe = this.querySelector<HTMLElement>(".menu-globe");
+    const slot = this.querySelector<HTMLElement>(".menu-lobbies");
+    if (!globe || !slot) return;
+    const loading = this.lobbies === null && !this.offlineForLobbies();
+    // Under the "Upcoming" heading, which is the slot's first child.
+    const heading = slot.firstElementChild as HTMLElement | null;
+    const headingH = heading ? heading.offsetHeight + 8 : 0;
+    const dx = loading
+      ? slot.offsetLeft +
+        slot.offsetWidth / 2 -
+        (globe.offsetLeft + globe.offsetWidth / 2)
+      : 0;
+    const dy = loading ? slot.offsetTop + headingH - globe.offsetTop : 0;
+    const transform = `translate(${dx}px, ${dy}px)`;
+    // Over the empty lobby slot it sits on top, so it can still be dragged.
+    globe.classList.toggle("menu-globe--loading", loading);
+    if (!animate) {
+      globe.style.transition = "none";
+      globe.style.transform = transform;
+      void globe.offsetWidth; // commit before re-enabling the transition
+      globe.style.transition = "";
+      this.globePlaced = true;
+      return;
+    }
+    globe.style.transform = transform;
+  }
 
   private onLeaveLobby = () => {
     this.inLobby = false;
@@ -408,17 +458,13 @@ export class GameModeSelector extends LitElement {
       aria-live="polite"
       class="lobby-empty-state ${heightClass}"
     >
-      <svg
-        class="lobby-empty-state__icon"
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 32 32"
-        fill="none"
+      <img
+        class="lobby-empty-state__art"
+        src=${assetUrl("images/illustrations/Camp.webp")}
+        alt=""
         aria-hidden="true"
-      >
-        <circle cx="16" cy="16" r="11" stroke="currentColor" />
-        <circle cx="16" cy="16" r="4" stroke="currentColor" />
-        <path d="M16 2v6m0 16v6M2 16h6m16 0h6" stroke="currentColor" />
-      </svg>
+        draggable="false"
+      />
       <p class="lobby-empty-state__message">
         ${translateText("private_lobby.no_open_lobbies")}
       </p>
@@ -442,8 +488,13 @@ export class GameModeSelector extends LitElement {
       return;
     }
     // Shown over a feed that has not given up, this is a confirmed outage,
-    // which only an answer from the list API clears.
-    void refreshServerList();
+    // which only an answer from the list API clears. The globe shows the
+    // attempt for at least a moment, so a fast failure does not just blink.
+    this.retryPending = true;
+    void Promise.all([
+      refreshServerList(),
+      new Promise((resolve) => window.setTimeout(resolve, 1200)),
+    ]).finally(() => (this.retryPending = false));
   };
 
   private handleLobbiesUpdate(lobbies: PublicGames) {
@@ -455,6 +506,15 @@ export class GameModeSelector extends LitElement {
         detail: { payload: lobbies },
       }),
     );
+    // A region whose lobbies have all gone has no pin left to click.
+    if (
+      this.regionFilter !== null &&
+      !this.allLobbies().some((l) =>
+        mapRegions(l.gameConfig?.gameMap).includes(this.regionFilter!),
+      )
+    ) {
+      this.regionFilter = null;
+    }
     this.requestUpdate();
 
     const allGames = Object.values(lobbies.games ?? {}).flat();
@@ -465,45 +525,70 @@ export class GameModeSelector extends LitElement {
     }
   }
 
-  render() {
-    const featuredLobbies = [
+  /** Every advertised lobby, in the order the upcoming list shows them. */
+  private allLobbies(): PublicGameInfo[] {
+    return [
       ...(this.lobbies?.games?.ffa ?? []),
       ...(this.lobbies?.games?.team ?? []),
       ...(this.lobbies?.games?.special ?? []),
       ...(this.lobbies?.games?.hosted ?? []),
-    ].slice(0, 5);
+    ];
+  }
+
+  /** A pin for each real-world region that has at least one lobby. */
+  private regionPins(): GlobeRegionPin[] {
+    const counts = new Map<MapRegion, number>();
+    for (const lobby of this.allLobbies()) {
+      for (const region of mapRegions(lobby.gameConfig?.gameMap)) {
+        counts.set(region, (counts.get(region) ?? 0) + 1);
+      }
+    }
+    return MAP_REGIONS.filter((r) => counts.has(r)).map((region) => ({
+      region,
+      label: translateText(`map_categories.${region}`),
+      count: counts.get(region)!,
+      selected: region === this.regionFilter,
+    }));
+  }
+
+  // A second click on the selected region shows every lobby again.
+  private onRegionSelect = (e: Event) => {
+    const { region } = (e as GlobeRegionSelectEvent).detail;
+    this.regionFilter = this.regionFilter === region ? null : region;
+  };
+
+  render() {
+    const region = this.regionFilter;
+    const featuredLobbies = this.allLobbies()
+      .filter(
+        (l) =>
+          region === null || mapRegions(l.gameConfig?.gameMap).includes(region),
+      )
+      .slice(0, 5);
     const showNoLobbies = this.lobbies !== null && featuredLobbies.length === 0;
     const heroHeight = "menu-lobby-slot";
 
-    // Phones show actions before lobbies. Wider layouts place actions left of
-    // the lobby list.
+    // Actions form one row of tiles above the lobby list and globe.
     return html`
       <div class="menu-play-board">
         <h1 class="sr-only">${translateText("main.play")}</h1>
 
         <div class="menu-action-rail">
-          <div class="col-span-2 lg:col-span-1">
-            ${this.renderSmallActionCard(
-              translateText("main.solo"),
-              this.openSinglePlayerModal,
-              PRIMARY_ACTION,
-            )}
-          </div>
-          ${getGamesPlayed() < TUTORIAL_CARD_MAX_GAMES
-            ? html`<div class="col-span-2 lg:col-span-1">
-                ${this.renderSmallActionCard(
-                  translateText("main.tutorial"),
-                  this.startTutorial,
-                  TUTORIAL_ACTION,
-                )}
-              </div>`
-            : nothing}
+          ${this.renderSmallActionCard(
+            translateText("main.solo"),
+            this.openSinglePlayerModal,
+            SECONDARY_ACTION,
+            undefined,
+            false,
+            "images/menu/SoloIcon.png",
+          )}
           ${this.renderSmallActionCard(
             translateText("main.create"),
             this.openHostLobby,
             SECONDARY_ACTION,
             undefined,
             true,
+            "images/menu/CreateLobbyIcon.png",
           )}
           ${this.renderSmallActionCard(
             translateText("main.join"),
@@ -511,6 +596,7 @@ export class GameModeSelector extends LitElement {
             SECONDARY_ACTION,
             this.hostedLobbyCount(),
             true,
+            "images/menu/JoinLobbyIcon.png",
           )}
           ${this.renderSmallActionCard(
             translateText("mode_selector.ranked_1v1"),
@@ -518,6 +604,7 @@ export class GameModeSelector extends LitElement {
             SECONDARY_ACTION,
             undefined,
             true,
+            "images/menu/Ranked1v1Icon.png",
           )}
           ${this.backendOutage
             ? html`<p class="menu-action-note" role="status">
@@ -545,19 +632,26 @@ export class GameModeSelector extends LitElement {
             : this.lobbies === null
               ? this.offlineForLobbies()
                 ? this.renderLobbiesUnavailable(heroHeight)
-                : html`<div
-                    class="flex items-center justify-center ${heroHeight}"
+                : // The globe, centred over this slot, is the loading indicator.
+                  html`<div
+                    class=${heroHeight}
                     role="status"
                     aria-label=${translateText("common.loading")}
-                  >
-                    <span
-                      class="size-16 rounded-full border-4 border-white/10 border-t-malibu-blue animate-spin"
-                    ></span>
-                  </div>`
+                  ></div>`
               : showNoLobbies
                 ? this.renderNoOpenLobbies(heroHeight)
                 : nothing}
         </div>
+
+        <conquest-globe
+          class="menu-globe"
+          fill="0.86"
+          interactive
+          .pins=${this.regionPins()}
+          @globe-region-select=${this.onRegionSelect}
+          ?orbiting=${(this.lobbies === null && !this.offlineForLobbies()) ||
+          this.retryPending}
+        ></conquest-globe>
 
         ${this.showTrustRequired
           ? trustRequiredDialog(
@@ -612,12 +706,6 @@ export class GameModeSelector extends LitElement {
     );
   };
 
-  // Handled in Main, which also serves the help page's tutorial button.
-  private startTutorial = () => {
-    if (!this.validateUsername()) return;
-    document.dispatchEvent(new CustomEvent("start-tutorial"));
-  };
-
   private openHostLobby = () => {
     if (this.blockedFromApiAction()) return;
     if (!this.validateUsername()) return;
@@ -655,17 +743,40 @@ export class GameModeSelector extends LitElement {
         : translateText("detailed_view.title");
     return html`
       <div class="flex min-w-0 items-center justify-between gap-3">
-        <h2
-          class="menu-lobby-heading truncate text-base font-semibold text-white"
-        >
-          ${translateText("public_lobby.upcoming")}
-        </h2>
+        <div class="flex min-w-0 items-center gap-2">
+          <h2
+            class="menu-lobby-heading truncate text-base font-semibold text-white"
+          >
+            ${translateText("public_lobby.upcoming")}
+          </h2>
+          ${this.regionFilter !== null
+            ? html`<button
+                class="flex shrink-0 items-center gap-1 rounded-full border border-[#f2862e]/60 bg-[#f2862e]/15 py-0.5 pl-2.5 pr-1.5 text-sm font-medium text-white transition-colors hover:bg-[#f2862e]/25"
+                aria-label=${translateText("landwar_ui.clear_region_filter")}
+                title=${translateText("landwar_ui.clear_region_filter")}
+                @click=${() => (this.regionFilter = null)}
+              >
+                ${translateText(`map_categories.${this.regionFilter}`)}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  class="size-4"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z"
+                  />
+                </svg>
+              </button>`
+            : nothing}
+        </div>
         <button
           @click=${this.openDetailedView}
           ?disabled=${!this.inputValid}
           aria-label=${seeAllLabel}
           title=${seeAllLabel}
-          class="flex shrink-0 items-center gap-1 rounded-full border border-white/15 bg-white/[0.04] py-1.5 pl-4 pr-2.5 text-sm font-medium text-white transition-colors hover:border-white/30 hover:bg-white/10 ${this
+          class="flex shrink-0 items-center gap-1 rounded-md py-1.5 pl-2.5 pr-1.5 text-sm font-medium text-[var(--field-muted)] transition-colors hover:bg-white/[0.06] hover:text-white ${this
             .inputValid
             ? ""
             : DISABLED}"
@@ -707,6 +818,7 @@ export class GameModeSelector extends LitElement {
     // the solo card is never gated (see openSinglePlayerModal) and must never
     // show as disabled here.
     gated: boolean = false,
+    icon?: string,
     adornment: TemplateResult | typeof nothing = nothing,
   ) {
     const blocked = gated && !multiplayerAllowedForBackend(this.backendOutage);
@@ -715,13 +827,21 @@ export class GameModeSelector extends LitElement {
         @click=${onClick}
         ?disabled=${!this.inputValid}
         aria-disabled=${blocked}
-        class="menu-action relative ${ACTION_BASE} ${bgClass} text-center ${!this
-          .inputValid
+        class="menu-action relative ${bgClass} ${!this.inputValid
           ? DISABLED
           : blocked
             ? "opacity-50 cursor-not-allowed"
             : ""}"
       >
+        ${icon
+          ? html`<img
+              class="menu-action__icon"
+              src=${assetUrl(icon)}
+              alt=""
+              aria-hidden="true"
+              draggable="false"
+            />`
+          : nothing}
         ${title}
         ${badge
           ? html`<span
@@ -748,9 +868,11 @@ export class GameModeSelector extends LitElement {
     let timeDisplay: string;
     let timeDisplayUppercase = false;
     if (timeRemaining === undefined) {
-      timeDisplay = "";
+      timeDisplay = translateText("host_modal.waiting");
     } else if (timeRemaining > 0) {
-      timeDisplay = renderDuration(timeRemaining);
+      timeDisplay = translateText("public_lobby.starting_in", {
+        time: renderDuration(timeRemaining),
+      });
     } else {
       timeDisplay = translateText("public_lobby.starting_game");
       timeDisplayUppercase = true;

@@ -80,22 +80,6 @@ describe("UserSettings effect selection", () => {
   });
 });
 
-describe("UserSettings tutorial dismissal", () => {
-  beforeEach(resetUserSettingsState);
-
-  it("defaults to not dismissed and persists dismissal", () => {
-    const s = new UserSettings();
-    expect(s.tutorialDismissed()).toBe(false);
-
-    s.setTutorialDismissed(true);
-    expect(s.tutorialDismissed()).toBe(true);
-    expect(localStorage.getItem("settings.tutorialDismissed")).toBe("true");
-
-    s.setTutorialDismissed(false);
-    expect(s.tutorialDismissed()).toBe(false);
-  });
-});
-
 describe("UserSettings lobby start alerts", () => {
   beforeEach(resetUserSettingsState);
 
@@ -358,9 +342,7 @@ describe("UserSettings stats columns", () => {
   beforeEach(resetUserSettingsState);
 
   it("returns defaults when nothing is stored", () => {
-    // The player table opens with the clan tag shown; a team has no tag.
     expect(new UserSettings().statsColumns("player")).toEqual([
-      "clan",
       "tiles",
       "gold",
       "maxtroops",
@@ -398,7 +380,6 @@ describe("UserSettings stats columns", () => {
   it("falls back to defaults on corrupt JSON", () => {
     localStorage.setItem(PLAYER_STATS_COLUMNS_KEY, "not json");
     expect(new UserSettings().statsColumns("player")).toEqual([
-      "clan",
       "tiles",
       "gold",
       "maxtroops",
@@ -408,7 +389,6 @@ describe("UserSettings stats columns", () => {
   it("falls back to defaults when no valid ids remain", () => {
     localStorage.setItem(PLAYER_STATS_COLUMNS_KEY, JSON.stringify(["bogus"]));
     expect(new UserSettings().statsColumns("player")).toEqual([
-      "clan",
       "tiles",
       "gold",
       "maxtroops",

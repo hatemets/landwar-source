@@ -8,6 +8,10 @@
  * Lobby modals (join/host) and matchmaking are intentionally not registered:
  * they have their own URL state (path-based) or none at all.
  *
+ * A page modal with a `path` (e.g. `/settings`) is a route of its own: opening
+ * it pushes that path (args ride in the query), Back closes it, and an old
+ * `#modal=<name>` link is rewritten to the path.
+ *
  * A modal can also be opened by a path link (`/player/<id>`, see
  * registerPath). While it stays open the URL keeps that path, with tab
  * changes written to `?tab=`; closing it returns the URL to the home page, so
@@ -33,6 +37,11 @@ interface RegistryEntry {
    * container becomes visible. For popup-style modals, omit.
    */
   pageId?: string;
+  /**
+   * The page's own route, e.g. "/settings". When set, the page lives at this
+   * path instead of in the hash.
+   */
+  path?: string;
 }
 
 /** Modals that the router can drive via the URL. */
@@ -53,6 +62,38 @@ class ModalRouter {
 
   register(name: string, entry: RegistryEntry): void {
     this.registry.set(name, entry);
+    const path = entry.path;
+    if (path !== undefined) {
+      this.registerPath(name, (location) =>
+        stripPagePin(location.pathname) === path
+          ? Object.fromEntries(new URLSearchParams(location.search))
+          : null,
+      );
+    }
+  }
+
+  /**
+   * Follow a Back/Forward (or edited URL) that the hash handlers don't own.
+   * Opens the page the new path names, or closes the routed page the path
+   * left. Returns true when it handled the change.
+   */
+  routeFromHistory(): boolean {
+    if (this.routeFromPath()) return true;
+    const name = this.pathRoutedName;
+    if (name === null) return false;
+    const entry = this.registry.get(name);
+    if (entry?.path === undefined) return false;
+    // The URL already left the page: close it without writing the URL again.
+    this.pathRoutedName = null;
+    if (this.currentName === name) this.currentName = null;
+    const el = document.querySelector(entry.tag) as RoutableModal | null;
+    this.routingFromUrl = true;
+    try {
+      el?.close();
+    } finally {
+      this.routingFromUrl = false;
+    }
+    return true;
   }
 
   /** Let a registered modal be opened by a path link as well as the hash. */
@@ -120,6 +161,16 @@ class ModalRouter {
     }
 
     params.delete("modal");
+    if (entry.path !== undefined) {
+      // An old `#modal=` link to a page: the page's path names it now.
+      const query = params.toString();
+      history.replaceState(
+        history.state,
+        "",
+        currentPagePath(entry.path) + (query ? `?${query}` : ""),
+      );
+      return this.routeFromPath();
+    }
     const args: Record<string, unknown> = {};
     params.forEach((value, key) => {
       args[key] = value;
@@ -177,7 +228,18 @@ class ModalRouter {
   /** Called by BaseModal.open() when a router-managed modal opens. */
   syncOpened(name: string, args?: Record<string, unknown>): void {
     if (this.routingFromUrl) return; // we're driving the modal from the URL; don't loop
-    if (!this.registry.has(name)) return;
+    const entry = this.registry.get(name);
+    if (entry === undefined) return;
+    if (entry.path !== undefined) {
+      this.currentName = name;
+      this.pathRoutedName = name;
+      const url = currentPagePath(entry.path) + queryFrom(args);
+      // A new history entry, so Back returns to where the player came from.
+      if (url !== window.location.pathname + window.location.search) {
+        history.pushState(null, "", url);
+      }
+      return;
+    }
     // Another modal (or this one again) opened in-app: the hash takes over.
     this.leavePath();
     this.currentName = name;
@@ -235,8 +297,25 @@ class ModalRouter {
   syncArgs(name: string, args: Record<string, unknown>): void {
     if (this.routingFromUrl) return;
     if (this.currentName !== name) return;
-    // The path is the state of a path-routed modal; don't add a hash to it.
-    if (this.pathRoutedName === name) return;
+    if (this.pathRoutedName === name) {
+      // A page route keeps its state in the query; a link path is the state.
+      if (this.registry.get(name)?.path === undefined) return;
+      const search = new URLSearchParams(window.location.search);
+      for (const [key, value] of Object.entries(args)) {
+        if (value === undefined || value === null || value === "") {
+          search.delete(key);
+        } else if (typeof value !== "object") {
+          search.set(key, String(value));
+        }
+      }
+      const query = search.toString();
+      history.replaceState(
+        history.state,
+        "",
+        window.location.pathname + (query ? `?${query}` : ""),
+      );
+      return;
+    }
     const params = this.currentHashParams();
     params.set("modal", name);
     for (const [key, value] of Object.entries(args)) {
@@ -282,6 +361,30 @@ class ModalRouter {
     const url = window.location.pathname + window.location.search + hash;
     history.replaceState(history.state, "", url);
   }
+}
+
+/** The query string for a page route's open() args. */
+function queryFrom(args?: Record<string, unknown>): string {
+  if (!args) return "";
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(args)) {
+    if (value === undefined || value === null || value === "") continue;
+    if (typeof value === "object") continue;
+    params.set(key, String(value));
+  }
+  const query = params.toString();
+  return query ? `?${query}` : "";
+}
+
+/** The path without its `/v/<commit>` page pin, if it has one. */
+function stripPagePin(pathname: string): string {
+  return pathname.replace(/^\/v\/[^/]+(?=\/)/, "");
+}
+
+/** `path` under the page's version pin, mirroring currentPagePath in Utils. */
+function currentPagePath(path: string): string {
+  const commit = pagePin();
+  return commit === null ? path : `/v/${commit}${path}`;
 }
 
 export const modalRouter = new ModalRouter();

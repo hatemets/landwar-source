@@ -4,7 +4,6 @@ import { customElement, property, state } from "lit/decorators.js";
 import { terrainMapFileLoader } from "../../TerrainMapFileLoader";
 import { translateText } from "../../Utils";
 import { menuIcon } from "../ui/MenuIcon";
-import { starIcon } from "./MapFavorites";
 import { MEDAL_ORDER, medalIcon } from "./Medals";
 
 @customElement("map-display")
@@ -13,9 +12,7 @@ export class MapDisplay extends LitElement {
   @property({ type: Boolean }) selected = false;
   @property({ type: String }) translation: string = "";
   @property({ type: Boolean }) showMedals = false;
-  @property({ type: Boolean }) favorite = false;
   @property({ attribute: false }) wins: Set<Difficulty> = new Set();
-  @property({ attribute: false }) onToggleFavorite?: () => void;
   @state() private mapWebpPath: string | null = null;
   @state() private mapName: string | null = null;
   @state() private isLoading = true;
@@ -94,34 +91,6 @@ export class MapDisplay extends LitElement {
     event.preventDefault();
   }
 
-  private handleToggleFavorite(event: Event) {
-    event.stopPropagation();
-    event.preventDefault();
-    this.onToggleFavorite?.();
-  }
-
-  private renderFavoriteButton() {
-    if (!this.onToggleFavorite) return null;
-    return html`<button
-      type="button"
-      @click=${this.handleToggleFavorite}
-      @keydown=${(e: KeyboardEvent) => e.stopPropagation()}
-      aria-pressed=${this.favorite}
-      aria-label=${translateText(
-        this.favorite ? "map_component.unfavorite" : "map_component.favorite",
-      )}
-      title=${translateText(
-        this.favorite ? "map_component.unfavorite" : "map_component.favorite",
-      )}
-      class="absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full bg-black/50 backdrop-blur-sm transition-opacity duration-200 ${this
-        .favorite
-        ? "opacity-100 text-cyber-yellow"
-        : "opacity-0 group-hover:opacity-100 text-white hover:text-cyber-yellow"}"
-    >
-      ${starIcon(this.favorite, "w-4 h-4")}
-    </button>`;
-  }
-
   render() {
     return html`
       <div
@@ -159,7 +128,6 @@ export class MapDisplay extends LitElement {
                       >${menuIcon("check")}</span
                     >`
                   : null}
-                ${this.renderFavoriteButton()}
               </div>`
             : html`<div
                 class="w-full aspect-[2/1] text-red-400 transition-transform duration-200 rounded-lg bg-red-500/10 text-xs font-medium normal-case tracking-normal flex items-center justify-center"

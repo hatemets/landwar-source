@@ -399,7 +399,7 @@ export class CosmeticRenderCanvas extends LitElement {
               >
                 <span
                   class="inline-block w-2 h-2 rounded-full ${this.salvoEnabled
-                    ? "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)] animate-pulse"
+                    ? "bg-amber-400"
                     : "bg-zinc-500"}"
                 ></span>
                 <span

@@ -19,16 +19,11 @@ import { customElement, property, state } from "lit/decorators.js";
 import { repeat } from "lit/directives/repeat.js";
 import { Theme, themeProvider } from "../theme/ThemeProvider";
 import { UserSettings } from "../UserSettings";
-import {
-  getTranslatedPlayerTeamLabel,
-  resolveTeamClanTag,
-  translateText,
-} from "../Utils";
+import { getTranslatedPlayerTeamLabel, translateText } from "../Utils";
 
 export interface TeamPreviewData {
   team: Team;
   players: ClientInfo[];
-  clanTag?: string | null;
 }
 
 @customElement("lobby-player-view")
@@ -51,8 +46,6 @@ export class LobbyTeamView extends LitElement {
     return themeProvider.current();
   }
   @state() private showTeamColors: boolean = false;
-  private _clanUpdateTimeout: number | null = null;
-  private _teamClanTags: Map<Team, string | null> = new Map();
   private _viewerFriends: ReadonlySet<ClientID> = new Set();
 
   // Spectators are in the lobby roster (flagged) but hold no seat and never
@@ -103,14 +96,6 @@ export class LobbyTeamView extends LitElement {
     }
   }
 
-  disconnectedCallback() {
-    super.disconnectedCallback();
-    if (this._clanUpdateTimeout !== null) {
-      window.clearTimeout(this._clanUpdateTimeout);
-      this._clanUpdateTimeout = null;
-    }
-  }
-
   render() {
     return html`
       <div class="border-t border-white/10 pt-6">
@@ -130,7 +115,9 @@ export class LobbyTeamView extends LitElement {
           </div>
         </div>
         <div
-          class="players-list block rounded-lg border border-white/10 bg-white/5 p-2"
+          class="players-list ${this.gameMode === GameMode.Team
+            ? "players-list--teams"
+            : "players-list--grid"} rounded-lg border border-white/10 bg-white/5 p-2"
         >
           ${this.gameMode === GameMode.Team
             ? this.renderTeamMode()
@@ -160,7 +147,7 @@ export class LobbyTeamView extends LitElement {
             : translateText("host_modal.spectators")}
         </div>
         <div
-          class="players-list block rounded-lg border border-white/10 bg-white/5 p-2"
+          class="players-list players-list--grid rounded-lg border border-white/10 bg-white/5 p-2"
         >
           ${repeat(
             spectators,
@@ -193,13 +180,11 @@ export class LobbyTeamView extends LitElement {
     const empty = this.teamPreview.filter(
       (t) => t.players.length === 0 && t.team !== ColoredTeams.Nations,
     );
-    return html` <div
-      class="flex flex-col md:flex-row gap-3 md:gap-4 items-stretch"
-    >
+    return html` <div class="flex flex-col gap-3 md:gap-4 items-stretch">
       <div
-        class="w-full md:w-60 bg-gray-800 p-2 border border-gray-700 rounded-lg"
+        class="w-full players-list--grid bg-gray-800 p-2 border border-gray-700 rounded-lg"
       >
-        <div class="font-bold mb-1.5 text-gray-300 text-sm">
+        <div class="col-span-full font-bold mb-1.5 text-gray-300 text-sm">
           ${translateText("host_modal.players")}
         </div>
         ${repeat(
@@ -322,8 +307,7 @@ export class LobbyTeamView extends LitElement {
         ? this.effectiveNationCount
         : this.teamMaxSize;
 
-    const clanTag = this._teamClanTags.get(preview.team) ?? null;
-    const teamLabel = getTranslatedPlayerTeamLabel(preview.team, clanTag);
+    const teamLabel = getTranslatedPlayerTeamLabel(preview.team);
 
     return html`
       <div
@@ -452,11 +436,6 @@ export class LobbyTeamView extends LitElement {
     if (this.gameMode !== GameMode.Team) {
       this.teamPreview = [];
       this.teamMaxSize = 0;
-      this._teamClanTags.clear();
-      if (this._clanUpdateTimeout !== null) {
-        window.clearTimeout(this._clanUpdateTimeout);
-        this._clanUpdateTimeout = null;
-      }
       return;
     }
 
@@ -467,7 +446,6 @@ export class LobbyTeamView extends LitElement {
         { team: ColoredTeams.Humans, players: [...this.activePlayers] },
         { team: ColoredTeams.Nations, players: [] },
       ];
-      this.triggerClanUpdate();
       return;
     }
 
@@ -521,32 +499,6 @@ export class LobbyTeamView extends LitElement {
       team: t,
       players: buckets.get(t) ?? [],
     }));
-    this.triggerClanUpdate();
-  }
-
-  private triggerClanUpdate() {
-    if (this._teamClanTags.size === 0) {
-      this.updateTeamClanTags();
-    } else {
-      this.scheduleClanUpdate();
-    }
-  }
-
-  private scheduleClanUpdate() {
-    if (this._clanUpdateTimeout !== null) return;
-    this._clanUpdateTimeout = window.setTimeout(() => {
-      this.updateTeamClanTags();
-      this._clanUpdateTimeout = null;
-      this.requestUpdate();
-    }, 500);
-  }
-
-  private updateTeamClanTags() {
-    this._teamClanTags.clear();
-    for (const preview of this.teamPreview) {
-      const tag = resolveTeamClanTag(preview.players);
-      this._teamClanTags.set(preview.team, tag);
-    }
   }
 
   private isCurrentPlayer(client: ClientInfo): boolean {

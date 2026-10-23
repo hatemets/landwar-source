@@ -8,7 +8,6 @@ import fs from "fs";
 import path from "path";
 
 const HASHED_PUBLIC_ASSET_GLOBS = [
-  "changelog.md",
   "manifest.json",
   "atlases/**/*",
   "cosmetics/**/*",

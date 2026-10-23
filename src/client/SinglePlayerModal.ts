@@ -32,11 +32,9 @@ import { setMenuMap } from "./MenuBackdrop";
 import { fallbackPlayerName, ResolvedPlayerName } from "./PlayerName";
 import { lastUserMeResponse } from "./UserMeBroadcast";
 import { UsernameInput } from "./UsernameInput";
-import { UserSettings } from "./UserSettings";
 import {
   getBotsForCompactMap,
   getNationsForCompactMap,
-  getRandomMapType,
   getUpdatedDisabledUnits,
   parseBoundedFloatFromInput,
   parseBoundedIntegerFromInput,
@@ -96,7 +94,6 @@ const DEFAULT_OPTIONS = {
   maxTimerValue: undefined as number | undefined,
   instantBuild: false,
   randomSpawn: false,
-  useRandomMap: false,
   gameMode: GameMode.FFA,
   teamCount: 2 as TeamCountConfig,
   goldMultiplier: true,
@@ -177,7 +174,6 @@ export class SinglePlayerModal extends BaseModal {
     DEFAULT_OPTIONS.maxTimerValue;
   @state() private instantBuild: boolean = DEFAULT_OPTIONS.instantBuild;
   @state() private randomSpawn: boolean = DEFAULT_OPTIONS.randomSpawn;
-  @state() private useRandomMap: boolean = DEFAULT_OPTIONS.useRandomMap;
   @state() private gameMode: GameMode = DEFAULT_OPTIONS.gameMode;
   @state() private teamCount: TeamCountConfig = DEFAULT_OPTIONS.teamCount;
   @state() private showAchievements: boolean = false;
@@ -286,7 +282,7 @@ export class SinglePlayerModal extends BaseModal {
       class="setup-signin"
       @click=${() => {
         this.close();
-        window.showPage?.("page-account");
+        window.showPage?.("page-signin");
       }}
     >
       ${translateText("single_modal.sign_in_for_achievements")}
@@ -330,10 +326,11 @@ export class SinglePlayerModal extends BaseModal {
       rightContent: responseHasLinkedIdentity(this.userMeResponse)
         ? html`<button
               @click=${this.toggleAchievements}
-              class="flex items-center gap-2 px-3 py-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all shrink-0 ${this
+              aria-pressed=${this.showAchievements}
+              class="flex items-center gap-2 h-9 px-3 rounded-md transition-colors duration-150 shrink-0 ${this
                 .showAchievements
-                ? "bg-yellow-500/10 border-yellow-500/30 text-yellow-400"
-                : "text-white/60"}"
+                ? "bg-[var(--field-accent)] text-white"
+                : "bg-[var(--field-raised)] hover:bg-[var(--field-hover)] text-white/60"}"
             >
               <img
                 src=${assetUrl("images/MedalIconWhite.svg")}
@@ -358,10 +355,10 @@ export class SinglePlayerModal extends BaseModal {
     const total = this.eligibleMaps?.size ?? null;
     return html`<div class="basis-full w-full">
       <div
-        class="flex flex-wrap items-center gap-x-5 gap-y-2 px-4 py-2.5 rounded-xl border border-yellow-500/20 bg-yellow-500/5"
+        class="flex flex-wrap items-center gap-x-6 gap-y-2 px-4 py-2 rounded-md bg-[var(--field-raised)]"
       >
         <span
-          class="text-[11px] font-medium normal-case tracking-normal text-yellow-400/80 shrink-0"
+          class="text-xs font-medium normal-case tracking-normal text-white/60 shrink-0"
         >
           ${translateText("single_modal.medals_earned")}
         </span>
@@ -371,7 +368,7 @@ export class SinglePlayerModal extends BaseModal {
           )}
         </div>
         <span
-          class="ml-auto text-[11px] font-medium normal-case tracking-normal text-white/40 shrink-0"
+          class="ml-auto text-xs font-medium normal-case tracking-normal text-white/40 shrink-0"
         >
           ${translateText("single_modal.medals_of_maps", {
             total: total ?? "…",
@@ -393,7 +390,7 @@ export class SinglePlayerModal extends BaseModal {
       <span class="text-xs font-medium text-white/50 hidden sm:inline"
         >${translateText(`difficulty.${difficulty.toLowerCase()}`)}</span
       >
-      <span class="text-sm font-bold text-white tabular-nums">${count}</span>
+      <span class="text-sm font-medium text-white tabular-nums">${count}</span>
     </div>`;
   }
 
@@ -490,7 +487,6 @@ export class SinglePlayerModal extends BaseModal {
             .settings=${{
               map: {
                 selected: this.selectedMap,
-                useRandom: this.useRandomMap,
                 showMedals: this.showAchievements,
                 mapWins: this.mapWins,
               },
@@ -556,7 +552,6 @@ export class SinglePlayerModal extends BaseModal {
               },
             }}
             @map-selected=${this.handleConfigMapSelected}
-            @random-map-selected=${this.handleConfigRandomMapSelected}
             @difficulty-selected=${this.handleConfigDifficultySelected}
             @doomsday-clock-speed-selected=${this
               .handleConfigDoomsdayClockSpeedSelected}
@@ -574,7 +569,7 @@ export class SinglePlayerModal extends BaseModal {
           ${responseHasLinkedIdentity(this.userMeResponse) &&
           this.hasOptionsChanged()
             ? html`<div
-                class="mb-4 px-4 py-3 rounded-xl bg-yellow-500/20 border border-yellow-500/30 text-yellow-400 text-xs font-medium normal-case tracking-normal text-center"
+                class="mb-4 px-4 py-3 rounded-md bg-[var(--field-warning-soft)] text-[var(--field-paper)] text-sm normal-case tracking-normal"
               >
                 ${translateText("single_modal.options_changed_no_achievements")}
               </div>`
@@ -642,22 +637,6 @@ export class SinglePlayerModal extends BaseModal {
     this.resetOptions();
   }
 
-  /**
-   * Starts a solo game on the default settings without opening the modal,
-   * with the in-game tutorial switched back on (the play page's Tutorial
-   * card for new players).
-   */
-  public async startTutorial(): Promise<void> {
-    // The modal never opens on this path, so onOpen's prewarm never runs.
-    // Overlap it with the manifest load below.
-    void prewarmCosmetics();
-    this.resetOptions();
-    // A nation count of 0 means "nations disabled"; wait for the real one.
-    await this.loadNationCount();
-    new UserSettings().setTutorialDismissed(false);
-    await this.startGame();
-  }
-
   // Reset all transient form state to ensure clean slate
   private resetOptions(): void {
     // Belt and braces with the finally in startGame(): closing and reopening
@@ -667,7 +646,6 @@ export class SinglePlayerModal extends BaseModal {
     this.selectedMap = DEFAULT_OPTIONS.selectedMap;
     this.selectedDifficulty = DEFAULT_OPTIONS.selectedDifficulty;
     this.gameMode = DEFAULT_OPTIONS.gameMode;
-    this.useRandomMap = DEFAULT_OPTIONS.useRandomMap;
     this.bots = DEFAULT_OPTIONS.bots;
     this.nations = 0;
     this.defaultNationCount = 0;
@@ -705,19 +683,8 @@ export class SinglePlayerModal extends BaseModal {
     void prewarmCosmetics();
   }
 
-  private handleSelectRandomMap() {
-    this.useRandomMap = true;
-    this.selectedMap = getRandomMapType();
-    void this.loadNationCount();
-  }
-
-  private handleConfigRandomMapSelected = () => {
-    this.handleSelectRandomMap();
-  };
-
   private handleMapSelection(value: GameMapType) {
     this.selectedMap = value;
-    this.useRandomMap = false;
     void this.loadNationCount();
   }
 
@@ -968,8 +935,7 @@ export class SinglePlayerModal extends BaseModal {
    * something playable: the interim generated name, default cosmetics. A slow
    * resolution here is a cost with nothing to show for it, so
    * START_PREPARE_DEADLINE_MS cuts it short rather than pinning Start at
-   * "Starting…" for the rest of the session, which would take startTutorial()
-   * down with it on the re-entrancy guard.
+   * "Starting…" for the rest of the session.
    *
    * The midgame ad is deliberately not part of this — see awaitMidgameAd.
    */
@@ -1049,7 +1015,7 @@ export class SinglePlayerModal extends BaseModal {
     overlay?.show();
     try {
       console.log(
-        `Starting single player game with map: ${GameMapType[this.selectedMap as keyof typeof GameMapType]}${this.useRandomMap ? " (Randomly selected)" : ""}`,
+        `Starting single player game with map: ${GameMapType[this.selectedMap as keyof typeof GameMapType]}`,
       );
       const clientID = generateID();
       const gameID = generateID();

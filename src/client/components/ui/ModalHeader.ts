@@ -22,9 +22,9 @@ const DEFAULT_LEFT_CLASS = "flex items-center gap-4 flex-1";
 const DEFAULT_BUTTON_CLASS =
   "group flex items-center justify-center w-11 h-11 rounded-full shrink-0 " +
   "menu-back-button bg-transparent border-0 hover:opacity-70 transition-opacity";
+// One title style for every page header (22px, weight 600: .field-modal-title).
 export const DEFAULT_TITLE_CLASS =
-  "text-white text-xl lg:text-2xl font-medium normal-case " +
-  "tracking-normal break-words hyphens-auto";
+  "field-modal-title normal-case break-words hyphens-auto";
 
 const withClasses = (...classes: Array<string | undefined>) =>
   classes.filter(Boolean).join(" ");

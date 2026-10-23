@@ -10,7 +10,7 @@ uniform float uBreathRadius;   // normalized [0..1], animated via sin
 // Configurable parameters (from render settings)
 uniform float uHighlightRadiusSq; // tile highlight radius squared
 uniform float uHighlightAlpha;    // tile highlight opacity
-uniform vec4 uSelfRadii;          // (minR, maxR, _, _)
+uniform vec4 uSelfOrbit;          // (orbitR, dotR, angle, _) — swirling self marker
 uniform vec4 uMateRadii;          // (minR, maxR, _, _)
 uniform vec2 uGradientStops;      // (innerEdge, solidEnd)
 
@@ -39,20 +39,43 @@ void main() {
     return;
   }
 
-  // --- Breathing rings (self or teammate) ---
-  float minR, maxR;
-  vec3 color;
-  if (vKind > 1.5) {
-    minR = uMateRadii.x;
-    maxR = uMateRadii.y;
-    color = vColor;
-  } else {
-    minR = uSelfRadii.x;
-    maxR = uSelfRadii.y;
-    // Self ring pulses white → its base color in phase with the breath so one
-    // end of the pulse always contrasts with the terrain.
-    color = mix(vec3(1.0), vColor, uBreathRadius);
+  // --- Self marker: a glowing dot orbiting the spawn, trailing a fading arc ---
+  if (vKind < 1.5) {
+    float orbitR = uSelfOrbit.x;
+    float px = max(fwidth(dist), 1e-4);          // tiles per screen pixel
+    float dotR = max(uSelfOrbit.y, 2.5 * px);    // stays visible zoomed out
+    float angle = uSelfOrbit.z;
+    vec2 dotPos = orbitR * vec2(cos(angle), sin(angle));
+    float d = length(vec2(dx, dy) - dotPos);
+
+    float core = 1.0 - smoothstep(dotR - px, dotR + px, d);
+    float halo = exp(-(d * d) / (2.0 * (dotR * 1.8) * (dotR * 1.8)));
+
+    // Trail: the arc of the orbit just behind the dot, thinning and fading.
+    const float TAU = 6.2831853;
+    const float TRAIL = 2.4;                      // radians of trail
+    float behind = mod(angle - atan(dy, dx), TAU);
+    float tail = 0.0;
+    if (behind < TRAIL) {
+      float k = 1.0 - behind / TRAIL;
+      float width = dotR * (0.25 + 0.75 * k);
+      float band = 1.0 - smoothstep(width - px, width + px, abs(dist - orbitR));
+      tail = band * k * k * 0.8;
+    }
+    // A faint full orbit line anchors the motion.
+    float track = (1.0 - smoothstep(0.0, 1.5 * px, abs(dist - orbitR))) * 0.18;
+
+    float a = max(max(core, halo * 0.7), max(tail, track));
+    if (a <= 0.01) discard;
+    vec3 c = mix(vColor, vec3(1.0), core * 0.85);
+    fragColor = vec4(c, a);
+    return;
   }
+
+  // --- Teammate breathing ring ---
+  float minR = uMateRadii.x;
+  float maxR = uMateRadii.y;
+  vec3 color = vColor;
 
   // Breathing ring: the gradient halo shrinks/expands in radius AND its
   // opacity pulses in phase with the breath — both driven by uBreathRadius.

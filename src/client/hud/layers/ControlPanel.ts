@@ -17,7 +17,6 @@ import { getGamesPlayed, translateText } from "../../Utils";
 import { GameView } from "../../view";
 import { PlayerView } from "../../view/PlayerView";
 import { goldCoinIcon, soldierIcon } from "../HotbarIcons";
-import { TutorialHighlight, TutorialHighlightEvent } from "../Tutorial";
 const swordIcon = assetUrl("images/SwordIcon.svg");
 
 @customElement("control-panel")
@@ -58,9 +57,6 @@ export class ControlPanel extends LitElement implements Controller {
   private _goldGainPulseId: number = 0;
   private _goldGainTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
-  @state()
-  private _tutorialHighlight: TutorialHighlight | null = null;
-
   private _troopRateIsIncreasing: boolean = true;
 
   private _lastTroopIncreaseRate: number;
@@ -89,9 +85,6 @@ export class ControlPanel extends LitElement implements Controller {
   init() {
     this.attackRatio = new UserSettings().attackRatio();
     this.uiState.attackRatio = this.attackRatio;
-    this.eventBus.on(TutorialHighlightEvent, (e) => {
-      this._tutorialHighlight = e.target;
-    });
     this.eventBus.on(AttackRatioEvent, (event) => {
       let newAttackRatio = this.attackRatio + event.attackRatio / 100;
 
@@ -373,9 +366,7 @@ export class ControlPanel extends LitElement implements Controller {
   private renderMobileTroopBar() {
     const { greenPercent, orangePercent } = this.calculateTroopBar();
     return html`
-      <div
-        class="w-full h-6 border border-gray-600 rounded-md bg-gray-900/60 overflow-hidden relative"
-      >
+      <div class="w-full h-6 rounded-md bg-gray-800 overflow-hidden relative">
         <div class="relative h-full">
           <div
             class="absolute inset-y-0 left-0 w-full origin-left bg-malibu-blue transition-transform duration-200 ease-out"
@@ -388,35 +379,27 @@ export class ControlPanel extends LitElement implements Controller {
           ></div>
         </div>
         <div
-          class="absolute inset-0 flex items-center justify-between px-1.5 text-xs font-bold leading-none pointer-events-none"
+          class="absolute inset-0 flex items-center justify-between px-2 text-xs font-medium tabular-nums leading-none pointer-events-none"
           translate="no"
         >
-          <span class="text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]"
-            >${renderTroops(this._troops)}</span
-          >
-          <span class="text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]"
-            >${renderTroops(this._maxTroops)}</span
-          >
+          <span class="text-white">${renderTroops(this._troops)}</span>
+          <span class="text-white">${renderTroops(this._maxTroops)}</span>
         </div>
         <div
           class="absolute inset-0 flex items-center justify-center pointer-events-none"
           translate="no"
         >
-          <div
-            class="flex items-center gap-0.5 px-1 ${this.tutorialHighlightClass(
-              "troop_rate",
-            )}"
-          >
+          <div class="flex items-center gap-0.5 px-1">
             <img
               src=${soldierIcon}
               alt=""
               aria-hidden="true"
               width="12"
               height="12"
-              class="brightness-0 invert drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]"
+              class="brightness-0 invert"
             />
             <span
-              class="text-[10px] font-bold drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)] ${this
+              class="text-xs font-medium tabular-nums ${this
                 ._troopRateIsIncreasing
                 ? "text-green-400"
                 : "text-orange-400"}"
@@ -431,9 +414,7 @@ export class ControlPanel extends LitElement implements Controller {
   private renderDesktopTroopBar() {
     const { greenPercent, orangePercent } = this.calculateTroopBar();
     return html`
-      <div
-        class="w-full h-6 border border-gray-600 rounded-md bg-gray-900/60 overflow-hidden relative"
-      >
+      <div class="w-full h-6 rounded-md bg-gray-800 overflow-hidden relative">
         <div class="relative h-full">
           <div
             class="absolute inset-y-0 left-0 w-full origin-left bg-malibu-blue transition-transform duration-200 ease-out"
@@ -446,23 +427,17 @@ export class ControlPanel extends LitElement implements Controller {
           ></div>
         </div>
         <div
-          class="absolute inset-0 flex items-center text-lg font-bold leading-none pointer-events-none"
+          class="absolute inset-0 flex items-center text-sm font-medium tabular-nums leading-none pointer-events-none"
           translate="no"
         >
           <span class="flex-1 flex justify-end h-full items-center pr-0.5">
-            <span class="text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]"
-              >${renderTroops(this._troops)}</span
-            >
+            <span class="text-white">${renderTroops(this._troops)}</span>
           </span>
-          <span
-            class="h-full flex items-center px-0.5 text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]"
-            >/</span
-          >
+          <span class="h-full flex items-center px-0.5 text-white">/</span>
           <span
             class="flex-1 flex justify-start h-full items-center pl-0.5 gap-0.5"
           >
-            <span
-              class="text-white tabular-nums w-[3.5rem] drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]"
+            <span class="text-white tabular-nums w-[3.5rem]"
               >${renderTroops(this._maxTroops)}</span
             >
             <img
@@ -471,7 +446,7 @@ export class ControlPanel extends LitElement implements Controller {
               aria-hidden="true"
               width="22"
               height="22"
-              class="shrink-0 brightness-0 invert drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)] ml-1.5"
+              class="shrink-0 brightness-0 invert ml-1.5"
             />
           </span>
         </div>
@@ -479,18 +454,14 @@ export class ControlPanel extends LitElement implements Controller {
     `;
   }
 
-  private tutorialHighlightClass(target: TutorialHighlight): string {
-    return this._tutorialHighlight === target ? "tutorial-highlight" : "";
-  }
-
   private renderNotification() {
     if (!this._notification) return html``;
     const isWarning = this._notification.type === "warning";
     return html`
       <div
-        class="flex items-center gap-1.5 px-1.5 py-1 rounded-md border text-xs font-medium mb-1 ${isWarning
-          ? "border-orange-400/60 bg-orange-400/10 text-orange-300"
-          : "border-blue-400/60 bg-blue-400/10 text-blue-300"}"
+        class="flex items-center gap-2 px-2 py-1 rounded-md text-xs font-medium mb-1 ${isWarning
+          ? "bg-orange-400/15 text-orange-300"
+          : "bg-blue-400/15 text-blue-300"}"
       >
         <span class="shrink-0">${isWarning ? "⚠" : "ℹ"}</span>
         <span>${translateText(this._notification.message)}</span>
@@ -505,11 +476,7 @@ export class ControlPanel extends LitElement implements Controller {
       <div class="flex gap-1.5 items-center mb-1">
         <!-- Troop rate -->
         <div
-          class="flex items-center gap-1 shrink-0 border rounded-md font-bold text-sm py-0.5 px-1 w-[5.5rem] ${this.tutorialHighlightClass(
-            "troop_rate",
-          )} ${this._troopRateIsIncreasing
-            ? "border-green-400"
-            : "border-orange-400"}"
+          class="flex items-center gap-1 shrink-0 rounded-md bg-gray-800 font-medium text-sm h-6 px-2 w-[5.5rem]"
           translate="no"
         >
           <img
@@ -524,28 +491,25 @@ export class ControlPanel extends LitElement implements Controller {
               : "brightness(0) saturate(100%) invert(65%) sepia(60%) saturate(600%) hue-rotate(330deg) brightness(105%)"}"
           />
           <span
-            class="text-sm font-bold tabular-nums ${this._troopRateIsIncreasing
+            class="text-sm font-medium tabular-nums ${this
+              ._troopRateIsIncreasing
               ? "text-green-400"
               : "text-orange-400"}"
             >+${renderTroops(this.troopRate)}/s</span
           >
         </div>
         <!-- Troop bar -->
-        <div class="flex-1 ${this.tutorialHighlightClass("troops")}">
-          ${this.renderDesktopTroopBar()}
-        </div>
+        <div class="flex-1">${this.renderDesktopTroopBar()}</div>
         <!-- Gold -->
         <div
-          class="flex items-center gap-1 shrink-0 border rounded-md border-yellow-400 font-bold text-yellow-400 text-sm py-0.5 px-1 min-w-[4.5rem] relative ${this.tutorialHighlightClass(
-            "gold",
-          )}"
+          class="flex items-center gap-1 shrink-0 rounded-md bg-gray-800 font-medium text-yellow-400 text-sm h-6 px-2 min-w-[4.5rem] relative"
           translate="no"
         >
           ${this._goldGain !== null
             ? keyed(
                 this._goldGainPulseId,
                 html`<span
-                  class="gold-gain-pop absolute -top-5 right-[5px] min-[1015px]:right-[9px] text-green-400 text-sm font-extrabold tabular-nums whitespace-nowrap pointer-events-none drop-shadow-[0_2px_3px_rgba(0,0,0,0.9)]"
+                  class="gold-gain-pop absolute -top-5 right-[5px] min-[1015px]:right-[9px] text-green-400 text-sm font-medium tabular-nums whitespace-nowrap pointer-events-none"
                   >+${renderNumber(this._goldGain)}</span
                 >`,
               )
@@ -555,14 +519,9 @@ export class ControlPanel extends LitElement implements Controller {
         </div>
       </div>
       <!-- Row 2: attack ratio | slider -->
-      <div
-        class="flex items-center gap-1.5 ${this.tutorialHighlightClass(
-          "attack_ratio",
-        )}"
-        translate="no"
-      >
+      <div class="flex items-center gap-1.5" translate="no">
         <div
-          class="flex items-center gap-1 shrink-0 border border-gray-600 rounded-md px-1 py-0.5 text-sm font-bold text-white cursor-pointer w-[8rem]"
+          class="flex items-center gap-1 shrink-0 rounded-md bg-gray-800 h-6 px-2 text-sm font-medium tabular-nums text-white cursor-pointer w-[8rem]"
         >
           <img
             src=${swordIcon}
@@ -598,16 +557,14 @@ export class ControlPanel extends LitElement implements Controller {
       <div class="flex gap-2 items-center">
         <!-- Gold -->
         <div
-          class="flex items-center justify-center p-1 gap-0.5 border rounded-md border-yellow-400 font-bold text-yellow-400 text-xs w-1/5 shrink-0 relative ${this.tutorialHighlightClass(
-            "gold",
-          )}"
+          class="flex items-center justify-center p-1 gap-1 rounded-md bg-gray-800 font-medium tabular-nums text-yellow-400 text-xs w-1/5 shrink-0 relative"
           translate="no"
         >
           ${this._goldGain !== null
             ? keyed(
                 this._goldGainPulseId,
                 html`<span
-                  class="gold-gain-pop absolute -top-5 right-[5px] min-[1015px]:right-[9px] text-green-400 text-xs font-extrabold tabular-nums whitespace-nowrap pointer-events-none drop-shadow-[0_2px_3px_rgba(0,0,0,0.9)]"
+                  class="gold-gain-pop absolute -top-5 right-[5px] min-[1015px]:right-[9px] text-green-400 text-xs font-medium tabular-nums whitespace-nowrap pointer-events-none"
                   >+${renderNumber(this._goldGain)}</span
                 >`,
               )
@@ -616,11 +573,7 @@ export class ControlPanel extends LitElement implements Controller {
           <span class="px-0.5">${renderNumber(this._gold)}</span>
         </div>
         <!-- Troop bar -->
-        <div
-          class="w-[40%] shrink-0 flex items-center ${this.tutorialHighlightClass(
-            "troops",
-          )}"
-        >
+        <div class="w-[40%] shrink-0 flex items-center">
           ${this.renderMobileTroopBar()}
         </div>
         <!-- Sword + % and troop count label -->
@@ -635,7 +588,7 @@ export class ControlPanel extends LitElement implements Controller {
               style="filter: brightness(0) invert(1);"
             />
             <span
-              class="text-white text-[11px] font-bold tabular-nums text-center leading-tight whitespace-pre-wrap"
+              class="text-white text-xs font-medium tabular-nums text-center leading-tight whitespace-pre-wrap"
               >${translateText("control_panel.attack_ratio", {
                 percent: (this.attackRatio * 100).toFixed(0),
                 troops: renderTroops(
@@ -646,10 +599,7 @@ export class ControlPanel extends LitElement implements Controller {
           </div>
         </div>
         <!-- Attack ratio slider -->
-        <div
-          class="flex-1 ${this.tutorialHighlightClass("attack_ratio")}"
-          translate="no"
-        >
+        <div class="flex-1" translate="no">
           <input
             type="range"
             min="1"

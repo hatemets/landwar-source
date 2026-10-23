@@ -27,7 +27,7 @@ export class PlayerActionHandler {
     this.eventBus.emit(
       new SendAttackIntentEvent(
         targetId,
-        this.uiState.attackRatio * player.troops(),
+        player.takeAttackTroops(this.uiState.attackRatio),
       ),
     );
   }
@@ -36,7 +36,7 @@ export class PlayerActionHandler {
     this.eventBus.emit(
       new SendBoatAttackIntentEvent(
         targetTile,
-        this.uiState.attackRatio * player.troops(),
+        player.takeAttackTroops(this.uiState.attackRatio),
       ),
     );
   }

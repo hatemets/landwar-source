@@ -43,7 +43,6 @@ export const RANK_TYPE_LABEL_KEYS: Record<RankType, string> = {
 export interface PlayerInfo {
   id: string;
   username: string;
-  clanTag: string | null;
   killedAt?: number;
   gold: bigint[];
   conquests: bigint[];
@@ -97,7 +96,6 @@ export class Ranking {
       players[player.clientID] = {
         id: player.clientID,
         username: player.username,
-        clanTag: player.clanTag,
         conquests,
         flag: player.cosmetics?.flag ?? undefined,
         killedAt:

@@ -95,6 +95,10 @@ describe("Attack", () => {
     // on defender territory)
     constructionExecution(game, defender, 1, 1, UnitType.MissileSilo);
     expect(defender.units(UnitType.MissileSilo)).toHaveLength(1);
+    // The attacker's land is walled in by the defender and the map edge, and
+    // the map edge counts as a wall, so the defender would annex it. Leave a
+    // tile of unclaimed land on the edge beside it as a way out.
+    attacker.relinquish(game.ref(0, 6));
     game.addExecution(new AttackExecution(100, attacker, defender.id()));
     constructionExecution(game, defender, 0, 15, UnitType.AtomBomb, 3);
     const nuke = defender.units(UnitType.AtomBomb)[0];

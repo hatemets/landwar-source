@@ -74,10 +74,12 @@ describe("nav-account-menu", () => {
     expect(trigger()).toBeNull();
     expect(el.querySelector(".menu-auth-signin")).not.toBeNull();
     expect(el.querySelector(".menu-auth-signup")).not.toBeNull();
+    const showPage = vi.fn();
+    window.showPage = showPage;
     await click(el.querySelector(".menu-auth-signin")!);
-    expect(window.location.hash).toBe("#modal=account&intent=signin");
+    expect(showPage).toHaveBeenLastCalledWith("page-signin");
     await click(el.querySelector(".menu-auth-signup")!);
-    expect(window.location.hash).toBe("#modal=account&intent=signup");
+    expect(showPage).toHaveBeenLastCalledWith("page-signup");
   });
 
   it("treats an anonymous session as signed out", async () => {

@@ -19,6 +19,20 @@ import type {
 } from "../snapshot/SnapshotContext";
 import { SAMMissileExecution } from "./SAMMissileExecution";
 
+// Units a nuke destroys inside its blast (NukeExecution skips projectiles).
+const BLAST_VULNERABLE_UNITS: readonly UnitType[] = [
+  UnitType.TransportShip,
+  UnitType.Warship,
+  UnitType.Port,
+  UnitType.TradeShip,
+  UnitType.MissileSilo,
+  UnitType.DefensePost,
+  UnitType.SAMLauncher,
+  UnitType.City,
+  UnitType.Train,
+  UnitType.Factory,
+];
+
 type Target = {
   unit: Unit;
   tile: TileRef;
@@ -202,9 +216,51 @@ class SAMTargetingSystem {
       const gameOver =
         this.mg.getWinner() !== null &&
         this.mg.config().gameConfig().gameType !== GameType.Singleplayer;
-      return gameOver && samOwner.isOnSameTeam(nukeOwner);
+      if (gameOver && samOwner.isOnSameTeam(nukeOwner)) {
+        return true;
+      }
+      // A friendly nuke is still a threat when its blast reaches our own
+      // territory or units (e.g. an ally's MIRV aimed at a neighbour).
+      return this.blastHitsSamOwner(unit);
     }
     return true;
+  }
+
+  /**
+   * True if the nuke's blast zone covers a tile or a unit of the SAM owner.
+   * Mirrors what NukeExecution destroys: tiles and units within `outer`.
+   */
+  private blastHitsSamOwner(nuke: Unit): boolean {
+    const samOwner = this.sam.owner();
+    const trajectory = nuke.trajectory();
+    const target =
+      nuke.targetTile() ??
+      (trajectory.length > 0 ? trajectory[trajectory.length - 1].tile : null);
+    if (target === null) return false;
+
+    const { outer } = this.mg.config().nukeMagnitudes(nuke.type());
+    if (
+      this.mg.anyUnitNearby(
+        target,
+        outer,
+        BLAST_VULNERABLE_UNITS,
+        () => true,
+        samOwner.id(),
+        true, // a nuke destroys units under construction too
+      )
+    ) {
+      return true;
+    }
+    const samOwnerId = samOwner.smallID();
+    let hit = false;
+    this.mg.circleSearch(target, outer, (tile) => {
+      if (this.mg.ownerID(tile) === samOwnerId) {
+        hit = true;
+        return false;
+      }
+      return true;
+    });
+    return hit;
   }
 
   private computeTargetScore(target: Target): number {

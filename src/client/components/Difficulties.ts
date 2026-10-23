@@ -59,7 +59,7 @@ export class DifficultyDisplay extends LitElement {
     </svg>`;
 
     const activeClass =
-      "opacity-100 text-[#ff3838] drop-shadow-[0_0_4px_rgba(255,56,56,0.4)] transform group-hover:drop-shadow-[0_0_6px_rgba(255,56,56,0.6)] group-hover:-translate-y-[2px] -translate-y-[1px] transition-all duration-200";
+      "opacity-100 text-[var(--field-danger)] transition-opacity duration-150";
     const inactiveClass = "opacity-30 w-4 h-4 transition-all duration-200";
     const bigClass = "w-10 h-10";
     const smallClass = "w-4 h-4";

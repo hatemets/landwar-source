@@ -243,17 +243,14 @@ export class SendResourceModal extends LitElement {
     const name = this.target?.name?.() ?? "";
     return html`
       <div class="mb-3 flex items-center justify-between relative">
-        <h2
-          id="send-title"
-          class="text-lg font-semibold tracking-tight text-zinc-100"
-        >
+        <h2 id="send-title" class="text-lg font-semibold text-gray-100">
           ${this.heading ?? this.i18n.title(name)}
         </h2>
         <!-- Close button -->
         <button
           type="button"
           @click=${() => this.closeModal()}
-          class="absolute -top-3 -right-3 flex h-7 w-7 items-center justify-center rounded-full bg-zinc-700 text-white shadow-sm hover:bg-red-500 transition-colors focus-visible:ring-2 focus-visible:ring-white/30 focus:outline-hidden"
+          class="absolute -top-3 -right-3 flex h-7 w-7 items-center justify-center rounded-md bg-gray-800 text-white hover:bg-gray-700 transition-colors focus-visible:outline-2 focus-visible:outline-malibu-blue"
           aria-label=${this.i18n.closeLabel()}
           title=${this.i18n.closeLabel()}
         >
@@ -267,15 +264,15 @@ export class SendResourceModal extends LitElement {
     const total = this.getTotalNumber();
 
     return html`
-      <div class="mb-4 pb-3 border-b border-zinc-800">
-        <div class="flex items-center gap-2 text-[13px]">
+      <div class="mb-4">
+        <div class="flex items-center gap-2 text-xs">
           <!-- Available -->
           <span
-            class="inline-flex items-center gap-1 rounded-full bg-indigo-600/15 px-2 py-0.5 ring-1 ring-indigo-400/40 text-indigo-100"
+            class="inline-flex items-center gap-1 rounded-sm bg-malibu-blue/15 px-2 py-0.5 text-gray-100"
             title=${this.i18n.availableTooltip()}
           >
             <span class="opacity-90">${this.i18n.availableChip()}</span>
-            <span class="font-mono tabular-nums">${this.format(total)}</span>
+            <span class="font-medium tabular-nums">${this.format(total)}</span>
           </span>
         </div>
       </div>
@@ -295,12 +292,12 @@ export class SendResourceModal extends LitElement {
           return html`
             <button
               ?disabled=${dead}
-              class="rounded-lg px-3 py-2 text-sm ring-1 transition
+              class="rounded-md h-9 px-3 text-sm font-medium transition-colors
                 ${dead
-                ? "bg-zinc-800/70 text-zinc-400 ring-zinc-700 cursor-not-allowed"
+                ? "bg-gray-800 text-gray-500 cursor-not-allowed"
                 : active
-                  ? "bg-indigo-600 text-white ring-indigo-300/60"
-                  : "bg-zinc-800 text-zinc-200 ring-zinc-700 hover:bg-zinc-700 hover:text-zinc-50"}"
+                  ? "bg-malibu-blue text-white"
+                  : "bg-gray-800 text-gray-200 hover:bg-gray-700 hover:text-gray-50"}"
               @click=${() => {
                 if (dead) return;
                 this.selectedPercent = pct;
@@ -342,9 +339,7 @@ export class SendResourceModal extends LitElement {
 
     return html`
       <div class="${sliderOuterMb}">
-        <div
-          class="relative px-1 rounded-lg overflow-visible focus-within:ring-2 focus-within:ring-indigo-500/30"
-        >
+        <div class="relative px-1 rounded-md overflow-visible">
           <input
             type="range"
             min="0"
@@ -367,7 +362,7 @@ export class SendResourceModal extends LitElement {
               percentNow,
               this.format(this.sendAmount),
             )}
-            style="--percent:${percentNow}%; --fill:${fill}; --track: rgba(255,255,255,.28); --thumb-ring: rgb(24 24 27);"
+            style="--percent:${percentNow}%; --fill:${fill}; --track: rgba(255,255,255,.28); --thumb-ring: transparent;"
           />
 
           <!-- Tooltip -->
@@ -376,7 +371,7 @@ export class SendResourceModal extends LitElement {
             style="--pos: ${percentNow}%"
           >
             <div
-              class="rounded-sm bg-[#0f1116] ring-1 ring-zinc-700 text-zinc-100 px-1.5 py-0.5 text-[12px] shadow-sm whitespace-nowrap w-max z-50"
+              class="rounded-sm bg-gray-700 text-gray-100 px-2 py-0.5 text-xs tabular-nums whitespace-nowrap w-max z-50"
             >
               ${percentNow}% • ${this.format(this.sendAmount)}
             </div>
@@ -386,7 +381,7 @@ export class SendResourceModal extends LitElement {
           ${capPercent !== null
             ? html`
                 <div
-                  class="pointer-events-none absolute top-1/2 -translate-y-1/2 h-3 w-0.5 bg-amber-400/80 shadow-sm left-(--pos)"
+                  class="pointer-events-none absolute top-1/2 -translate-y-1/2 h-3 w-0.5 bg-amber-400/80 left-(--pos)"
                   style="--pos:${capPercent}%;"
                   title=${this.i18n.capTooltip()}
                 ></div>
@@ -395,7 +390,7 @@ export class SendResourceModal extends LitElement {
                   style="--pos:${capPercent}%"
                 >
                   <div
-                    class="rounded-sm bg-[#0f1116] ring-1 ring-amber-400/40 text-amber-200 px-1 py-0.5 text-[11px] shadow-sm whitespace-nowrap"
+                    class="rounded-sm bg-amber-500/15 text-amber-200 px-2 py-0.5 text-xs whitespace-nowrap"
                   >
                     ${this.i18n.cap()}
                   </div>
@@ -423,14 +418,14 @@ export class SendResourceModal extends LitElement {
       keep < Math.floor(total * this.getMinKeepRatio());
 
     return html`
-      <div class="mt-3 text-center text-sm text-zinc-200">
+      <div class="mt-3 text-center text-sm text-gray-200">
         ${this.i18n.summarySend()}
-        <span class="font-semibold text-indigo-400 font-mono"
+        <span class="font-medium text-malibu-blue tabular-nums"
           >${this.format(allowed)}</span
         >
         · ${this.i18n.summaryKeep()}
         <span
-          class="font-semibold font-mono ${belowMinKeep
+          class="font-medium tabular-nums ${belowMinKeep
             ? "text-amber-400"
             : "text-emerald-400"}"
         >
@@ -447,18 +442,18 @@ export class SendResourceModal extends LitElement {
     return html`
       <div class="mt-5 flex justify-end gap-2">
         <button
-          class="h-10 min-w-24 rounded-lg px-3 text-sm font-semibold
-                 text-zinc-100 bg-zinc-800 ring-1 ring-zinc-700
-                 hover:bg-zinc-700 focus:outline-hidden
-                 focus-visible:ring-2 focus-visible:ring-white/20"
+          class="h-9 min-w-24 rounded-md px-4 text-sm font-medium
+                 text-gray-100 bg-gray-800
+                 hover:bg-gray-700 transition-colors focus:outline-hidden
+                 focus-visible:outline-2 focus-visible:outline-malibu-blue"
           @click=${() => this.closeModal()}
         >
           ${this.i18n.cancel()}
         </button>
         <button
-          class="h-10 min-w-24 rounded-lg px-3 text-sm font-semibold text-white
-                 bg-indigo-600 enabled:hover:bg-indigo-500
-                 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-indigo-400/50
+          class="h-9 min-w-24 rounded-md px-4 text-sm font-medium text-white
+                 bg-malibu-blue enabled:hover:bg-aquarius transition-colors
+                 focus:outline-hidden focus-visible:outline-2 focus-visible:outline-malibu-blue
                  disabled:cursor-not-allowed disabled:opacity-50"
           ?disabled=${disabled}
           @click=${() => this.confirm()}
@@ -472,9 +467,11 @@ export class SendResourceModal extends LitElement {
   private renderDeadNote() {
     return html`
       <div
-        class="mb-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-amber-200 text-sm"
+        class="mb-2 rounded-md bg-amber-500/15 px-3 py-2 text-gray-100 text-sm"
       >
-        <div class="font-semibold">${this.i18n.targetDeadTitle()}</div>
+        <div class="font-medium text-amber-200">
+          ${this.i18n.targetDeadTitle()}
+        </div>
         <div>${this.i18n.targetDeadNote()}</div>
       </div>
     `;
@@ -508,7 +505,6 @@ export class SendResourceModal extends LitElement {
           width: 18px;
           border-radius: 9999px;
           background: var(--fill);
-          border: 3px solid var(--thumb-ring);
           margin-top: -5px;
         }
         .range-x::-moz-range-track {
@@ -526,7 +522,6 @@ export class SendResourceModal extends LitElement {
           width: 18px;
           border-radius: 9999px;
           background: var(--fill);
-          border: 3px solid var(--thumb-ring);
         }
       </style>
     `;
@@ -541,7 +536,7 @@ export class SendResourceModal extends LitElement {
     return html`
       <div class="absolute inset-0 z-1100 flex items-center justify-center p-4">
         <div
-          class="absolute inset-0 bg-black/60 rounded-2xl"
+          class="absolute inset-0 bg-black/60 rounded-lg"
           @click=${() => this.closeModal()}
         ></div>
 
@@ -554,7 +549,7 @@ export class SendResourceModal extends LitElement {
           @keydown=${this.handleKeydown}
         >
           <div
-            class="rounded-2xl bg-zinc-900 p-5 shadow-2xl ring-1 ring-zinc-800 max-h-[90vh] text-zinc-200"
+            class="rounded-lg bg-gray-900 p-6 max-h-[90vh] text-gray-200"
             @click=${(e: MouseEvent) => e.stopPropagation()}
           >
             ${this.renderHeader()} ${this.renderAvailable()}

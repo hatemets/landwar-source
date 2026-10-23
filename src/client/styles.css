@@ -9,37 +9,111 @@
 @theme {
   --default-ring-width: 3px;
   --default-ring-color: var(--color-malibu-blue);
-  --font-display: Inter, Arial, sans-serif;
+  /* Type: one sans family for menus, HUD and gameplay. */
+  --font-sans:
+    "Google Sans Flex", "Google Sans", Inter, Roboto, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: var(--font-sans);
 
-  /* Primary accent and its hover state. Restrained blue, not the upstream
-     OpenFront palette. */
-  --color-malibu-blue: #2563eb;
-  --color-aquarius: #3b82f6;
+  /* Design system scale (docs/Design.md). Tailwind's own names are remapped
+     so every existing class lands on a step of the scale. */
+  --text-xs: 0.75rem; /* 12px: captions, badges */
+  --text-xs--line-height: 1rem;
+  --text-sm: 0.875rem; /* 14px: body, controls (default) */
+  --text-sm--line-height: 1.25rem;
+  --text-base: 1rem; /* 16px: emphasised body */
+  --text-base--line-height: 1.5rem;
+  --text-lg: 1.125rem; /* 18px: section titles */
+  --text-lg--line-height: 1.5rem;
+  --text-xl: 1.375rem; /* 22px: modal titles */
+  --text-xl--line-height: 1.75rem;
+  --text-2xl: 1.75rem; /* 28px: page titles */
+  --text-2xl--line-height: 2.25rem;
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 16px;
+  --radius-3xl: 16px;
+
+  /* No glows and no drop shadows. Depth comes from surface steps. */
+  --shadow-2xs: none;
+  --shadow-xs: none;
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+  --shadow-xl: none;
+  --shadow-2xl: none;
+  --inset-shadow-2xs: none;
+  --inset-shadow-xs: none;
+  --inset-shadow-sm: none;
+  --drop-shadow-xs: none;
+  --drop-shadow-sm: none;
+  --drop-shadow-md: none;
+  --drop-shadow-lg: none;
+  --drop-shadow-xl: none;
+  --drop-shadow-2xl: none;
+  --text-shadow-2xs: none;
+  --text-shadow-xs: none;
+  --text-shadow-sm: none;
+  --text-shadow-md: none;
+  --text-shadow-lg: none;
+
+  /* Primary accent and its hover state. Matches --field-accent in
+     styles/menu-experience.css. */
+  --color-malibu-blue: #4b8bf5;
+  --color-aquarius: #5e98f7;
   --color-dawn-blue: #cccccc;
   --color-bright-white: #ffffff;
-  --color-bright-blue: #1e90ff;
+  --color-bright-blue: #4b8bf5;
 
   /* Openfront Masters sub-brand */
   --color-cyber-yellow: #ffd700;
   --color-limestone: #999999;
 
   /* Background & decorative — not for standalone UI use */
-  --color-deep-navy: #0a1628;
+  --color-deep-navy: #0a0f1a;
   --color-hex-cyan: #00c8ff;
   --color-frame-orange: #f97316;
 
   /* App-specific surface colors */
-  --color-surface: #111a27;
+  --color-surface: #0f1624;
 
-  --shadow-malibu-blue: 0 0 15px rgba(37, 99, 235, 0.2);
-  --shadow-malibu-blue-soft: 0 0 12px rgba(37, 99, 235, 0.2);
-  --shadow-malibu-blue-strong: 0 0 15px rgba(37, 99, 235, 0.3);
-  --shadow-malibu-blue-pill: 0 0 6px rgba(37, 99, 235, 0.35);
-  --shadow-malibu-blue-ring-sm: 0 0 0 4px rgba(37, 99, 235, 0.2);
-  --shadow-malibu-blue-ring-lg: 0 0 0 6px rgba(37, 99, 235, 0.3);
-  --shadow-lobby-card-hover: 0 0 0 2px #2563eb, 0 0 20px rgba(37, 99, 235, 0.4);
-  --shadow-action-card-hover:
-    0 0 0 1px #2563eb, 0 0 12px rgba(37, 99, 235, 0.3);
+  /* Night-blue tonal scale (not neutral grey). Same steps as the --field-*
+     surfaces, so menus and the in-game HUD match. */
+  --color-gray-50: #f4f6fa;
+  --color-gray-100: #e8ecf4;
+  --color-gray-200: #d3d9e6;
+  --color-gray-300: #b4bdd0;
+  --color-gray-400: #8b97b0;
+  --color-gray-500: #5a6782;
+  --color-gray-600: #34405a;
+  --color-gray-700: #212c40;
+  --color-gray-800: #172031;
+  --color-gray-900: #0f1624;
+  --color-gray-950: #0a0f1a;
+  --color-slate-50: var(--color-gray-50);
+  --color-slate-100: var(--color-gray-100);
+  --color-slate-200: var(--color-gray-200);
+  --color-slate-300: var(--color-gray-300);
+  --color-slate-400: var(--color-gray-400);
+  --color-slate-500: var(--color-gray-500);
+  --color-slate-600: var(--color-gray-600);
+  --color-slate-700: var(--color-gray-700);
+  --color-slate-800: var(--color-gray-800);
+  --color-slate-900: var(--color-gray-900);
+  --color-slate-950: var(--color-gray-950);
+
+  /* No glows: state is shown with fills and outlines, not halos. */
+  --shadow-malibu-blue: none;
+  --shadow-malibu-blue-soft: none;
+  --shadow-malibu-blue-strong: none;
+  --shadow-malibu-blue-pill: none;
+  --shadow-malibu-blue-ring-sm: 0 0 0 4px rgba(75, 139, 245, 0.2);
+  --shadow-malibu-blue-ring-lg: 0 0 0 6px rgba(75, 139, 245, 0.3);
+  --shadow-lobby-card-hover: 0 0 0 2px #4b8bf5;
+  --shadow-action-card-hover: 0 0 0 1px #4b8bf5;
 }
 
 @layer base {
@@ -353,8 +427,14 @@ label.option-card:hover {
 }
 
 #lobbyIdInput {
-  font-family: monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-weight: 600;
+}
+
+/* The ID is monospace; the hint is ordinary text. */
+#lobbyIdInput::placeholder {
+  font-family: var(--field-font);
+  font-weight: 400;
 }
 
 .lobby-id-button {
@@ -670,97 +750,6 @@ label.option-card:hover {
   justify-content: center;
 }
 
-/* News button glows blue while there is unread news. */
-news-button .active button {
-  position: relative;
-  border-color: var(--color-malibu-blue) !important;
-  border-width: 2px !important;
-  box-shadow:
-    0 0 0 1px rgba(37, 99, 235, 0.5),
-    0 0 8px rgba(37, 99, 235, 0.4);
-}
-
-/* Amber notification dot pinned to the news button's top-right corner. */
-news-button .active button::after {
-  content: "";
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #f59e0b;
-  border: 2px solid #fff;
-  animation: newsPulse 1.5s ease-in-out infinite;
-}
-
-/* Pulsing ring the in-game tutorial puts around the HUD element it's describing. */
-.tutorial-highlight {
-  border-radius: 0.375rem;
-  animation: tutorialHighlight 1.2s ease-in-out infinite;
-}
-
-/* Hotbar buttons get the loud treatment: enlarged, gold-tinted, with a
-   bobbing arrow pointing at them. The control panel's wide bars keep just
-   the ring above (scaling them would break the layout). */
-unit-display .tutorial-highlight {
-  position: relative;
-  z-index: 10;
-  transform: scale(1.3);
-  transform-origin: bottom center;
-  border-color: #ffd700 !important;
-  background: rgba(255, 215, 0, 0.25);
-}
-
-unit-display .tutorial-highlight::after {
-  content: "▼";
-  position: absolute;
-  bottom: calc(100% + 3px);
-  left: 50%;
-  color: #ffd700;
-  font-size: 15px;
-  line-height: 1;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
-  animation: tutorialArrowBob 0.8s ease-in-out infinite;
-  pointer-events: none;
-}
-
-@keyframes tutorialArrowBob {
-  0%,
-  100% {
-    transform: translate(-50%, 0);
-  }
-
-  50% {
-    transform: translate(-50%, -5px);
-  }
-}
-
-@keyframes tutorialHighlight {
-  0%,
-  100% {
-    box-shadow:
-      0 0 0 2px #ffd700,
-      0 0 8px rgba(255, 215, 0, 0.5);
-  }
-
-  50% {
-    box-shadow:
-      0 0 0 4px #ffd700,
-      0 0 16px rgba(255, 215, 0, 0.9);
-  }
-}
-
-@keyframes newsPulse {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.4);
-  }
-}
-
 .host-badge {
   font-size: 11px;
   font-weight: bold;
@@ -803,5 +792,5 @@ input:not(
   )
 ),
 textarea {
-  border-radius: 20px !important;
+  border-radius: 8px !important;
 }

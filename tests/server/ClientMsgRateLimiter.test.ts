@@ -1,5 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { ClientMsgRateLimiter } from "../../src/server/ClientMsgRateLimiter";
+import {
+  MAX_MOVE_WARSHIP_UNITS,
+  MAX_UNIT_ID,
+} from "@openfront/engine-api/Schemas";
+import {
+  ClientMessageSchema,
+  type ClientMessage,
+} from "@openfront/shared/WireSchemas";
+import {
+  ClientMsgRateLimiter,
+  MAX_INTENT_SIZE,
+} from "../../src/server/ClientMsgRateLimiter";
+import { clientFrame } from "../util/Wire";
 
 const CLIENT_A = "clientA" as any;
 const CLIENT_B = "clientB" as any;
@@ -31,12 +43,63 @@ describe("ClientMsgRateLimiter", () => {
 
     it("allows intents up to MAX_INTENT_SIZE", () => {
       const limiter = new ClientMsgRateLimiter();
-      expect(limiter.check(CLIENT_A, "intent", 2000)).toBe("ok");
+      expect(limiter.check(CLIENT_A, "intent", MAX_INTENT_SIZE)).toBe("ok");
     });
 
     it("kicks intents exceeding MAX_INTENT_SIZE", () => {
       const limiter = new ClientMsgRateLimiter();
-      expect(limiter.check(CLIENT_A, "intent", 2001)).toBe("kick");
+      expect(limiter.check(CLIENT_A, "intent", MAX_INTENT_SIZE + 1)).toBe(
+        "kick",
+      );
+    });
+
+    it("still kicks an oversized junk intent", () => {
+      const limiter = new ClientMsgRateLimiter();
+      expect(limiter.check(CLIENT_A, "intent", 100_000)).toBe("kick");
+    });
+  });
+
+  describe("large fleet moves (upstream issue 4718)", () => {
+    const moveFrame = (ids: number[]) =>
+      clientFrame({
+        type: "intent",
+        intent: { type: "move_warship", unitIds: ids, tile: 123456 },
+      } as ClientMessage);
+
+    it("accepts an 800 ship move, over the old 2000 byte limit", () => {
+      const ids = Array.from({ length: 800 }, (_, i) => 100_000 + i);
+      const frame = moveFrame(ids);
+      expect(frame.length).toBeGreaterThan(2000);
+      expect(
+        ClientMessageSchema.safeParse({
+          type: "intent",
+          intent: { type: "move_warship", unitIds: ids, tile: 1 },
+        }).success,
+      ).toBe(true);
+      const limiter = new ClientMsgRateLimiter();
+      expect(limiter.check(CLIENT_A, "intent", frame.length)).toBe("ok");
+    });
+
+    it("accepts the largest legal move, with worst-case unit ids", () => {
+      const ids = Array.from(
+        { length: MAX_MOVE_WARSHIP_UNITS },
+        (_, i) => MAX_UNIT_ID - i,
+      );
+      const frame = moveFrame(ids);
+      const limiter = new ClientMsgRateLimiter();
+      expect(limiter.check(CLIENT_A, "intent", frame.length)).toBe("ok");
+    });
+
+    it("rejects a move with more unit ids than the schema allows", () => {
+      const ids = Array.from(
+        { length: MAX_MOVE_WARSHIP_UNITS + 1 },
+        (_, i) => i,
+      );
+      const result = ClientMessageSchema.safeParse({
+        type: "intent",
+        intent: { type: "move_warship", unitIds: ids, tile: 1 },
+      });
+      expect(result.success).toBe(false);
     });
   });
 

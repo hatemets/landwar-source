@@ -41,6 +41,11 @@ export function initNavigation() {
     // styles.css). Set after closing the previous modal: an inline modal's
     // close() re-enters showPage("page-play"), which would clear this.
     document.body.classList.toggle("page-open", pageId !== "page-play");
+    // Sign-in and sign-up stand alone: no site header above them.
+    document.body.classList.toggle(
+      "page-chromeless",
+      document.getElementById(pageId)?.hasAttribute("data-chromeless") ?? false,
+    );
 
     // Handle page-play separately (it's not a page-content element)
     const pagePlayEl = document.getElementById("page-play");

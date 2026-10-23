@@ -174,10 +174,9 @@ export class BuildMenu extends LitElement implements Controller {
       left: 50%;
       transform: translate(-50%, -50%);
       z-index: 9999;
-      background-color: #1e1e1e;
-      padding: 15px;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-      border-radius: 10px;
+      background-color: var(--color-gray-900);
+      padding: 16px;
+      border-radius: 12px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -186,7 +185,7 @@ export class BuildMenu extends LitElement implements Controller {
       overflow-y: auto;
     }
     .build-description {
-      font-size: 0.6rem;
+      font-size: 12px;
     }
     .build-row {
       display: flex;
@@ -198,32 +197,30 @@ export class BuildMenu extends LitElement implements Controller {
       position: relative;
       width: 120px;
       height: 140px;
-      border: 2px solid #444;
-      background-color: #2c2c2c;
+      border: none;
+      background-color: var(--color-gray-800);
       color: white;
       border-radius: 12px;
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition:
+        background-color 150ms ease-out,
+        opacity 150ms ease-out;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      margin: 8px;
-      padding: 10px;
-      gap: 5px;
+      margin: 4px;
+      padding: 12px;
+      gap: 4px;
     }
     .build-button:not(:disabled):hover {
-      background-color: #3a3a3a;
-      transform: scale(1.05);
-      border-color: #666;
+      background-color: var(--color-gray-700);
     }
     .build-button:not(:disabled):active {
-      background-color: #4a4a4a;
-      transform: scale(0.95);
+      background-color: var(--color-gray-600);
     }
     .build-button:disabled {
-      background-color: #1a1a1a;
-      border-color: #333;
+      background-color: var(--color-gray-800);
       cursor: not-allowed;
       opacity: 0.7;
     }
@@ -239,8 +236,8 @@ export class BuildMenu extends LitElement implements Controller {
     }
     .build-name {
       font-size: 14px;
-      font-weight: bold;
-      margin-bottom: 5px;
+      font-weight: 500;
+      margin-bottom: 4px;
       text-align: center;
     }
     .build-cost {
@@ -253,31 +250,29 @@ export class BuildMenu extends LitElement implements Controller {
       position: absolute;
       top: -10px;
       right: -10px;
-      background-color: #2c2c2c;
+      background-color: var(--color-gray-700);
       color: white;
-      padding: 2px 10px;
-      border-radius: 10000px;
-      transition: all 0.3s ease;
+      padding: 2px 8px;
+      border-radius: 6px;
+      transition: background-color 150ms ease-out;
       font-size: 12px;
+      font-variant-numeric: tabular-nums;
       display: flex;
       justify-content: center;
       align-content: center;
-      border: 1px solid #444;
     }
     .build-button:not(:disabled):hover > .build-count-chip {
-      background-color: #3a3a3a;
-      border-color: #666;
+      background-color: var(--color-gray-600);
     }
     .build-button:not(:disabled):active > .build-count-chip {
-      background-color: #4a4a4a;
+      background-color: var(--color-gray-600);
     }
     .build-button:disabled > .build-count-chip {
-      background-color: #1a1a1a;
-      border-color: #333;
+      background-color: var(--color-gray-800);
       cursor: not-allowed;
     }
     .build-count {
-      font-weight: bold;
+      font-weight: 500;
       font-size: 14px;
     }
 
@@ -302,11 +297,11 @@ export class BuildMenu extends LitElement implements Controller {
         margin-bottom: 3px;
       }
       .build-cost {
-        font-size: 11px;
+        font-size: 12px;
       }
       .build-count {
-        font-weight: bold;
-        font-size: 10px;
+        font-weight: 500;
+        font-size: 12px;
       }
       .build-count-chip {
         padding: 1px 5px;
@@ -323,21 +318,20 @@ export class BuildMenu extends LitElement implements Controller {
         height: 100px;
         margin: 3px;
         padding: 4px;
-        border-width: 1px;
       }
       .build-icon {
         font-size: 24px;
       }
       .build-name {
-        font-size: 10px;
+        font-size: 12px;
         margin-bottom: 2px;
       }
       .build-cost {
-        font-size: 9px;
+        font-size: 12px;
       }
       .build-count {
-        font-weight: bold;
-        font-size: 8px;
+        font-weight: 500;
+        font-size: 12px;
       }
       .build-count-chip {
         padding: 0 3px;

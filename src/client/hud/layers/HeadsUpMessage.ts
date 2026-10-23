@@ -6,6 +6,9 @@ import {
 import { GameUpdateType } from "@openfront/engine-api/game/GameUpdates";
 import { LitElement, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
+import { unsafeSVG } from "lit/directives/unsafe-svg.js";
+import circleAlert from "lucide-static/icons/circle-alert.svg?raw";
+import circleCheck from "lucide-static/icons/circle-check.svg?raw";
 import { Controller } from "../../Controller";
 import { translateText } from "../../Utils";
 import { GameView } from "../../view";
@@ -254,25 +257,29 @@ export class HeadsUpMessage extends LitElement implements Controller {
               >
                 <div
                   data-game-toast-content
-                  class="px-6 py-4 rounded-xl animate-fade-in-out"
+                  class="flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm animate-fade-in-out [&_svg]:size-4 [&_svg]:shrink-0"
                   style="min-width: 200px; text-align: center;
                   transform: translate3d(${this.toastDragOffset.x}px, ${this
                     .toastDragOffset.y}px, 0);
                   transition: ${this.toastPointerId === null
                     ? "transform 180ms cubic-bezier(0.4, 0, 0.2, 1)"
                     : "none"};
-                  background: ${this.toastColor === "red"
-                    ? "rgba(239,68,68,0.1)"
-                    : "rgba(34,197,94,0.1)"};
-                  border: 1px solid ${this.toastColor === "red"
-                    ? "rgba(239,68,68,0.5)"
-                    : "rgba(34,197,94,0.5)"};
-                  color: white;
-                  box-shadow: 0 0 30px 0 ${this.toastColor === "red"
-                    ? "rgba(239,68,68,0.3)"
-                    : "rgba(34,197,94,0.3)"};
-                  backdrop-filter: blur(12px);"
+                  background: linear-gradient(${this.toastColor === "red"
+                    ? "var(--field-danger-soft), var(--field-danger-soft)"
+                    : "var(--field-success-soft), var(--field-success-soft)"}),
+                    var(--field-surface);
+                  color: var(--field-paper);"
                 >
+                  <span
+                    aria-hidden="true"
+                    class="flex"
+                    style="color: ${this.toastColor === "red"
+                      ? "var(--field-danger)"
+                      : "var(--field-success)"}"
+                    >${unsafeSVG(
+                      this.toastColor === "red" ? circleAlert : circleCheck,
+                    )}</span
+                  >
                   ${typeof this.toastMessage === "string"
                     ? html`<span class="font-medium"
                         >${this.toastMessage}</span
@@ -288,8 +295,8 @@ export class HeadsUpMessage extends LitElement implements Controller {
                 class="fixed top-[15%] left-1/2 -translate-x-1/2 z-[799]
                             inline-flex items-center justify-center min-h-8 lg:min-h-10
                             w-fit max-w-[90vw]
-                            bg-gray-800/70 rounded-md lg:rounded-lg
-                            backdrop-blur-xs text-white text-md lg:text-xl px-3 lg:px-4 py-1
+                            bg-gray-900/90 rounded-lg
+                            text-white text-sm lg:text-base font-medium px-4 py-2
                             text-center break-words"
                 style="word-wrap: break-word; hyphens: auto;"
                 @contextmenu=${(e: MouseEvent) => e.preventDefault()}
@@ -310,15 +317,15 @@ export class HeadsUpMessage extends LitElement implements Controller {
                 class="fixed top-[25%] left-1/2 -translate-x-1/2 z-[799]
                             inline-flex flex-col items-center justify-center min-h-8 lg:min-h-10
                             w-fit max-w-[90vw]
-                            bg-amber-500/70 rounded-md lg:rounded-lg
-                            backdrop-blur-xs text-white text-md lg:text-xl px-3 lg:px-4 py-3
+                            bg-[color-mix(in_srgb,var(--color-amber-500)_16%,var(--color-gray-900))] rounded-lg
+                            text-white text-sm px-4 py-3
                             text-center break-words"
                 style="word-wrap: break-word; hyphens: auto; pointer-events: auto;"
                 @contextmenu=${(e: MouseEvent) => e.preventDefault()}
               >
                 <div>${translateText("heads_up_message.ffa_collusion")}</div>
                 <button
-                  class="mt-2 px-3 py-1 rounded bg-black/20 hover:bg-black/30 text-sm"
+                  class="mt-2 h-8 px-3 rounded-md bg-gray-800 hover:bg-gray-700 transition-colors text-sm font-medium"
                   @click=${this.onCloseCollusionWarning}
                 >
                   ${translateText("heads_up_message.dont_show_again")}

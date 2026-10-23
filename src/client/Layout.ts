@@ -1,8 +1,8 @@
 import { Platform } from "./Platform";
 
 export function initLayout() {
-  // Wait for play-page component to render before setting up hamburger menu
-  customElements.whenDefined("play-page").then(() => {
+  // Wait for the header to render before setting up the hamburger menu
+  customElements.whenDefined("site-header").then(() => {
     const hb = document.getElementById("hamburger-btn");
     const sidebar = document.getElementById("sidebar-menu");
     const backdrop = document.getElementById("mobile-menu-backdrop");

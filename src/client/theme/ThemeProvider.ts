@@ -3,7 +3,6 @@ import {
   PlayerType,
   Team,
 } from "@openfront/engine-api/game/GameTypes";
-import { simpleHash } from "@openfront/engine-lib/Util";
 import { Colord, colord, LabaColor } from "colord";
 import { PALETTE_NAMES } from "../render/gl/GraphicsOverrides";
 import {
@@ -13,7 +12,7 @@ import {
 } from "../render/gl/RenderSettings";
 import { UserSettings } from "../UserSettings";
 import { PlayerView } from "../view";
-import { ColorAllocator } from "./ColorAllocator";
+import { ColorAllocator, ColorRegistry } from "./ColorAllocator";
 
 /**
  * The color surface consumed by PlayerView and HUD components. Built from
@@ -89,6 +88,7 @@ export class SettingsTheme implements Theme {
   private classicBotColorAllocator: ColorAllocator;
   private teamPalettes: Map<Team, Colord[]>;
   private teamPlayerColors = new Map<string, Colord>();
+  private teamPlayerCounts = new Map<Team, number>();
 
   /**
    * When true, teamless tribes draw from the classic (pre-v34) bot pool
@@ -106,8 +106,20 @@ export class SettingsTheme implements Theme {
     const classicBotColors = settings.classicBotColors.map(colord);
     const fallbackColors = settings.fallbackColors.map(colord);
 
-    this.humanColorAllocator = new ColorAllocator(humanColors, fallbackColors);
-    this.nationColorAllocator = new ColorAllocator(nationColors, nationColors);
+    // Humans and nations share one registry, so a nation never gets a color
+    // that looks like a human's. Both can fall back to the large fallback list
+    // once their own pool runs low.
+    const registry = new ColorRegistry();
+    this.humanColorAllocator = new ColorAllocator(
+      humanColors,
+      [...nationColors, ...fallbackColors],
+      registry,
+    );
+    this.nationColorAllocator = new ColorAllocator(
+      nationColors,
+      [...humanColors, ...fallbackColors],
+      registry,
+    );
     this.classicBotColorAllocator = new ColorAllocator(
       classicBotColors,
       classicBotColors,
@@ -137,14 +149,20 @@ export class SettingsTheme implements Theme {
     });
   }
 
-  /** Stable per-player variation within a team's color set. */
+  /**
+   * Stable per-player variation within a team's color set. Players take the
+   * variations in the order they are first seen, so teammates never share a
+   * color until the team outgrows its variations.
+   */
   teamColorForPlayer(team: Team, playerId: string): Colord {
     const cached = this.teamPlayerColors.get(playerId);
     if (cached !== undefined) {
       return cached;
     }
     const colors = this.teamColorVariations(team);
-    const color = colors[simpleHash(playerId) % colors.length];
+    const index = this.teamPlayerCounts.get(team) ?? 0;
+    this.teamPlayerCounts.set(team, index + 1);
+    const color = colors[index % colors.length];
     this.teamPlayerColors.set(playerId, color);
     return color;
   }

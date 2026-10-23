@@ -29,15 +29,28 @@ uniform float uSaturation;         // 1 = full color, 0 = grayscale
 uniform float uTerritoryAlpha;     // absolute fill opacity; 1 = fully opaque
 uniform sampler2D uAffiliation;    // RGBA8 — alt-view relation colors (row 0)
 uniform float uAltFillAlpha;       // alt-view translucent fill opacity
+uniform int uSmoothEdges;          // 1 = curved territory edges (smooth-owner)
 
 in vec2 vWorldPos;
 out vec4 fragColor;
 
+// @include smooth-owner
+
 void main() {
-  ivec2 tc = ivec2(floor(vWorldPos));
-  if (tc.x < 0 || tc.y < 0 || tc.x >= int(uMapSize.x) || tc.y >= int(uMapSize.y))
+  ivec2 here = ivec2(floor(vWorldPos));
+  if (here.x < 0 || here.y < 0 || here.x >= int(uMapSize.x) || here.y >= int(uMapSize.y))
     discard;
 
+  SmoothOwner so = smoothOwner(vWorldPos);
+  // Anti-alias only where the fill meets empty ground; an edge against
+  // another owner is covered by the border stamp. fwidth runs before any
+  // discard so derivatives stay defined.
+  float aa = max(fwidth(so.edge), 1e-4);
+  float coverage = (so.rivalScore > 0.0 && so.rival == 0u)
+    ? smoothstep(0.0, aa, so.edge)
+    : 1.0;
+
+  ivec2 tc = so.tile;
   uint raw = texelFetch(uTileTex, tc, 0).r;
   uint owner = raw & uint(OWNER_MASK);
   bool fallout = (raw & (1u << FALLOUT_BIT)) != 0u;
@@ -50,7 +63,7 @@ void main() {
   if (fallout) {
     float h = fract(sin(float(tc.x) * 12.9898 + float(tc.y) * 78.233) * 43758.5453);
     float noise = uStaleNukeBase + h * uStaleNukeVariation;
-    fragColor = vec4(uStaleNukeColor + vec3(noise), uStaleNukeAlpha);
+    fragColor = vec4(uStaleNukeColor + vec3(noise), uStaleNukeAlpha * coverage);
     return;
   }
 
@@ -58,7 +71,7 @@ void main() {
   // border color BorderStampPass draws in alt-view).
   if (uAltView != 0) {
     vec3 rel = texelFetch(uAffiliation, ivec2(int(owner), 0), 0).rgb;
-    fragColor = vec4(rel, uAltFillAlpha);
+    fragColor = vec4(rel, uAltFillAlpha * coverage);
     return;
   }
 
@@ -136,7 +149,7 @@ void main() {
     color.rgb = mix(vec3(luma), color.rgb, uSaturation);
   }
 
-  color.a = uTerritoryAlpha;
+  color.a = uTerritoryAlpha * coverage;
 
   fragColor = color;
 }

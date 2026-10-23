@@ -6,9 +6,20 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
-    <title data-i18n="main.title">LandWar</title>
+    <title data-i18n="main.title">Cleo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@400..700&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&display=swap"
+    />
     <link rel="manifest" href="<%- manifestHref %>" />
     <link rel="icon" type="image/svg+xml" href="<%- faviconHref %>" />
+    <link rel="apple-touch-icon" href="<%- appleTouchIconHref %>" />
 
     <!-- Preload styles -->
     <style>
@@ -137,14 +148,14 @@
     <!-- SEO -->
     <meta
       name="description"
-      content="LandWar is a real-time strategy game about territory, nations, and alliances. Play solo or join an open lobby."
+      content="Cleo is a real-time strategy game about territory, nations, and alliances. Play solo or join an open lobby."
     />
 
     <!-- Open Graph -->
-    <meta property="og:title" content="LandWar" />
+    <meta property="og:title" content="Cleo" />
     <meta
       property="og:description"
-      content="LandWar is a real-time strategy game about territory, nations, and alliances. Play solo or join an open lobby."
+      content="Cleo is a real-time strategy game about territory, nations, and alliances. Play solo or join an open lobby."
     />
     <meta property="og:image" content="<%- gameplayScreenshotUrl %>" />
     <meta property="og:type" content="game" />
@@ -207,6 +218,9 @@
 
       <banned-modal></banned-modal>
 
+      <!-- The nav bar stays in place on every page. -->
+      <site-header class="contents"></site-header>
+
       <!-- Main container with responsive padding -->
       <main-layout class="contents">
         <play-page class="contents"></play-page>
@@ -215,11 +229,6 @@
           inline
           class="hidden w-full h-full page-content relative z-50"
         ></matchmaking-modal>
-        <news-modal
-          id="page-news"
-          inline
-          class="hidden w-full h-full page-content relative z-50"
-        ></news-modal>
         <single-player-modal
           id="page-single-player"
           inline
@@ -255,6 +264,18 @@
           inline
           class="hidden w-full h-full page-content relative z-50"
         ></account-modal>
+        <signin-page
+          id="page-signin"
+          inline
+          data-chromeless
+          class="hidden w-full h-full page-content relative z-50"
+        ></signin-page>
+        <signup-page
+          id="page-signup"
+          inline
+          data-chromeless
+          class="hidden w-full h-full page-content relative z-50"
+        ></signup-page>
         <game-stats-modal
           id="page-stats"
           inline
@@ -265,11 +286,6 @@
           inline
           class="hidden w-full h-full page-content relative z-50"
         ></player-profile-modal>
-        <help-modal
-          id="page-help"
-          inline
-          class="hidden w-full h-full page-content relative z-50"
-        ></help-modal>
         <language-modal
           id="page-language"
           inline
@@ -311,9 +327,6 @@
         <attacks-display
           class="w-full pointer-events-auto order-1 sm:order-none"
         ></attacks-display>
-        <tutorial-panel
-          class="hidden w-full order-3 sm:order-none"
-        ></tutorial-panel>
         <div
           class="pointer-events-auto bg-gray-800/92 backdrop-blur-sm sm:rounded-tr-lg lg:rounded-t-lg min-[1200px]:rounded-lg shadow-lg order-3 sm:order-none"
         >

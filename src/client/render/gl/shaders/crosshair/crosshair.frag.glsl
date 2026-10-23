@@ -12,10 +12,6 @@ uniform float uHasAtlas;
 
 out vec4 fragColor;
 
-const float LINE_HALF_W = 0.08; // line half-width (normalized to quad)
-const float GAP = 0.15;         // center gap radius (normalized)
-const float AA = 0.02;          // anti-alias width
-
 const vec3 OUTLINE_BLACK = vec3(0.0);
 const vec3 ALLIANCE_GREEN = vec3(0.0, 0.9, 0.2); // Official Alliance Green
 
@@ -25,6 +21,30 @@ const vec2 kRing[8] = vec2[8](
   vec2(0.707, 0.707), vec2(-0.707, 0.707),
   vec2(0.707, -0.707), vec2(-0.707, -0.707)
 );
+
+// Coverage of the reticle shape at p, with strokes widened by grow.
+float reticleMask(vec2 p, float grow) {
+  float r = length(p);
+  float aa = 0.05;
+  // Ring arcs, broken at the diagonals.
+  float ringD = abs(r - 0.74) - (0.04 + grow);
+  float ang = abs(atan(p.y, p.x));
+  float toDiag = abs(mod(ang, 1.5707963) - 0.7853982); // 0 on a diagonal
+  float arc = smoothstep(0.24, 0.30, toDiag + grow * 0.5);
+  float ring = (1.0 - smoothstep(-aa, aa, ringD)) * arc;
+  // Inner ticks on the axes.
+  float ax = abs(p.x), ay = abs(p.y);
+  float hw = 0.035 + grow;
+  float h = (1.0 - smoothstep(hw - aa, hw + aa, ay)) *
+            smoothstep(0.30 - grow - aa, 0.30 - grow + aa, ax) *
+            (1.0 - smoothstep(0.54 + grow - aa, 0.54 + grow + aa, ax));
+  float v = (1.0 - smoothstep(hw - aa, hw + aa, ax)) *
+            smoothstep(0.30 - grow - aa, 0.30 - grow + aa, ay) *
+            (1.0 - smoothstep(0.54 + grow - aa, 0.54 + grow + aa, ay));
+  // Centre pip.
+  float pip = 1.0 - smoothstep(0.07 + grow - aa, 0.07 + grow + aa, r);
+  return max(max(ring, pip), max(h, v));
+}
 
 void main() {
   if (uIsDiagonal > 0.5) {
@@ -77,22 +97,20 @@ void main() {
     if (finalAlpha < 0.01) discard;
     fragColor = vec4(finalCol, finalAlpha * uAlpha);
   } else {
-    float ax = abs(vLocal.x);
-    float ay = abs(vLocal.y);
+    // Targeting reticle: four ring arcs, inner ticks and a centre pip, with
+    // a dark rim and a soft drop shadow so it lifts off any terrain.
+    float shadow = reticleMask(vLocal - vec2(0.05, 0.07), 0.06);
+    float rim = reticleMask(vLocal, 0.035);
+    float body = reticleMask(vLocal, 0.0);
+    // Light from the top: the upper half of each stroke is a touch brighter.
+    vec3 lit = mix(uColor * 0.85, min(uColor + 0.25, vec3(1.0)), 0.5 - 0.5 * vLocal.y);
 
-    // Horizontal arm: |y| < lineWidth, |x| > gap
-    float hMask = smoothstep(LINE_HALF_W + AA, LINE_HALF_W - AA, ay)
-                * smoothstep(GAP - AA, GAP + AA, ax)
-                * (1.0 - smoothstep(1.0 - AA, 1.0, ax));
-
-    // Vertical arm: |x| < lineWidth, |y| > gap
-    float vMask = smoothstep(LINE_HALF_W + AA, LINE_HALF_W - AA, ax)
-                * smoothstep(GAP - AA, GAP + AA, ay)
-                * (1.0 - smoothstep(1.0 - AA, 1.0, ay));
-
-    float mask = max(hMask, vMask);
-    if (mask < 0.01) discard;
-
-    fragColor = vec4(uColor, mask * 0.9);
+    vec3 col = mix(OUTLINE_BLACK, lit, body);
+    float a = max(rim * 0.4, body);
+    // Shadow sits under everything else.
+    float outA = a + shadow * 0.18 * (1.0 - a);
+    vec3 outC = (col * a) / max(outA, 1e-4);
+    if (outA < 0.01) discard;
+    fragColor = vec4(outC, outA * 0.95);
   }
 }

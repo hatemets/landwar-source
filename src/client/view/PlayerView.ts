@@ -27,6 +27,7 @@ import { createRandomName } from "@openfront/shared/SharedUtil";
 import { PlayerCosmetics } from "@openfront/shared/WireSchemas";
 import { Colord, colord } from "colord";
 import { base64url } from "jose";
+import { AttackBudget } from "../AttackBudget";
 import { UserSettings } from "../UserSettings";
 import { PlayerState, PlayerStatic, PlayerTypeEnum } from "../render/types";
 import { themeProvider } from "../theme/ThemeProvider";
@@ -476,6 +477,22 @@ export class PlayerView implements PlayerLike {
 
   troops(): number {
     return this.state.troops;
+  }
+
+  private attackBudget = new AttackBudget();
+
+  /**
+   * Troops for one attack or boat attack at `ratio`. Attacks sent in the same
+   * tick share the troops left by the earlier ones, because `troops()` has
+   * not changed yet. See AttackBudget.
+   */
+  takeAttackTroops(ratio: number, cap: number = Infinity): number {
+    return this.attackBudget.take(
+      this.game.ticks(),
+      this.state.troops,
+      ratio,
+      cap,
+    );
   }
 
   totalUnitLevels(type: UnitType): number {

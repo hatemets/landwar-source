@@ -2,6 +2,8 @@
  * WebGL2 utility functions: shader compilation, texture creation, VAO helpers.
  */
 
+import smoothOwnerSrc from "../shaders/shared/smooth-owner.glsl?raw";
+
 /**
  * Thrown when the WebGL context died while we were building GPU resources —
  * a GPU-process crash, a driver reset, or the browser reclaiming a context
@@ -204,6 +206,18 @@ export function shaderSrc(
     .map(([k, v]) => `#define ${k} ${v}`)
     .join("\n");
   return source.replace("#version 300 es", `#version 300 es\n${defs}`);
+}
+
+/**
+ * Replace the `// @include smooth-owner` marker in a fragment shader with the
+ * shared smooth-ownership helpers (shaders/shared/smooth-owner.glsl).
+ */
+export function includeSmoothOwner(source: string): string {
+  const marker = "// @include smooth-owner";
+  if (!source.includes(marker)) {
+    throw new Error("shader has no smooth-owner include marker");
+  }
+  return source.replace(marker, smoothOwnerSrc);
 }
 
 export interface RenderTarget {

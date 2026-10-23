@@ -229,7 +229,7 @@ export class RadialMenu implements Controller {
     this.tooltipElement.className = "radial-tooltip";
     this.tooltipElement.style.position = "absolute";
     this.tooltipElement.style.pointerEvents = "none";
-    this.tooltipElement.style.background = "rgba(12, 35, 64, 0.88)";
+    this.tooltipElement.style.background = "rgba(15, 22, 36, 0.9)";
     this.tooltipElement.style.color = "white";
     this.tooltipElement.style.padding = "6px 10px";
     this.tooltipElement.style.borderRadius = "6px";
@@ -242,7 +242,7 @@ export class RadialMenu implements Controller {
     const style = document.createElement("style");
     style.textContent = `
       .radial-tooltip .title {
-        font-weight: bold;
+        font-weight: 600;
         font-size: 14px;
         margin-bottom: 4px;
       }
@@ -667,7 +667,7 @@ export class RadialMenu implements Controller {
               .attr("fill", "white")
               .attr("opacity", disabled ? 0.5 : 1)
               .attr("font-size", "14px")
-              .attr("font-weight", "bold")
+              .attr("font-weight", "500")
               .attr("x", arc.centroid(d)[0] - this.config.iconSize / 4)
               .attr("y", arc.centroid(d)[1] + this.config.iconSize / 2 + 7);
           }

@@ -34,13 +34,11 @@ export class SettingColor extends LitElement {
   render() {
     return html`
       <div
-        class="flex flex-row items-center justify-between w-full p-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all gap-4"
+        class="flex flex-row items-center justify-between w-full px-3 py-2 rounded-lg hover:bg-white/[0.04] transition-all gap-4"
       >
         <div class="flex flex-col flex-1 min-w-0 mr-4">
-          <div class="text-white font-bold text-base block mb-1">
-            ${this.label}
-          </div>
-          <div class="text-white/50 text-sm leading-snug">
+          <div class="text-white font-medium text-sm block">${this.label}</div>
+          <div class="text-white/50 text-xs leading-snug">
             ${this.description}
           </div>
         </div>
@@ -49,7 +47,7 @@ export class SettingColor extends LitElement {
           aria-label=${this.label}
           .value=${this.value}
           @input=${this.handleInput}
-          class="w-12 h-9 shrink-0 bg-transparent border border-white/20 rounded-lg cursor-pointer"
+          class="w-12 h-9 shrink-0 bg-transparent border-0 rounded-md cursor-pointer"
         />
       </div>
     `;

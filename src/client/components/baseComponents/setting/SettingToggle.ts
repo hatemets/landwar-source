@@ -31,36 +31,30 @@ export class SettingToggle extends LitElement {
 
     return html`
       <label
-        class="flex flex-row items-center justify-between w-full p-4 bg-white/5 border border-white/10 rounded-xl transition-all gap-4 ${this
+        class="flex flex-row items-center justify-between w-full min-h-10 px-3 py-2 rounded-lg transition-colors duration-150 gap-3 ${this
           .disabled
           ? "opacity-50 cursor-not-allowed"
-          : "hover:bg-white/10 cursor-pointer"} ${rainbowClass}"
+          : "hover:bg-white/[0.04] cursor-pointer"} ${rainbowClass}"
       >
-        <div class="flex flex-col flex-1 min-w-0 mr-4">
-          <div class="text-white font-bold text-base block mb-1">
-            ${this.label}
-          </div>
-          <div class="text-white/50 text-sm leading-snug">
-            ${this.description}
-          </div>
+        <div class="flex flex-col flex-1 min-w-0">
+          <div class="text-white text-sm font-medium">${this.label}</div>
+          ${this.description
+            ? html`<div class="text-white/50 text-xs leading-snug">
+                ${this.description}
+              </div>`
+            : null}
         </div>
 
-        <div class="relative inline-block w-[52px] h-[28px] shrink-0">
+        <span class="setup-switch">
           <input
             type="checkbox"
-            class="opacity-0 w-0 h-0 peer"
+            role="switch"
             id=${this.id}
             .checked=${this.checked}
             ?disabled=${this.disabled}
             @change=${this.handleChange}
-          />
-          <span
-            class="absolute inset-0 bg-black/60 border border-white/10 transition-all duration-300 rounded-full
-            before:absolute before:content-[''] before:h-5 before:w-5 before:left-[3px] before:top-[3px]
-            before:bg-white/40 before:transition-all before:duration-300 before:rounded-full before:shadow-sm hover:before:bg-white/60
-            peer-checked:bg-blue-600 peer-checked:border-blue-500 peer-checked:before:translate-x-[24px] peer-checked:before:bg-white"
-          ></span>
-        </div>
+          /><span class="setup-switch__track" aria-hidden="true"></span>
+        </span>
       </label>
     `;
   }

@@ -89,10 +89,10 @@ async function currentJoinToken(): Promise<JoinToken | null> {
 }
 
 // Sign-in with Google is the only method. It is a full-page redirect. The
-// server returns the player to the page they came from.
-export function googleLogin(): void {
-  const here = window.location.pathname + window.location.search;
-  window.location.href = `/api/auth/google?return=${encodeURIComponent(here)}`;
+// server returns the player to `returnPath`, by default the page they came from.
+export function googleLogin(returnPath?: string): void {
+  const back = returnPath ?? window.location.pathname + window.location.search;
+  window.location.href = `/api/auth/google?return=${encodeURIComponent(back)}`;
 }
 
 export async function linkGoogle(): Promise<boolean> {

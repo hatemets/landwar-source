@@ -101,7 +101,6 @@ describe("PlayerInfoOverlay", () => {
       isUnitDisabled: () => true,
       maxTroops: () => 1000,
     }),
-    teamClanTag: () => undefined,
   });
 
   beforeEach(() => {

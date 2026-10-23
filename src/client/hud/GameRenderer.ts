@@ -26,6 +26,7 @@ import { ActionableEvents } from "./layers/ActionableEvents";
 import { AlertFrame } from "./layers/AlertFrame";
 import { AttacksDisplay } from "./layers/AttacksDisplay";
 import { BuildMenu } from "./layers/BuildMenu";
+import { BulkBuyPanel } from "./layers/BulkBuyPanel";
 import { ChatDisplay } from "./layers/ChatDisplay";
 import { ChatModal } from "./layers/ChatModal";
 import { ControlPanel } from "./layers/ControlPanel";
@@ -44,7 +45,6 @@ import { PlayerPanel } from "./layers/PlayerPanel";
 import { ReplayPanel } from "./layers/ReplayPanel";
 import { SettingsModal } from "./layers/SettingsModal";
 import { SpawnTimer } from "./layers/SpawnTimer";
-import { TutorialPanel } from "./layers/TutorialPanel";
 import { UnitDisplay } from "./layers/UnitDisplay";
 import { WinModal } from "./layers/WinModal";
 import { loadAllSprites } from "./SpriteLoader";
@@ -301,16 +301,14 @@ export function createRenderer(
   immunityTimer.game = game;
   immunityTimer.eventBus = eventBus;
 
-  const tutorialPanel = document.querySelector(
-    "tutorial-panel",
-  ) as TutorialPanel;
-  if (!(tutorialPanel instanceof TutorialPanel)) {
-    console.error("tutorial panel not found");
+  // Created here, not in index.html: only a running game shows it.
+  const bulkBuyPanel = (document.querySelector("bulk-buy-panel") ??
+    document.body.appendChild(new BulkBuyPanel())) as BulkBuyPanel;
+  if (!(bulkBuyPanel instanceof BulkBuyPanel)) {
+    console.error("bulk buy panel not found");
   }
-  tutorialPanel.game = game;
-  tutorialPanel.eventBus = eventBus;
-  tutorialPanel.userSettings = userSettings;
-  tutorialPanel.uiState = uiState;
+  bulkBuyPanel.game = game;
+  bulkBuyPanel.eventBus = eventBus;
 
   const layers: Controller[] = [
     new WarshipSelectionController(game, eventBus, transformHandler, view),
@@ -350,6 +348,7 @@ export function createRenderer(
     unitDisplay,
     gameRightSidebar,
     controlPanel,
+    bulkBuyPanel,
     playerInfo,
     winModal,
     newLobbyPrompt,
@@ -358,7 +357,6 @@ export function createRenderer(
     playerPanel,
     headsUpMessage,
     multiTabModal,
-    tutorialPanel,
     alertFrame,
     performanceOverlay,
   ];

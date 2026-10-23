@@ -28,7 +28,6 @@ import {
   samLauncherIcon,
   warshipIcon,
 } from "../HotbarIcons";
-import { TutorialHighlight, TutorialHighlightEvent } from "../Tutorial";
 
 @customElement("unit-display")
 export class UnitDisplay extends LitElement implements Controller {
@@ -46,7 +45,6 @@ export class UnitDisplay extends LitElement implements Controller {
   private _samLauncher = 0;
   private allDisabled = false;
   private _hoveredUnit: PlayerBuildableUnitType | null = null;
-  private tutorialHighlight: PlayerBuildableUnitType | null = null;
 
   createRenderRoot() {
     return this;
@@ -59,25 +57,6 @@ export class UnitDisplay extends LitElement implements Controller {
     this.keybinds = userSettings.parsedUserKeybinds();
 
     this.allDisabled = BuildMenus.types.every((u) => config.isUnitDisabled(u));
-
-    const highlightUnits: Partial<
-      Record<TutorialHighlight, PlayerBuildableUnitType>
-    > = {
-      city: UnitType.City,
-      port: UnitType.Port,
-      defense_post: UnitType.DefensePost,
-      factory: UnitType.Factory,
-      warship: UnitType.Warship,
-      silo: UnitType.MissileSilo,
-      atom: UnitType.AtomBomb,
-      hydrogen: UnitType.HydrogenBomb,
-      mirv: UnitType.MIRV,
-      sam: UnitType.SAMLauncher,
-    };
-    this.eventBus.on(TutorialHighlightEvent, (e) => {
-      this.tutorialHighlight = (e.target && highlightUnits[e.target]) ?? null;
-      this.requestUpdate();
-    });
     this.requestUpdate();
   }
 
@@ -142,8 +121,8 @@ export class UnitDisplay extends LitElement implements Controller {
     }
 
     return html`
-      <div class="border-t border-white/10 p-0.5 w-full">
-        <div class="grid grid-rows-1 grid-flow-col gap-0.5 w-fit mx-auto">
+      <div class="p-1 w-full">
+        <div class="grid grid-rows-1 grid-flow-col gap-1 w-fit mx-auto">
           ${this.renderUnitItem(
             cityIcon,
             this._cities,
@@ -251,9 +230,9 @@ export class UnitDisplay extends LitElement implements Controller {
         ${hovered
           ? html`
               <div
-                class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 text-gray-200 text-center w-max text-xs bg-gray-800/90 backdrop-blur-xs rounded-sm p-1 z-[100] shadow-lg pointer-events-none"
+                class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 text-gray-200 text-center w-max text-xs bg-gray-800 rounded-md p-2 z-[100] pointer-events-none"
               >
-                <div class="font-bold text-sm mb-1">
+                <div class="font-semibold text-sm mb-1">
                   ${translateText(
                     "unit_type." + structureKey,
                   )}${` [${displayHotkey}]`}
@@ -262,9 +241,7 @@ export class UnitDisplay extends LitElement implements Controller {
                   ${translateText("build_menu.desc." + structureKey)}
                 </div>
                 ${unitType === UnitType.Warship
-                  ? html`<div
-                      class="mt-1 px-2 py-1 text-[10px] text-cyan-300 border-t border-white/10"
-                    >
+                  ? html`<div class="mt-1 px-2 py-1 text-xs text-cyan-300">
                       ⇧ ${translateText("build_menu.warship_shift_hint")}
                     </div>`
                   : null}
@@ -280,10 +257,11 @@ export class UnitDisplay extends LitElement implements Controller {
         <div
           class="${this.canBuild(unitType)
             ? ""
-            : "opacity-40"} border border-slate-500 rounded-sm px-0.5 pb-0.5 flex items-center gap-0.5 cursor-pointer
-             ${selected ? "hover:bg-gray-400/10" : "hover:bg-gray-800"}
-             rounded-sm text-white ${selected ? "bg-slate-400/20" : ""}
-             ${this.tutorialHighlight === unitType ? "tutorial-highlight" : ""}"
+            : "opacity-40"} rounded-sm px-1 pb-0.5 flex items-center gap-1 cursor-pointer transition-colors
+             ${selected
+            ? "bg-malibu-blue hover:bg-aquarius"
+            : "bg-gray-800 hover:bg-gray-700"}
+             text-white"
           @click=${() => {
             if (selected) {
               this.uiState.ghostStructure = null;
@@ -313,7 +291,7 @@ export class UnitDisplay extends LitElement implements Controller {
           @mouseleave=${() =>
             this.eventBus?.emit(new ToggleStructureEvent(null))}
         >
-          ${html`<div class="ml-0.5 text-[10px] relative -top-1 text-gray-400">
+          ${html`<div class="text-xs relative -top-1 text-gray-400">
             ${displayHotkey}
           </div>`}
           <div class="flex items-center gap-0.5 pt-0.5">

@@ -1,4 +1,5 @@
 import { GameUpdateType } from "@openfront/engine-api/game/GameUpdates";
+import { assetUrl } from "@openfront/shared/AssetUrls";
 import { EventBus } from "@openfront/shared/EventBus";
 import { html, LitElement, TemplateResult } from "lit";
 import { customElement, state } from "lit/decorators.js";
@@ -28,6 +29,11 @@ export class WinModal extends LitElement implements Controller {
   @state()
   private isRankedGame = false;
 
+  // Trophy for a win, broken shield for a player's own defeat. Spectators,
+  // replays and cancelled matches get none.
+  @state()
+  private art: "win" | "defeat" | null = null;
+
   private _title: string;
 
   // Override to prevent shadow DOM creation
@@ -43,15 +49,30 @@ export class WinModal extends LitElement implements Controller {
     return html`
       <div
         class="${this.isVisible
-          ? "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-800/70 p-4 md:p-6 shrink-0 rounded-lg z-[10010] shadow-2xl backdrop-blur-xs text-white w-[min(90vw,700px)] max-w-[90%] max-h-[90dvh] overflow-hidden flex flex-col"
+          ? "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-900 p-6 shrink-0 rounded-lg z-[10010] text-white w-[min(90vw,700px)] max-w-[90%] max-h-[90dvh] overflow-hidden flex flex-col"
           : "hidden"}"
       >
-        <h2 class="m-0 mb-4 text-[26px] text-center text-white shrink-0">
+        ${this.art
+          ? html`<img
+              class="mx-auto mb-2 size-36 shrink-0 select-none"
+              src=${assetUrl(
+                this.art === "win"
+                  ? "images/illustrations/Trophy.webp"
+                  : "images/illustrations/Defeat.webp",
+              )}
+              alt=""
+              aria-hidden="true"
+              draggable="false"
+            />`
+          : null}
+        <h2
+          class="m-0 mb-4 text-xl font-semibold text-center text-white shrink-0"
+        >
           ${this._title || ""}
         </h2>
         <!-- Leaving is the quieter action, on the left; staying in the game
              is the main one, on the right. -->
-        <div class="mt-4 flex flex-wrap justify-between gap-2.5 shrink-0">
+        <div class="mt-4 flex flex-wrap justify-between gap-3 shrink-0">
           ${this.actionButton(
             "quiet",
             translateText("win_modal.exit"),
@@ -80,9 +101,8 @@ export class WinModal extends LitElement implements Controller {
     `;
   }
 
-  // The modal's own buttons: a tinted gradient with a coloured border, and on
-  // hover they lift, glow and a light streak sweeps across. "main" is the blue
-  // action (keep playing, play again); "quiet" is leaving.
+  // The modal's own buttons: flat fills, no border or glow. "main" is the
+  // accent action (keep playing, play again); "quiet" is leaving.
   private actionButton(
     tone: "main" | "quiet",
     label: string,
@@ -95,115 +115,41 @@ export class WinModal extends LitElement implements Controller {
       class="win-action win-action-${tone} flex-1"
       @click=${onClick}
     >
-      <span class="relative">${label}</span>
+      <span>${label}</span>
     </button>`;
   }
 
   private renderActionStyles(): TemplateResult {
     return html`<style>
       .win-action {
-        position: relative;
-        overflow: hidden;
         display: flex;
         align-items: center;
         justify-content: center;
-        min-height: 3rem;
-        padding: 0.75rem 1rem;
-        border-radius: 0.75rem;
-        border: 1px solid;
+        height: 2.25rem;
+        padding: 0 1rem;
+        border-radius: 8px;
+        border: none;
         color: #fff;
-        font-weight: 700;
-        font-size: 1.0625rem;
-        line-height: 1.25;
-        letter-spacing: 0.02em;
+        font-weight: 500;
+        font-size: 0.875rem;
         cursor: pointer;
-        transition:
-          transform 200ms ease-out,
-          box-shadow 200ms ease-out,
-          border-color 200ms ease-out,
-          background 200ms ease-out;
-      }
-      /* The light streak, parked off the left edge until hover. */
-      .win-action::after {
-        content: "";
-        position: absolute;
-        top: -20%;
-        bottom: -20%;
-        left: -60%;
-        width: 40%;
-        transform: skewX(-20deg);
-        background: linear-gradient(
-          90deg,
-          transparent,
-          rgba(255, 255, 255, 0.28),
-          transparent
-        );
-        pointer-events: none;
-      }
-      /* The streak sweeps across on the way in only; leaving, it snaps back
-         out of sight rather than sweeping back across the button. */
-      .win-action:hover::after,
-      .win-action:focus-visible::after {
-        left: 130%;
-        transition: left 550ms ease-out;
-      }
-      .win-action:hover,
-      .win-action:focus-visible {
-        transform: translateY(-2px);
-      }
-      .win-action:active {
-        transform: translateY(0) scale(0.98);
+        transition: background-color 150ms ease-out;
       }
       .win-action:focus-visible {
-        outline: 2px solid #3fa9f5;
+        outline: 2px solid var(--color-malibu-blue);
         outline-offset: 2px;
       }
       .win-action-main {
-        background: linear-gradient(
-          to top,
-          rgba(0, 132, 209, 0.95) 0%,
-          rgba(0, 101, 170, 0.8) 100%
-        );
-        border-color: rgba(63, 169, 245, 0.55);
+        background: var(--color-malibu-blue);
       }
-      .win-action-main:hover,
-      .win-action-main:focus-visible {
-        background: linear-gradient(
-          to top,
-          rgba(29, 150, 230, 1) 0%,
-          rgba(0, 120, 200, 0.9) 100%
-        );
-        border-color: rgba(125, 200, 255, 0.9);
-        box-shadow: 0 0 20px rgba(63, 169, 245, 0.55);
+      .win-action-main:hover {
+        background: var(--color-aquarius);
       }
       .win-action-quiet {
-        background: linear-gradient(
-          to top,
-          rgba(80, 80, 80, 0.55) 0%,
-          rgba(15, 15, 20, 0.85) 100%
-        );
-        border-color: rgba(255, 255, 255, 0.15);
+        background: var(--color-gray-800);
       }
-      .win-action-quiet:hover,
-      .win-action-quiet:focus-visible {
-        background: linear-gradient(
-          to top,
-          rgba(110, 110, 120, 0.6) 0%,
-          rgba(25, 25, 32, 0.9) 100%
-        );
-        border-color: rgba(255, 255, 255, 0.35);
-        box-shadow: 0 0 14px rgba(255, 255, 255, 0.25);
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .win-action,
-        .win-action::after {
-          transition: none;
-        }
-        .win-action:hover,
-        .win-action:focus-visible,
-        .win-action:active {
-          transform: none;
-        }
+      .win-action-quiet:hover {
+        background: var(--color-gray-700);
       }
     </style>`;
   }
@@ -248,6 +194,7 @@ export class WinModal extends LitElement implements Controller {
     ) {
       this.hasShownDeathModal = true;
       this._title = translateText("win_modal.died");
+      this.art = "defeat";
       this.eventBus.emit(new PlaySoundEffectEvent("defeat"));
       this.show();
     }
@@ -261,6 +208,7 @@ export class WinModal extends LitElement implements Controller {
         this.eventBus.emit(new SendWinnerEvent(undefined, wu.allPlayersStats));
         this._title = translateText("win_modal.match_cancelled");
         this.isWin = false;
+        this.art = null;
         history.replaceState(null, "", `${window.location.pathname}?replay`);
         this.show();
       } else if (wu.winner[0] === "team") {
@@ -274,6 +222,7 @@ export class WinModal extends LitElement implements Controller {
           });
           this.isWin = false;
         }
+        this.art = this.outcomeArt();
         this.playEndOfGameSound();
         history.replaceState(null, "", `${window.location.pathname}?replay`);
         this.show();
@@ -283,6 +232,7 @@ export class WinModal extends LitElement implements Controller {
           nation: wu.winner[1],
         });
         this.isWin = false;
+        this.art = this.outcomeArt();
         this.playEndOfGameSound();
         this.show();
       } else {
@@ -306,11 +256,17 @@ export class WinModal extends LitElement implements Controller {
           });
           this.isWin = false;
         }
+        this.art = this.outcomeArt();
         this.playEndOfGameSound();
         history.replaceState(null, "", `${window.location.pathname}?replay`);
         this.show();
       }
     });
+  }
+
+  private outcomeArt(): "win" | "defeat" | null {
+    if (this.isWin) return "win";
+    return this.game.myPlayer()?.hasSpawned() ? "defeat" : null;
   }
 
   private playEndOfGameSound(): void {

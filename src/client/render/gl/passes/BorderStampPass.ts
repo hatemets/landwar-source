@@ -8,7 +8,12 @@
 
 import type { RenderSettings } from "../RenderSettings";
 import { getPaletteSize } from "../utils/ColorUtils";
-import { createMapQuad, createProgram, shaderSrc } from "../utils/GlUtils";
+import {
+  createMapQuad,
+  createProgram,
+  includeSmoothOwner,
+  shaderSrc,
+} from "../utils/GlUtils";
 import { TILE_DEFINES } from "../utils/TileCodec";
 
 import borderStampFragSrc from "../shaders/day-night/border-stamp.frag.glsl?raw";
@@ -30,6 +35,8 @@ export class BorderStampPass {
   private uEmbargoTint: WebGLUniformLocation;
   private uFriendlyTint: WebGLUniformLocation;
   private uAltView: WebGLUniformLocation;
+  private uSmoothEdges: WebGLUniformLocation;
+  private uBorderBand: WebGLUniformLocation;
 
   private vao: WebGLVertexArrayObject;
   private tileTex: WebGLTexture;
@@ -59,7 +66,7 @@ export class BorderStampPass {
     this.program = createProgram(
       gl,
       borderStampVertSrc,
-      shaderSrc(borderStampFragSrc, {
+      shaderSrc(includeSmoothOwner(borderStampFragSrc), {
         PALETTE_SIZE: getPaletteSize(),
         ...TILE_DEFINES,
       }),
@@ -86,6 +93,8 @@ export class BorderStampPass {
     this.uEmbargoTint = gl.getUniformLocation(this.program, "uEmbargoTint")!;
     this.uFriendlyTint = gl.getUniformLocation(this.program, "uFriendlyTint")!;
     this.uAltView = gl.getUniformLocation(this.program, "uAltView")!;
+    this.uSmoothEdges = gl.getUniformLocation(this.program, "uSmoothEdges")!;
+    this.uBorderBand = gl.getUniformLocation(this.program, "uBorderBand")!;
 
     gl.useProgram(this.program);
     gl.uniform1i(gl.getUniformLocation(this.program, "uTileTex"), 0);
@@ -132,6 +141,8 @@ export class BorderStampPass {
       mo.friendlyTintB,
     );
     gl.uniform1i(this.uAltView, this.altView ? 1 : 0);
+    gl.uniform1i(this.uSmoothEdges, mo.smoothEdges ? 1 : 0);
+    gl.uniform1f(this.uBorderBand, mo.borderBand);
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.tileTex);

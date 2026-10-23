@@ -1,4 +1,4 @@
-import { GameMapType, UnitType } from "@openfront/engine-api/game/GameTypes";
+import { UnitType } from "@openfront/engine-api/game/GameTypes";
 import { GameConfig } from "@openfront/engine-api/Schemas";
 
 /**
@@ -121,12 +121,6 @@ export function getNationsForCompactMap(
     return defaultNationCount;
   }
   return nations;
-}
-
-export function getRandomMapType(): GameMapType {
-  const maps = Object.values(GameMapType);
-  const randIdx = Math.floor(Math.random() * maps.length);
-  return maps[randIdx] as GameMapType;
 }
 
 export function getUpdatedDisabledUnits(

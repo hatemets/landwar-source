@@ -298,7 +298,7 @@ export class NavAccountMenu extends LitElement {
 
   private openAuth(intent: "signin" | "signup") {
     closeMobileSidebar();
-    window.location.hash = `modal=account&intent=${intent}`;
+    window.showPage?.(intent === "signup" ? "page-signup" : "page-signin");
   }
 
   private renderMenu(): TemplateResult {

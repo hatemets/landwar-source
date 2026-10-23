@@ -1189,15 +1189,3 @@ export const SendFriendRequestResponseSchema = z.object({
 export type SendFriendRequestResponse = z.infer<
   typeof SendFriendRequestResponseSchema
 >;
-
-export const NewsItemSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  description: z.string().optional(),
-  descriptionTranslationKey: z.string().optional(),
-  url: z.string().nullable().optional(),
-  type: z.enum(["tournament", "tutorial", "announcement"]).or(z.string()),
-  // Absent or empty means every platform.
-  platforms: z.array(z.string()).optional(),
-});
-export type NewsItem = z.infer<typeof NewsItemSchema>;

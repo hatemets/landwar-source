@@ -47,12 +47,6 @@ export async function startFakeMatchmakingServer() {
         case "/control/ranked-limit":
           closeQueued(4100, "close_reason.ranked_limit_reached");
           return send({ ok: true });
-        case "/control/invalid-clan":
-          closeQueued(4101, "close_reason.invalid_clan");
-          return send({ ok: true });
-        case "/control/clan-unverified":
-          closeQueued(4102, "close_reason.clan_verification_failed");
-          return send({ ok: true });
         case "/control/assign": {
           const { gameId } = JSON.parse(body || "{}");
           for (const ws of state.sockets.values()) {

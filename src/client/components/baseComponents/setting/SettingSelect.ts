@@ -42,22 +42,22 @@ export class SettingSelect extends LitElement {
   render() {
     return html`
       <div
-        class="flex flex-col w-full p-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all gap-3"
+        class="flex flex-col w-full px-3 py-2 rounded-lg hover:bg-white/[0.04] transition-all gap-3"
       >
         <div class="flex flex-col min-w-0">
           <label
-            class="text-white font-bold text-base block mb-1"
+            class="text-white font-medium text-sm block"
             for="setting-select-input"
             >${this.label}</label
           >
-          <div class="text-white/50 text-sm leading-snug">
+          <div class="text-white/50 text-xs leading-snug">
             ${this.description}
           </div>
         </div>
         <div class="relative w-full">
           <select
             id="setting-select-input"
-            class="w-full appearance-none py-2 pl-3 pr-9 border border-white/20 rounded-lg bg-black/40 text-white font-mono text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            class="w-full appearance-none h-9 pl-3 pr-9 border border-transparent rounded-md bg-white/[0.06] text-white text-sm focus:outline-none focus:border-[var(--field-accent)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             .value=${String(this.value)}
             ?disabled=${this.disabled}
             @change=${this.handleChange}

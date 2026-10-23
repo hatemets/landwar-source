@@ -7,6 +7,12 @@ import {
 import { UserSettings } from "../UserSettings";
 import { translateText } from "../Utils";
 
+// Match the `setting-*` rows: borderless tinted fields, quiet buttons.
+const FIELD_CLASS =
+  "px-3 border border-transparent rounded-md bg-white/[0.06] text-white text-sm placeholder:text-white/40 focus:outline-none focus:border-[var(--field-accent)] transition-all";
+const BUTTON_CLASS =
+  "shrink-0 h-9 px-3 text-sm font-medium rounded-md border border-white/10 text-white bg-white/5 hover:bg-white/15 transition-colors disabled:opacity-40 disabled:cursor-not-allowed";
+
 /**
  * Save / copy / import for the whole graphics configuration.
  *
@@ -99,87 +105,94 @@ export class GraphicsPresetTools extends LitElement {
 
   render() {
     return html`
-      <div
-        class="flex flex-col w-full p-4 bg-white/5 border border-white/10 rounded-xl gap-3"
-      >
-        <div class="flex gap-3 items-center w-full">
-          <input
-            type="text"
-            id="graphics-preset-name"
-            aria-label=${translateText(
-              "graphics_setting.preset_name_placeholder",
-            )}
-            .value=${this.presetName}
-            placeholder=${translateText(
-              "graphics_setting.preset_name_placeholder",
-            )}
-            spellcheck="false"
-            maxlength="40"
-            @input=${this.onPresetNameInput}
-            class="flex-1 min-w-0 px-2 py-1.5 bg-black/40 border border-white/20 rounded-lg text-sm text-white"
-          />
+      <div class="flex flex-col gap-2">
+        <div class="flex flex-col w-full px-3 py-2 gap-3">
+          <div class="flex flex-col min-w-0">
+            <label
+              class="text-white font-medium text-sm"
+              for="graphics-preset-name"
+              >${translateText("graphics_setting.save_preset_label")}</label
+            >
+          </div>
+          <div class="flex gap-2 items-center w-full">
+            <input
+              type="text"
+              id="graphics-preset-name"
+              .value=${this.presetName}
+              placeholder=${translateText(
+                "graphics_setting.preset_name_placeholder",
+              )}
+              spellcheck="false"
+              maxlength="40"
+              @input=${this.onPresetNameInput}
+              class="${FIELD_CLASS} flex-1 min-w-0 h-9"
+            />
+            <button
+              id="graphics-save-preset"
+              class=${BUTTON_CLASS}
+              ?disabled=${this.presetName.trim() === ""}
+              @click=${this.onSavePreset}
+            >
+              ${translateText("graphics_setting.save_preset_label")}
+            </button>
+          </div>
+        </div>
+
+        <div class="flex flex-row items-center w-full px-3 py-2 gap-3">
+          <div class="flex flex-col flex-1 min-w-0">
+            <div class="text-white font-medium text-sm">
+              ${translateText("graphics_setting.copy_json_label")}
+            </div>
+            <div class="text-white/50 text-xs leading-snug">
+              ${translateText("graphics_setting.copy_json_desc")}
+            </div>
+          </div>
           <button
-            id="graphics-save-preset"
-            class="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-sm text-white disabled:opacity-50"
-            ?disabled=${this.presetName.trim() === ""}
-            @click=${this.onSavePreset}
+            id="graphics-copy-json"
+            class=${BUTTON_CLASS}
+            @click=${this.onCopyJson}
           >
-            ${translateText("graphics_setting.save_preset_label")}
+            ${this.copiedJson
+              ? translateText("common.copied")
+              : translateText("graphics_setting.copy_json_button")}
           </button>
         </div>
-      </div>
 
-      <button
-        id="graphics-copy-json"
-        class="flex flex-row items-center justify-between w-full p-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all gap-4 text-left"
-        @click=${this.onCopyJson}
-      >
-        <div class="flex flex-col flex-1 min-w-0 mr-4">
-          <div class="text-white font-bold text-base block mb-1">
-            ${translateText("graphics_setting.copy_json_label")}
+        <div class="flex flex-col w-full px-3 py-2 gap-3">
+          <div class="flex flex-col min-w-0">
+            <label
+              class="text-white font-medium text-sm"
+              for="graphics-import-json"
+              >${translateText("graphics_setting.import_json_label")}</label
+            >
+            <div class="text-white/50 text-xs leading-snug">
+              ${translateText("graphics_setting.import_json_desc")}
+            </div>
           </div>
-          <div class="text-white/50 text-sm leading-snug">
-            ${translateText("graphics_setting.copy_json_desc")}
-          </div>
+          <textarea
+            id="graphics-import-json"
+            rows="3"
+            .value=${this.importText}
+            spellcheck="false"
+            @input=${this.onImportTextInput}
+            class="${FIELD_CLASS} w-full py-2 font-mono ${this.importError
+              ? "!border-red-500"
+              : ""}"
+          ></textarea>
+          ${this.importError
+            ? html`<div id="graphics-import-error" class="text-xs text-red-400">
+                ${translateText("graphics_setting.import_json_invalid")}
+              </div>`
+            : nothing}
+          <button
+            id="graphics-import-apply"
+            class="${BUTTON_CLASS} self-start"
+            ?disabled=${this.importText.trim() === ""}
+            @click=${this.onImportApply}
+          >
+            ${translateText("graphics_setting.import_json_apply")}
+          </button>
         </div>
-        <div class="text-white/50 text-sm shrink-0">
-          ${this.copiedJson ? translateText("common.copied") : ""}
-        </div>
-      </button>
-
-      <div
-        class="flex flex-col w-full p-4 bg-white/5 border border-white/10 rounded-xl gap-2"
-      >
-        <div class="text-white font-bold text-base">
-          ${translateText("graphics_setting.import_json_label")}
-        </div>
-        <div class="text-white/50 text-sm leading-snug">
-          ${translateText("graphics_setting.import_json_desc")}
-        </div>
-        <textarea
-          id="graphics-import-json"
-          aria-label=${translateText("graphics_setting.import_json_label")}
-          rows="3"
-          .value=${this.importText}
-          spellcheck="false"
-          @input=${this.onImportTextInput}
-          class="w-full px-2 py-1.5 bg-black/40 border ${this.importError
-            ? "border-red-500"
-            : "border-white/20"} rounded-lg text-sm text-white font-mono"
-        ></textarea>
-        ${this.importError
-          ? html`<div id="graphics-import-error" class="text-sm text-red-400">
-              ${translateText("graphics_setting.import_json_invalid")}
-            </div>`
-          : nothing}
-        <button
-          id="graphics-import-apply"
-          class="self-start px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-sm text-white disabled:opacity-50"
-          ?disabled=${this.importText.trim() === ""}
-          @click=${this.onImportApply}
-        >
-          ${translateText("graphics_setting.import_json_apply")}
-        </button>
       </div>
     `;
   }

@@ -23,6 +23,7 @@ import {
 const SPEED_ORDER: ReplaySpeedMultiplier[] = [
   ReplaySpeedMultiplier.slow,
   ReplaySpeedMultiplier.normal,
+  ReplaySpeedMultiplier.brisk,
   ReplaySpeedMultiplier.fast,
   ReplaySpeedMultiplier.fastest,
 ];

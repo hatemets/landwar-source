@@ -40,7 +40,10 @@ export class WarshipExecution implements Execution {
   private mg: Game;
   private pathfinder: WaterPathFinder;
   private lastShellAttack = 0;
-  private alreadySentShell = new Set<Unit>();
+  // Targets that get one shell only (they have no health). The value is the
+  // shell in flight, or null for a legacy entry. When the shell ends without a
+  // hit, the entry is dropped so the warship can fire again.
+  private alreadySentShell = new Map<Unit, ShellExecution | null>();
   private lastManualMoveTickRetreatDisabled = 0;
   private lastObservedPatrolTile: TileRef | undefined;
   private activeHealingRemainder = 0;
@@ -297,7 +300,7 @@ export class WarshipExecution implements Execution {
         unit === this.warship ||
         unit.owner() === owner ||
         !owner.canAttackPlayer(unit.owner(), true) ||
-        this.alreadySentShell.has(unit) ||
+        this.hasShellInFlight(unit) ||
         (unit.type() === UnitType.Warship &&
           unit.warshipState().state === "docked")
       ) {
@@ -651,6 +654,18 @@ export class WarshipExecution implements Execution {
     return this.nearestAvailablePortTile(this.warship)?.tile;
   }
 
+  /**
+   * True while a shell sent at this unit can still hit it. A shell that ended
+   * without a hit (for example it was removed) no longer blocks new shots.
+   */
+  private hasShellInFlight(unit: Unit): boolean {
+    if (!this.alreadySentShell.has(unit)) return false;
+    const shell = this.alreadySentShell.get(unit);
+    if (shell === null || shell === undefined || shell.isActive()) return true;
+    this.alreadySentShell.delete(unit);
+    return false;
+  }
+
   private shootTarget() {
     this.warship.updateWarshipState({ isInCombat: true });
     const shellAttackRate = this.mg.config().warshipShellAttackRate();
@@ -659,17 +674,16 @@ export class WarshipExecution implements Execution {
         // Warships don't need to reload when attacking transport ships.
         this.lastShellAttack = this.mg.ticks();
       }
-      this.mg.addExecution(
-        new ShellExecution(
-          this.warship.tile(),
-          this.warship.owner(),
-          this.warship,
-          this.warship.targetUnit()!,
-        ),
+      const shell = new ShellExecution(
+        this.warship.tile(),
+        this.warship.owner(),
+        this.warship,
+        this.warship.targetUnit()!,
       );
+      this.mg.addExecution(shell);
       if (!this.warship.targetUnit()!.hasHealth()) {
         // Don't send multiple shells to target that can be oneshotted
-        this.alreadySentShell.add(this.warship.targetUnit()!);
+        this.alreadySentShell.set(this.warship.targetUnit()!, shell);
         this.warship.setTargetUnit(undefined);
         return;
       }
@@ -859,7 +873,10 @@ export class WarshipExecution implements Execution {
           ? null
           : waterPathFinderState(this.pathfinder),
       lastShellAttack: this.lastShellAttack,
-      alreadySentShell: [...this.alreadySentShell].map((u) => w.unit(u)),
+      sentShells: [...this.alreadySentShell].map(([u, shell]) => ({
+        target: w.unit(u),
+        shell: shell === null ? null : w.exec(shell),
+      })),
       lastManualMoveTickRetreatDisabled: this.lastManualMoveTickRetreatDisabled,
       lastObservedPatrolTile: this.lastObservedPatrolTile,
       activeHealingRemainder: this.activeHealingRemainder,
@@ -879,7 +896,12 @@ export class WarshipExecution implements Execution {
       this.pathfinder = restoreWaterPathFinder(r.game, s.pathfinder);
     }
     this.lastShellAttack = s.lastShellAttack;
-    this.alreadySentShell = new Set(s.alreadySentShell.map((i) => r.unit(i)));
+    this.alreadySentShell = new Map(
+      s.sentShells.map(({ target, shell }) => [
+        r.unit(target),
+        shell === null ? null : r.exec<ShellExecution>(shell),
+      ]),
+    );
     this.lastManualMoveTickRetreatDisabled =
       s.lastManualMoveTickRetreatDisabled;
     this.lastObservedPatrolTile = s.lastObservedPatrolTile;
@@ -900,8 +922,8 @@ const WarshipExecutionStateSchema = z.object({
   warship: zRef().nullable(),
   pathfinder: WaterPathFinderSchema.nullable(),
   lastShellAttack: zInt(),
-  /** In insertion order. */
-  alreadySentShell: z.array(zRef()),
+  /** In insertion order. A null shell is a v1 entry that never expires. */
+  sentShells: z.array(z.object({ target: zRef(), shell: zRef().nullable() })),
   lastManualMoveTickRetreatDisabled: zInt(),
   lastObservedPatrolTile: zTile().optional(),
   activeHealingRemainder: zNum(),
@@ -911,7 +933,22 @@ type WarshipExecutionState = z.infer<typeof WarshipExecutionStateSchema>;
 
 export const WarshipExecutionSnapshot = execSnapshotType({
   name: "Warship",
-  version: 1,
+  version: 2,
   schema: WarshipExecutionStateSchema,
+  migrations: {
+    // v1 stored only the targets, with no shell to watch
+    1: (d) => {
+      const { alreadySentShell, ...rest } = d as {
+        alreadySentShell: number[];
+      };
+      return {
+        ...rest,
+        sentShells: alreadySentShell.map((target) => ({
+          target,
+          shell: null,
+        })),
+      };
+    },
+  },
   cls: () => WarshipExecution,
 });

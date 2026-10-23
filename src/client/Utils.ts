@@ -18,15 +18,6 @@ import { ClientEnv } from "./ClientEnv";
 import type { LangSelector } from "./LangSelector";
 import { pagePin } from "./PagePin";
 
-export const TUTORIAL_VIDEO_URL = "https://www.youtube.com/embed/7J5zwb_s_Cg";
-
-// The desktop shell cannot embed YouTube inside Electron, so it bundles the
-// same tutorial and serves it under a reserved prefix of its app:// scheme
-// (see openfront-desktop's protocol.ts, which pins this path with a test).
-// Only meaningful when Platform.isElectron; on the web this path does not
-// exist.
-export const DESKTOP_TUTORIAL_VIDEO_URL = "/__tutorial/tutorial.webm";
-
 export function normaliseMapKey(mapName: string): string {
   // Asset dirs / translation keys are the map id lowercased. For most maps
   // stripping spaces from the display name gives the same string, but not for
@@ -509,83 +500,8 @@ export const translateText = (
 export const hasOwnTranslation = (key: string): boolean =>
   getCachedLangSelector()?.translations?.[key] !== undefined;
 
-export interface HasClanTag {
-  clanTag?: string | null | (() => string | null);
-}
-
-type TopClans = {
-  topTag: string | null;
-  topCount: number;
-  secondTag: string | null;
-  secondCount: number;
-  thirdCount: number;
-};
-
-function getTopClans(players: readonly HasClanTag[]): TopClans {
-  const counts = new Map<string, number>();
-  for (const p of players) {
-    const tag = typeof p.clanTag === "function" ? p.clanTag() : p.clanTag;
-    if (tag && tag.trim().length > 0) {
-      counts.set(tag, (counts.get(tag) ?? 0) + 1);
-    }
-  }
-  let topTag: string | null = null,
-    topCount = 0;
-  let secondTag: string | null = null,
-    secondCount = 0;
-  let thirdCount = 0;
-
-  for (const [tag, count] of counts) {
-    if (count > topCount) {
-      thirdCount = secondCount;
-      secondTag = topTag;
-      secondCount = topCount;
-      topTag = tag;
-      topCount = count;
-    } else if (count > secondCount) {
-      thirdCount = secondCount;
-      secondTag = tag;
-      secondCount = count;
-    } else if (count > thirdCount) {
-      thirdCount = count;
-    }
-  }
-  return { topTag, topCount, secondTag, secondCount, thirdCount };
-}
-
-export function resolveTeamClanTag(
-  players: Iterable<HasClanTag>,
-): string | null {
-  const list = Array.isArray(players) ? players : Array.from(players);
-  const n = list.length;
-  if (n === 0) return null;
-
-  const { topTag, topCount, secondTag, secondCount, thirdCount } =
-    getTopClans(list);
-
-  if (topTag && topCount > n / 2) {
-    return topTag;
-  }
-  if (
-    topTag &&
-    secondTag &&
-    secondCount > thirdCount &&
-    (topCount + secondCount) / n >= 0.7 &&
-    secondCount / n >= 0.3
-  ) {
-    return [topTag, secondTag].sort().join(" / ");
-  }
-  return null;
-}
-
-export function getTranslatedPlayerTeamLabel(
-  team: Team | null,
-  clanTag?: string | null,
-): string {
+export function getTranslatedPlayerTeamLabel(team: Team | null): string {
   if (!team) return "";
-  if (clanTag) {
-    return `[${clanTag}]`;
-  }
   const translationKey = `team_colors.${team.toLowerCase()}`;
   const translated = translateText(translationKey);
   return translated === translationKey ? team : translated;

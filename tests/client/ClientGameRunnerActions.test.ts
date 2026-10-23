@@ -1,3 +1,4 @@
+import { AttackBudget } from "../../src/client/AttackBudget";
 import { TileRef } from "@openfront/engine-api/game/GameMap";
 import { UnitType } from "@openfront/engine-api/game/GameTypes";
 import { EventBus } from "@openfront/shared/EventBus";
@@ -97,9 +98,12 @@ function makeRunner(overrides: {
   boatDistSquared?: number;
 }) {
   const eventBus = new EventBus();
+  const budget = new AttackBudget();
   const myPlayer = {
     actions: vi.fn(async () => overrides.actions ?? {}),
     troops: () => 100,
+    // The real budget, with the tick frozen: every click is in the same tick.
+    takeAttackTroops: (ratio: number) => budget.take(1, 100, ratio),
   };
   const gameView = {
     config: () => ({ isRandomSpawn: () => false, isReplay: () => false }),
@@ -179,6 +183,22 @@ describe("left click", () => {
     expect(attacks).toHaveLength(1);
     expect(attacks[0].targetID).toBe("enemy1");
     expect(attacks[0].troops).toBe(50); // 100 troops * 0.5 attack ratio
+  });
+
+  // Issue 4237: two clicks in one tick must not add up to ratio * 2.
+  it("takes the ratio of the remaining troops for a second click in the same tick", async () => {
+    const { eventBus } = makeRunner({
+      hasOwner: true,
+      actions: { canAttack: true, buildableUnits: [] },
+    });
+    const attacks: SendAttackIntentEvent[] = [];
+    eventBus.on(SendAttackIntentEvent, (e) => attacks.push(e));
+
+    eventBus.emit(new MouseUpEvent(CLICK.x, CLICK.y));
+    eventBus.emit(new MouseUpEvent(CLICK.x, CLICK.y));
+    await flushPromises();
+
+    expect(attacks.map((a) => a.troops)).toEqual([50, 25]);
   });
 
   it("does nothing when the player is not in the view yet", async () => {

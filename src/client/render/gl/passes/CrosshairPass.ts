@@ -1,8 +1,8 @@
 /**
- * CrosshairPass — renders a red crosshair at the cursor position during
+ * CrosshairPass — renders a targeting reticle at the cursor position during
  * warship or MIRV placement (ghost preview).
  *
- * Screen-space quad with a crosshair SDF in the fragment shader.
+ * Screen-space quad with a reticle SDF (arcs, ticks, pip, rim, shadow).
  * Darker red when placement is invalid.
  */
 

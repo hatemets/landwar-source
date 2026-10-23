@@ -6,6 +6,7 @@ import {
 } from "@openfront/engine-api/game/GameTypes";
 import { GameID } from "@openfront/engine-api/Schemas";
 import { NukeType } from "@openfront/engine-api/StatsSchemas";
+import { AllianceRequestExecution } from "@openfront/engine/execution/alliance/AllianceRequestExecution";
 import { NukeExecution } from "@openfront/engine/execution/NukeExecution";
 import { SAMLauncherExecution } from "@openfront/engine/execution/SAMLauncherExecution";
 import { SpawnExecution } from "@openfront/engine/execution/SpawnExecution";
@@ -160,6 +161,83 @@ describe("SAM", () => {
     executeTicks(game, 3);
 
     expect(attacker.units(UnitType.MIRVWarhead)).toHaveLength(0);
+  });
+
+  describe("nukes launched by an ally", () => {
+    // Ally the attacker and the defender.
+    const makeAllies = () => {
+      game.addExecution(new AllianceRequestExecution(attacker, defender.id()));
+      game.executeNextTick();
+      game.addExecution(new AllianceRequestExecution(defender, attacker.id()));
+      game.executeNextTick();
+      expect(attacker.isAlliedWith(defender)).toBe(true);
+    };
+
+    // A warhead flying through SAM range at (10, 1) that detonates at `target`.
+    const launchWarhead = (target: number) =>
+      attacker.buildUnit(UnitType.MIRVWarhead, game.ref(10, 1), {
+        targetTile: game.ref(target, 1),
+        trajectory: [
+          { tile: game.ref(10, 1), targetable: true },
+          { tile: game.ref(11, 1), targetable: true },
+          { tile: game.ref(12, 1), targetable: true },
+          { tile: game.ref(13, 1), targetable: true },
+          { tile: game.ref(14, 1), targetable: true },
+          { tile: game.ref(target, 1), targetable: true },
+        ],
+      });
+
+    test("SAM intercepts an ally's warhead that lands on its owner's territory", () => {
+      makeAllies();
+      const sam = defender.buildUnit(UnitType.SAMLauncher, game.ref(1, 1), {});
+      game.addExecution(new SAMLauncherExecution(defender, null, sam));
+      launchWarhead(3);
+      expect(game.owner(game.ref(3, 1))).toBe(defender);
+
+      executeTicks(game, 6);
+
+      expect(attacker.units(UnitType.MIRVWarhead)).toHaveLength(0);
+    });
+
+    test("SAM intercepts an ally's warhead whose blast reaches its owner's unit", () => {
+      makeAllies();
+      const sam = defender.buildUnit(UnitType.SAMLauncher, game.ref(1, 1), {});
+      game.addExecution(new SAMLauncherExecution(defender, null, sam));
+      // Target tile is outside any territory, but the warship is inside the blast.
+      const target = 14;
+      expect(game.owner(game.ref(target, 1)).isPlayer()).toBe(false);
+      const outer = game.config().nukeMagnitudes(UnitType.MIRVWarhead).outer;
+      const shipTile = game.ref(target + outer - 1, 1);
+      defender.buildUnit(UnitType.Warship, shipTile, { patrolTile: shipTile });
+      launchWarhead(target);
+
+      executeTicks(game, 6);
+      expect(attacker.units(UnitType.MIRVWarhead)).toHaveLength(0);
+    });
+
+    test("SAM ignores an ally's warhead that cannot hurt its owner", () => {
+      makeAllies();
+      const sam = defender.buildUnit(UnitType.SAMLauncher, game.ref(1, 1), {});
+      game.addExecution(new SAMLauncherExecution(defender, null, sam));
+      const outer = game.config().nukeMagnitudes(UnitType.MIRVWarhead).outer;
+      const target = 14 + outer + 20;
+      launchWarhead(target);
+
+      executeTicks(game, 4);
+
+      expect(attacker.units(UnitType.MIRVWarhead)).toHaveLength(1);
+    });
+
+    test("SAM intercepts the same harmless-to-owner warhead from a non-ally", () => {
+      const sam = defender.buildUnit(UnitType.SAMLauncher, game.ref(1, 1), {});
+      game.addExecution(new SAMLauncherExecution(defender, null, sam));
+      const outer = game.config().nukeMagnitudes(UnitType.MIRVWarhead).outer;
+      launchWarhead(14 + outer + 20);
+
+      executeTicks(game, 6);
+
+      expect(attacker.units(UnitType.MIRVWarhead)).toHaveLength(0);
+    });
   });
 
   test("sam should intercept an in-flight MIRV warhead like any other nuke", async () => {
@@ -595,7 +673,7 @@ describe("SAM", () => {
     sam.increaseLevel();
 
     // Advance 20 ticks into upgrade
-    executeTicks(game, 20);
+    executeTicks(game, 6);
     const currentDynamicRange = game
       .config()
       .dynamicSamRange(sam, game.ticks());

@@ -7,7 +7,7 @@ import type {
   LeaderboardPlayerList,
   PlayerLadder,
 } from "./components/leaderboard/LeaderboardPlayerList";
-import { modalHeader } from "./components/ui/ModalHeader";
+import { DEFAULT_TITLE_CLASS, modalHeader } from "./components/ui/ModalHeader";
 import { translateText } from "./Utils";
 
 // Tab key -> ladder. "players" stays the 1v1 tab so existing
@@ -74,20 +74,12 @@ export class LeaderboardModal extends BaseModal {
   }
 
   protected renderHeaderSlot() {
-    const refreshTime = html`<span
-      class="text-sm font-normal text-white/40 ml-2 wrap-break-words italic"
-      >(${translateText("leaderboard_modal.refresh_time")})</span
-    >`;
-
     return modalHeader({
       titleContent: html`
         <div class="flex flex-wrap items-center gap-2">
-          <span
-            class="text-white text-xl sm:text-2xl font-bold uppercase tracking-widest"
-          >
+          <span class="${DEFAULT_TITLE_CLASS}">
             ${translateText("leaderboard_modal.title")}
           </span>
-          ${refreshTime}
         </div>
       `,
       onBack: () => this.close(),

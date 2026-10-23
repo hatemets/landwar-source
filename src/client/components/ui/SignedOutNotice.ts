@@ -13,9 +13,9 @@ export const signedOutNotice = (
 ): TemplateResult => html`
   <div class="p-6">
     <div
-      class="bg-white/5 rounded-xl border border-white/10 p-8 text-center flex flex-col items-center gap-4"
+      class="flex flex-col items-center gap-4 rounded-lg bg-[var(--field-raised)] p-6 text-center"
     >
-      <p class="text-white/60 text-sm">${message}</p>
+      <p class="text-sm text-[var(--field-muted)]">${message}</p>
       <o-button
         variant="primary"
         size="md"

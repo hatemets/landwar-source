@@ -209,7 +209,7 @@ export class AttacksDisplay extends LitElement implements Controller {
 
     const counterTroops = counterAttackTroops(
       attack.troops,
-      this.uiState.attackRatio * myPlayer.troops(),
+      myPlayer.takeAttackTroops(this.uiState.attackRatio, attack.troops),
     );
     this.eventBus.emit(new SendAttackIntentEvent(attacker.id(), counterTroops));
   }
@@ -220,7 +220,7 @@ export class AttacksDisplay extends LitElement implements Controller {
     return this.incomingAttacks.map(
       (attack) => html`
         <div
-          class="flex items-center gap-0.5 w-full bg-gray-800/92 backdrop-blur-sm sm:rounded-lg px-1.5 py-0.5 overflow-hidden"
+          class="flex items-center gap-1 w-full bg-gray-900/90 sm:rounded-lg px-2 py-1 overflow-hidden"
         >
           ${this.renderButton({
             content: html`<span class="inline-flex items-center"
@@ -252,7 +252,7 @@ export class AttacksDisplay extends LitElement implements Controller {
                 />`,
                 onClick: () => this.handleRetaliate(attack),
                 className:
-                  "ml-auto inline-flex items-center justify-center cursor-pointer bg-red-900/50 hover:bg-red-800/70 sm:rounded-lg px-1.5 py-1 border border-red-700/50",
+                  "ml-auto inline-flex items-center justify-center cursor-pointer bg-red-500/15 hover:bg-red-500/25 transition-colors rounded-md px-2 py-1",
                 translate: false,
               })
             : ""}
@@ -267,7 +267,7 @@ export class AttacksDisplay extends LitElement implements Controller {
     return this.outgoingAttacks.map(
       (attack) => html`
         <div
-          class="flex items-center gap-0.5 w-full bg-gray-800/92 backdrop-blur-sm sm:rounded-lg px-1.5 py-0.5 overflow-hidden"
+          class="flex items-center gap-1 w-full bg-gray-900/90 sm:rounded-lg px-2 py-1 overflow-hidden"
         >
           ${this.renderButton({
             content: html`<span class="inline-flex items-center"
@@ -308,7 +308,7 @@ export class AttacksDisplay extends LitElement implements Controller {
     return this.outgoingLandAttacks.map(
       (landAttack) => html`
         <div
-          class="flex items-center gap-0.5 w-full bg-gray-800/92 backdrop-blur-sm sm:rounded-lg px-1.5 py-0.5 overflow-hidden"
+          class="flex items-center gap-1 w-full bg-gray-900/90 sm:rounded-lg px-2 py-1 overflow-hidden"
         >
           ${this.renderButton({
             content: html`<span class="inline-flex items-center"
@@ -353,7 +353,7 @@ export class AttacksDisplay extends LitElement implements Controller {
     return html`<img
       src="${dataURL}"
       class="h-5 w-5 inline-block"
-      style="image-rendering: pixelated"
+      style="image-rendering: auto"
     />`;
   }
 
@@ -382,7 +382,7 @@ export class AttacksDisplay extends LitElement implements Controller {
     return this.outgoingBoats.map(
       (boat) => html`
         <div
-          class="flex items-center gap-0.5 w-full bg-gray-800/92 backdrop-blur-sm sm:rounded-lg px-1.5 py-0.5 overflow-hidden"
+          class="flex items-center gap-1 w-full bg-gray-900/90 sm:rounded-lg px-2 py-1 overflow-hidden"
         >
           ${this.renderButton({
             content: html`${this.renderBoatIcon(boat)}
@@ -421,7 +421,7 @@ export class AttacksDisplay extends LitElement implements Controller {
     return this.incomingBoats.map(
       (boat) => html`
         <div
-          class="flex items-center gap-0.5 w-full bg-gray-800/92 backdrop-blur-sm sm:rounded-lg px-1.5 py-0.5 overflow-hidden"
+          class="flex items-center gap-1 w-full bg-gray-900/90 sm:rounded-lg px-2 py-1 overflow-hidden"
         >
           ${this.renderButton({
             content: html`${this.renderBoatIcon(boat)}
@@ -462,7 +462,7 @@ export class AttacksDisplay extends LitElement implements Controller {
 
     return html`
       <div
-        class="w-full mb-1 mt-1 sm:mt-0 pointer-events-auto grid grid-cols-2 gap-1 text-white text-sm lg:text-base max-h-[7rem] overflow-y-auto"
+        class="w-full mb-1 mt-1 sm:mt-0 pointer-events-auto grid grid-cols-2 gap-1 text-white text-sm max-h-[7rem] overflow-y-auto"
       >
         ${this.renderOutgoingAttacks()} ${this.renderOutgoingLandAttacks()}
         ${this.renderBoats()} ${this.renderIncomingAttacks()}

@@ -339,9 +339,9 @@ describe("applyGraphicsOverrides", () => {
     ).toBe(false);
   });
 
-  test("classicNumbers absent → defaults to classic bitmap font", () => {
-    expect(gen({ structure: {} }).structureLevel.classicFont).toBe(true);
-    expect(gen({}).structureLevel.classicFont).toBe(true);
+  test("classicNumbers absent → defaults to smooth MSDF font", () => {
+    expect(gen({ structure: {} }).structureLevel.classicFont).toBe(false);
+    expect(gen({}).structureLevel.classicFont).toBe(false);
   });
 
   test("classicNumbers is independent of classicIcons", () => {

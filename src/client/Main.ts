@@ -20,7 +20,6 @@ import { loadGameClient, prefetchGameClient } from "./GameClientLoader";
 import "./GameModeSelector";
 import { GameModeSelector, joinIsGateable } from "./GameModeSelector";
 import { GameStartingModal } from "./GameStartingModal";
-import type { HelpModal } from "./HelpModal";
 import type { HostLobbyModal as HostPrivateLobbyModal } from "./HostLobbyModal";
 import { showInGameAlert, showInGameConfirm } from "./InGameModal";
 import type { JoinLobbyModal } from "./JoinLobbyModal";
@@ -50,7 +49,6 @@ import {
   setServerListInGame,
   startServerListPolling,
 } from "./ServerList";
-import type { SinglePlayerModal } from "./SinglePlayerModal";
 import {
   requestTurnstileToken,
   resolveTurnstileToken,
@@ -60,7 +58,7 @@ import {
   type TurnstileToken,
 } from "./TurnstileToken";
 // Before the first userMeResponse, for the modals that load after it.
-import "./UserMeBroadcast";
+import { lastUserMeResponse } from "./UserMeBroadcast";
 import { UserSettings } from "./UserSettings";
 import "./UsernameInput";
 import { UsernameInput } from "./UsernameInput";
@@ -87,6 +85,7 @@ import { playerProfileRouteArgs } from "./utilities/PlayerProfileUrl";
 import "./components/MainLayout";
 import "./components/MobileNavBar";
 import "./components/PlayPage";
+import "./components/SiteHeader";
 import "./components/baseComponents/Button";
 import "./components/baseComponents/Modal";
 import "./styles.css";
@@ -199,6 +198,7 @@ class Client {
   private currentUrl: string | null = null;
 
   private usernameInput: UsernameInput | null = null;
+  private readonly guestPlayerName = fallbackPlayerName();
 
   private hostModal: HostPrivateLobbyModal;
   private joinModal: JoinLobbyModal;
@@ -274,27 +274,41 @@ class Client {
       (err) => console.error("Menu audio failed to load:", err),
     );
 
-    // Register modals with the URL router. Lobby modals (join/host) and
+    // Register modals with the URL router. Pages with a `path` are routes of
+    // their own (`/settings`); the rest live in the hash. Lobby modals (join/host) and
     // matchmaking are intentionally omitted — they own their own URL state
     // (path-based) or none at all.
     modalRouter.register("settings", {
       tag: "user-setting",
       pageId: "page-settings",
+      path: "/settings",
     });
     modalRouter.register("leaderboard", {
       tag: "leaderboard-modal",
       pageId: "page-leaderboard",
+      path: "/leaderboard",
     });
-    modalRouter.register("clan", { tag: "clan-modal", pageId: "page-clan" });
     modalRouter.register("account", {
       tag: "account-modal",
       pageId: "page-account",
+      path: "/account",
+    });
+    modalRouter.register("signin", {
+      tag: "signin-page",
+      pageId: "page-signin",
+      path: "/signin",
+    });
+    modalRouter.register("signup", {
+      tag: "signup-page",
+      pageId: "page-signup",
+      path: "/signup",
     });
     // Profile-menu modals: popup style, so no pageId.
     modalRouter.register("change-username", { tag: "change-username-modal" });
     modalRouter.register("stats", {
       tag: "game-stats-modal",
       pageId: "page-stats",
+      path: "/stats",
     });
     modalRouter.register("profile", {
       tag: "player-profile-modal",
@@ -302,19 +316,30 @@ class Client {
     });
     // The canonical profile link, `/player/<id>` (see playerProfileUrl).
     modalRouter.registerPath("profile", playerProfileRouteArgs);
-    modalRouter.register("help", { tag: "help-modal", pageId: "page-help" });
-    modalRouter.register("news", { tag: "news-modal", pageId: "page-news" });
     modalRouter.register("language", {
       tag: "language-modal",
       pageId: "page-language",
+      path: "/language",
     });
     modalRouter.register("single-player", {
       tag: "single-player-modal",
       pageId: "page-single-player",
+      path: "/single-player",
+    });
+    modalRouter.register("store", {
+      tag: "store-modal",
+      pageId: "page-item-store",
+      path: "/store",
+    });
+    modalRouter.register("inventory", {
+      tag: "inventory-modal",
+      pageId: "page-inventory",
+      path: "/inventory",
     });
     modalRouter.register("detailed-view", {
       tag: "detailed-view-modal",
       pageId: "page-detailed-view",
+      path: "/detailed-view",
     });
 
     // Kick the server-list fetch off here, before anything below awaits the
@@ -358,9 +383,6 @@ class Client {
     this.usernameInput = document.querySelector(
       "username-input",
     ) as UsernameInput;
-    if (!this.usernameInput) {
-      console.warn("Username input element not found");
-    }
 
     this.gameModeSelector = document.querySelector(
       "game-mode-selector",
@@ -417,36 +439,6 @@ class Client {
       "matchmaking-requeue",
       this.handleMatchmakingRequeue.bind(this),
     );
-
-    const hlpModal = document.querySelector("help-modal") as HelpModal | null;
-    if (!hlpModal) {
-      console.warn("Help modal element not found");
-    }
-    const helpButton = document.getElementById("help-button");
-    if (helpButton) {
-      helpButton.addEventListener("click", () => {
-        loadModal("help-modal").then(
-          () => hlpModal?.open(),
-          (err) => console.error("help-modal failed to load:", err),
-        );
-      });
-    }
-    // Tutorial entry points (play-page card, help page): back to the play page
-    // if needed (so a username problem is visible), then a default solo game
-    // with the guide on.
-    document.addEventListener("start-tutorial", () => {
-      // The help modal loads on demand (see LazyModals); until it has, it
-      // can't be open.
-      if (customElements.get("help-modal") && hlpModal?.isOpen()) {
-        hlpModal.close();
-      }
-      if (this.usernameInput && !this.usernameInput.canPlay()) return;
-      whenModalLoaded("single-player-modal", () => {
-        void (
-          document.querySelector("single-player-modal") as SinglePlayerModal
-        )?.startTutorial();
-      });
-    });
 
     this.matchmakingModal = document.querySelector(
       "matchmaking-modal",
@@ -568,6 +560,8 @@ class Client {
         modalRouter.routeFromHash();
         return;
       }
+      // Back/Forward between page routes (`/settings`, `/leaderboard`, ...).
+      if (modalRouter.routeFromHistory()) return;
 
       // Reset the UI to its initial state.
       this.loadedJoinModal()?.close();
@@ -655,13 +649,11 @@ class Client {
       "single-player-modal",
       "game-starting-modal",
       "game-top-bar",
-      "help-modal",
       "user-setting",
       // The in-game instance is addressed by id: querySelector("user-setting")
       // above only ever reaches the page's inline one.
       "#game-settings",
       "language-modal",
-      "news-modal",
       "account-button",
       "leaderboard-button",
       "matchmaking-modal",
@@ -970,8 +962,13 @@ class Client {
     // One resolution for the whole join: the name and the verified badge have
     // to describe the same decision, so they are read together rather than
     // asked for separately.
+    const profile = lastUserMeResponse()?.response;
+    const accountName = profile ? profile.player.username : null;
     const resolvedName =
-      this.usernameInput?.resolvedName() ?? fallbackPlayerName();
+      this.usernameInput?.resolvedName() ??
+      (accountName
+        ? { name: accountName, source: "stored" as const, verified: false }
+        : this.guestPlayerName);
     let joinLobby: typeof import("./ClientGameRunner").joinLobby;
     try {
       ({ joinLobby } = await loadGameClient());

@@ -19,15 +19,19 @@ vi.stubGlobal(
 );
 
 import { PlayPage } from "../../src/client/components/PlayPage";
+import { SiteHeader } from "../../src/client/components/SiteHeader";
 
-describe("play-page top bar", () => {
-  let el: PlayPage;
+describe("site header", () => {
+  let el: SiteHeader | PlayPage;
 
-  async function mount() {
+  async function mount(tag = "site-header") {
+    if (!customElements.get("site-header")) {
+      customElements.define("site-header", SiteHeader);
+    }
     if (!customElements.get("play-page")) {
       customElements.define("play-page", PlayPage);
     }
-    el = document.createElement("play-page") as PlayPage;
+    el = document.createElement(tag) as SiteHeader | PlayPage;
     document.body.appendChild(el);
     await el.updateComplete;
   }
@@ -46,9 +50,9 @@ describe("play-page top bar", () => {
     );
 
   describe("off CrazyGames", () => {
-    beforeEach(mount);
+    beforeEach(() => mount());
 
-    it("puts the bell/help icons, profile menus and language picker in one row", () => {
+    it("puts utility icons, profile menus and language picker in one row", () => {
       expect(rightSlot()).toEqual([
         "nav-utility-icons",
         "details",
@@ -84,7 +88,7 @@ describe("play-page top bar", () => {
   });
 
   describe("legal line", () => {
-    beforeEach(mount);
+    beforeEach(() => mount("play-page"));
 
     it("shows the copyright notice and links the source code", () => {
       const line = el.querySelector(".menu-legal")!;

@@ -9,7 +9,7 @@ const resourcesDir = path.join(
 );
 
 // The small JSON configs the client reads from its API host in OpenFront.
-// LandWar serves them itself: the news and stream lists from the files in
+// LandWar serves them itself: the stream list from the files in
 // resources/, and an empty identity list, because LandWar links no outside
 // identity. The cosmetics catalog is in shop/routes.ts.
 export function registerServedConfigRoutes(app: Express): void {
@@ -22,7 +22,6 @@ export function registerServedConfigRoutes(app: Express): void {
       res.status(404).json({ error: "not_found" });
     }
   };
-  app.get("/api/news.json", file("news.json"));
   app.get("/api/streams.json", file("streams.json"));
   app.get("/api/public/identity_token/audiences", (_req, res) => {
     res.setHeader("Cache-Control", "public, max-age=60");

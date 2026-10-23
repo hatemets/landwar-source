@@ -129,7 +129,7 @@ export class GraphicsPresetSelector extends LitElement {
       <div class="flex gap-2 items-center">
         <select
           @change=${this.onSelect}
-          class="flex-1 min-w-0 px-2 py-1.5 bg-slate-900 border border-slate-500 rounded-sm text-sm text-white cursor-pointer"
+          class="flex-1 min-w-0 h-9 px-3 border border-transparent rounded-md bg-white/[0.06] text-white text-sm cursor-pointer focus:outline-none focus:border-[var(--field-accent)] transition-all"
         >
           ${selected === CUSTOM_VALUE
             ? html`<option value=${CUSTOM_VALUE} .selected=${true} disabled>
@@ -158,7 +158,7 @@ export class GraphicsPresetSelector extends LitElement {
         ${selected.startsWith("user:")
           ? html`
               <button
-                class="px-2 py-1 text-slate-400 hover:text-white"
+                class="shrink-0 h-9 px-3 rounded-md text-white/60 hover:text-white hover:bg-white/10"
                 @click=${this.onDelete}
               >
                 ✕

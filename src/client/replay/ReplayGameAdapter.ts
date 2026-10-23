@@ -436,14 +436,6 @@ export class ReplayGameView {
   numLandTiles(): number {
     return this.landTiles;
   }
-  teamClanTag(team: Team): string | null {
-    const tags = new Set(
-      this.order
-        .filter((p) => p.team() === team && p.clanTag() !== null)
-        .map((p) => p.clanTag()!),
-    );
-    return tags.size === 1 ? [...tags][0] : null;
-  }
 
   // ---- Tiles ----
 

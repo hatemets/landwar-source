@@ -519,7 +519,7 @@ export class GraphicsAdvancedSettings extends LitElement {
 
   private currentClassicNumbers(): boolean {
     return (
-      this.userSettings.graphicsOverrides().structure?.classicNumbers ?? true
+      this.userSettings.graphicsOverrides().structure?.classicNumbers ?? false
     );
   }
 
@@ -923,7 +923,7 @@ export class GraphicsAdvancedSettings extends LitElement {
   private renderMapLayers() {
     if (this.mapLayers.length === 0) return nothing;
     return html`
-      <div data-map-layers>
+      <div data-map-layers class="flex flex-col gap-2">
         ${GraphicsAdvancedSettings.section(
           "graphics_setting.section_map_layers",
         )}
@@ -1025,398 +1025,415 @@ export class GraphicsAdvancedSettings extends LitElement {
     const whole = (v: number) => String(Math.round(v));
 
     return html`
-      <!-- 💡 Lighting -->
-      ${GraphicsAdvancedSettings.section("graphics_setting.section_lighting")}
-      <setting-slider
-        label=${translateText("graphics_setting.lighting_ambient_label")}
-        description=${translateText("graphics_setting.lighting_ambient_desc")}
-        id="ambient-light-slider"
-        min=${AMBIENT_LEVEL_MIN}
-        max=${AMBIENT_LEVEL_MAX}
-        step=${AMBIENT_LEVEL_STEP}
-        unit=""
-        .formatValue=${whole}
-        .value=${this.currentAmbientLevel()}
-        @change=${this.onAmbientLevelChange}
-      ></setting-slider>
+      <div class="flex flex-col gap-2">
+        <!-- 💡 Lighting -->
+        ${GraphicsAdvancedSettings.section("graphics_setting.section_lighting")}
+        <setting-slider
+          label=${translateText("graphics_setting.lighting_ambient_label")}
+          description=${translateText("graphics_setting.lighting_ambient_desc")}
+          id="ambient-light-slider"
+          min=${AMBIENT_LEVEL_MIN}
+          max=${AMBIENT_LEVEL_MAX}
+          step=${AMBIENT_LEVEL_STEP}
+          unit=""
+          .formatValue=${whole}
+          .value=${this.currentAmbientLevel()}
+          @change=${this.onAmbientLevelChange}
+        ></setting-slider>
 
-      <setting-slider
-        label=${translateText("graphics_setting.lighting_unit_glow_label")}
-        description=${translateText("graphics_setting.lighting_unit_glow_desc")}
-        id="unit-glow-slider"
-        min=${UNIT_GLOW_MIN}
-        max=${UNIT_GLOW_MAX}
-        step=${UNIT_GLOW_STEP}
-        unit=""
-        .formatValue=${whole}
-        .value=${this.currentUnitGlow()}
-        @change=${this.onUnitGlowChange}
-      ></setting-slider>
+        <setting-slider
+          label=${translateText("graphics_setting.lighting_unit_glow_label")}
+          description=${translateText(
+            "graphics_setting.lighting_unit_glow_desc",
+          )}
+          id="unit-glow-slider"
+          min=${UNIT_GLOW_MIN}
+          max=${UNIT_GLOW_MAX}
+          step=${UNIT_GLOW_STEP}
+          unit=""
+          .formatValue=${whole}
+          .value=${this.currentUnitGlow()}
+          @change=${this.onUnitGlowChange}
+        ></setting-slider>
 
-      <!-- 🏷️ Name labels -->
-      ${GraphicsAdvancedSettings.section(
-        "graphics_setting.section_name_labels",
-      )}
-      <setting-slider
-        label=${translateText("graphics_setting.name_scale_label")}
-        description=""
-        id="name-scale-slider"
-        min=${NAME_SCALE_MIN}
-        max=${NAME_SCALE_MAX}
-        step=${NAME_SCALE_STEP}
-        unit=""
-        .formatValue=${twoDecimals}
-        .value=${this.currentNameScale()}
-        @change=${this.onNameScaleChange}
-      ></setting-slider>
-
-      <setting-slider
-        label=${translateText("graphics_setting.name_cull_label")}
-        description=${translateText("graphics_setting.name_cull_desc")}
-        id="name-cull-slider"
-        min=${NAME_CULL_MIN}
-        max=${NAME_CULL_MAX}
-        step=${NAME_CULL_STEP}
-        unit=""
-        .formatValue=${threeDecimals}
-        .value=${this.currentNameCull()}
-        @change=${this.onNameCullChange}
-      ></setting-slider>
-
-      <setting-slider
-        label=${translateText("graphics_setting.hover_fade_label")}
-        description=${translateText("graphics_setting.hover_fade_desc")}
-        id="hover-fade-slider"
-        min=${HOVER_FADE_MIN}
-        max=${HOVER_FADE_MAX}
-        step=${HOVER_FADE_STEP}
-        unit=""
-        .formatValue=${twoDecimals}
-        .value=${this.currentHoverFade()}
-        @change=${this.onHoverFadeChange}
-      ></setting-slider>
-
-      <setting-slider
-        label=${translateText("graphics_setting.hover_glow_width_label")}
-        description=${translateText("graphics_setting.hover_glow_width_desc")}
-        id="hover-glow-width-slider"
-        min=${HOVER_GLOW_WIDTH_MIN}
-        max=${HOVER_GLOW_WIDTH_MAX}
-        step=${HOVER_GLOW_WIDTH_STEP}
-        unit=""
-        .formatValue=${oneDecimal}
-        .value=${this.currentHoverGlowWidth()}
-        @change=${this.onHoverGlowWidthChange}
-      ></setting-slider>
-
-      <setting-slider
-        label=${translateText("graphics_setting.hover_glow_alpha_label")}
-        description=${translateText("graphics_setting.hover_glow_alpha_desc")}
-        id="hover-glow-alpha-slider"
-        min=${HOVER_GLOW_ALPHA_MIN}
-        max=${HOVER_GLOW_ALPHA_MAX}
-        step=${HOVER_GLOW_ALPHA_STEP}
-        unit=""
-        .formatValue=${twoDecimals}
-        .value=${this.currentHoverGlowAlpha()}
-        @change=${this.onHoverGlowAlphaChange}
-      ></setting-slider>
-
-      <setting-toggle
-        label=${translateText("graphics_setting.colored_names_label")}
-        description=${translateText("graphics_setting.colored_names_desc")}
-        id="colored-names-toggle"
-        .checked=${!this.currentDarkNames()}
-        @change=${this.onToggleNamesColored}
-      ></setting-toggle>
-
-      <!-- 🏰 Structure icons -->
-      ${GraphicsAdvancedSettings.section(
-        "graphics_setting.section_structure_icons",
-      )}
-      <setting-slider
-        label=${translateText("graphics_setting.icon_size_label")}
-        description=${translateText("graphics_setting.icon_size_desc")}
-        id="icon-size-slider"
-        min=${ICON_SIZE_MIN}
-        max=${ICON_SIZE_MAX}
-        step=${ICON_SIZE_STEP}
-        unit=""
-        .formatValue=${whole}
-        .value=${this.currentIconSize()}
-        @change=${this.onIconSizeChange}
-      ></setting-slider>
-
-      <setting-toggle
-        label=${translateText("graphics_setting.classic_icons_label")}
-        description=${translateText("graphics_setting.classic_icons_desc")}
-        id="classic-icons-toggle"
-        .checked=${this.currentClassicIcons()}
-        @change=${this.onToggleClassicIcons}
-      ></setting-toggle>
-
-      <setting-toggle
-        label=${translateText("graphics_setting.classic_numbers_label")}
-        description=${translateText("graphics_setting.classic_numbers_desc")}
-        id="classic-numbers-toggle"
-        .checked=${this.currentClassicNumbers()}
-        @change=${this.onToggleClassicNumbers}
-      ></setting-toggle>
-
-      <setting-toggle
-        label=${translateText("graphics_setting.structure_dots_label")}
-        description=${translateText("graphics_setting.structure_dots_desc")}
-        id="structure-dots-toggle"
-        .checked=${this.currentShowDots()}
-        @change=${this.onToggleShowDots}
-      ></setting-toggle>
-
-      <!-- 🗺️ Map -->
-      ${GraphicsAdvancedSettings.section("graphics_setting.section_map")}
-      <setting-toggle
-        label=${translateText("graphics_setting.naval_hover_highlight_label")}
-        description=${translateText(
-          "graphics_setting.naval_hover_highlight_desc",
+        <!-- 🏷️ Name labels -->
+        ${GraphicsAdvancedSettings.section(
+          "graphics_setting.section_name_labels",
         )}
-        id="naval-highlight-toggle"
-        .checked=${this.currentNavalHighlight()}
-        @change=${this.onToggleNavalHighlight}
-      ></setting-toggle>
+        <setting-slider
+          label=${translateText("graphics_setting.name_scale_label")}
+          description=""
+          id="name-scale-slider"
+          min=${NAME_SCALE_MIN}
+          max=${NAME_SCALE_MAX}
+          step=${NAME_SCALE_STEP}
+          unit=""
+          .formatValue=${twoDecimals}
+          .value=${this.currentNameScale()}
+          @change=${this.onNameScaleChange}
+        ></setting-slider>
 
-      <setting-toggle
-        label=${translateText("graphics_setting.classic_bot_colors_label")}
-        description=${translateText("graphics_setting.classic_bot_colors_desc")}
-        id="classic-bot-colors-toggle"
-        .checked=${this.currentClassicBotColors()}
-        @change=${this.onToggleClassicBotColors}
-      ></setting-toggle>
+        <setting-slider
+          label=${translateText("graphics_setting.name_cull_label")}
+          description=${translateText("graphics_setting.name_cull_desc")}
+          id="name-cull-slider"
+          min=${NAME_CULL_MIN}
+          max=${NAME_CULL_MAX}
+          step=${NAME_CULL_STEP}
+          unit=""
+          .formatValue=${threeDecimals}
+          .value=${this.currentNameCull()}
+          @change=${this.onNameCullChange}
+        ></setting-slider>
 
-      <setting-slider
-        label=${translateText("graphics_setting.highlight_fill_label")}
-        description=${translateText("graphics_setting.highlight_fill_desc")}
-        id="highlight-fill-slider"
-        min=${HIGHLIGHT_FILL_MIN}
-        max=${HIGHLIGHT_FILL_MAX}
-        step=${HIGHLIGHT_FILL_STEP}
-        unit=""
-        .formatValue=${twoDecimals}
-        .value=${this.currentHighlightFill()}
-        @change=${this.onHighlightFillChange}
-      ></setting-slider>
+        <setting-slider
+          label=${translateText("graphics_setting.hover_fade_label")}
+          description=${translateText("graphics_setting.hover_fade_desc")}
+          id="hover-fade-slider"
+          min=${HOVER_FADE_MIN}
+          max=${HOVER_FADE_MAX}
+          step=${HOVER_FADE_STEP}
+          unit=""
+          .formatValue=${twoDecimals}
+          .value=${this.currentHoverFade()}
+          @change=${this.onHoverFadeChange}
+        ></setting-slider>
 
-      <setting-slider
-        label=${translateText("graphics_setting.highlight_brighten_label")}
-        description=${translateText("graphics_setting.highlight_brighten_desc")}
-        id="highlight-brighten-slider"
-        min=${HIGHLIGHT_BRIGHTEN_MIN}
-        max=${HIGHLIGHT_BRIGHTEN_MAX}
-        step=${HIGHLIGHT_BRIGHTEN_STEP}
-        unit=""
-        .formatValue=${twoDecimals}
-        .value=${this.currentHighlightBrighten()}
-        @change=${this.onHighlightBrightenChange}
-      ></setting-slider>
+        <setting-slider
+          label=${translateText("graphics_setting.hover_glow_width_label")}
+          description=${translateText("graphics_setting.hover_glow_width_desc")}
+          id="hover-glow-width-slider"
+          min=${HOVER_GLOW_WIDTH_MIN}
+          max=${HOVER_GLOW_WIDTH_MAX}
+          step=${HOVER_GLOW_WIDTH_STEP}
+          unit=""
+          .formatValue=${oneDecimal}
+          .value=${this.currentHoverGlowWidth()}
+          @change=${this.onHoverGlowWidthChange}
+        ></setting-slider>
 
-      <setting-slider
-        label=${translateText("graphics_setting.highlight_thicken_label")}
-        description=${translateText("graphics_setting.highlight_thicken_desc")}
-        id="highlight-thicken-slider"
-        min=${HIGHLIGHT_THICKEN_MIN}
-        max=${HIGHLIGHT_THICKEN_MAX}
-        step=${HIGHLIGHT_THICKEN_STEP}
-        unit=""
-        .formatValue=${whole}
-        .value=${this.currentHighlightThicken()}
-        @change=${this.onHighlightThickenChange}
-      ></setting-slider>
+        <setting-slider
+          label=${translateText("graphics_setting.hover_glow_alpha_label")}
+          description=${translateText("graphics_setting.hover_glow_alpha_desc")}
+          id="hover-glow-alpha-slider"
+          min=${HOVER_GLOW_ALPHA_MIN}
+          max=${HOVER_GLOW_ALPHA_MAX}
+          step=${HOVER_GLOW_ALPHA_STEP}
+          unit=""
+          .formatValue=${twoDecimals}
+          .value=${this.currentHoverGlowAlpha()}
+          @change=${this.onHoverGlowAlphaChange}
+        ></setting-slider>
 
-      <setting-slider
-        label=${translateText("graphics_setting.territory_sat_label")}
-        description=${translateText("graphics_setting.territory_sat_desc")}
-        id="territory-saturation-slider"
-        min=${TERRITORY_SAT_MIN}
-        max=${TERRITORY_SAT_MAX}
-        step=${TERRITORY_SAT_STEP}
-        unit=""
-        .formatValue=${twoDecimals}
-        .value=${this.currentTerritorySat()}
-        @change=${this.onTerritorySatChange}
-      ></setting-slider>
+        <setting-toggle
+          label=${translateText("graphics_setting.colored_names_label")}
+          description=${translateText("graphics_setting.colored_names_desc")}
+          id="colored-names-toggle"
+          .checked=${!this.currentDarkNames()}
+          @change=${this.onToggleNamesColored}
+        ></setting-toggle>
 
-      <setting-slider
-        label=${translateText("graphics_setting.territory_alpha_label")}
-        description=${translateText("graphics_setting.territory_alpha_desc")}
-        id="territory-alpha-slider"
-        min=${TERRITORY_ALPHA_MIN}
-        max=${TERRITORY_ALPHA_MAX}
-        step=${TERRITORY_ALPHA_STEP}
-        unit=""
-        .formatValue=${twoDecimals}
-        .value=${this.currentTerritoryAlpha()}
-        @change=${this.onTerritoryAlphaChange}
-      ></setting-slider>
-
-      <setting-slider
-        label=${translateText("graphics_setting.alt_view_fill_alpha_label")}
-        description=${translateText(
-          "graphics_setting.alt_view_fill_alpha_desc",
+        <!-- 🏰 Structure icons -->
+        ${GraphicsAdvancedSettings.section(
+          "graphics_setting.section_structure_icons",
         )}
-        id="alt-view-fill-alpha-slider"
-        min=${ALT_VIEW_FILL_ALPHA_MIN}
-        max=${ALT_VIEW_FILL_ALPHA_MAX}
-        step=${ALT_VIEW_FILL_ALPHA_STEP}
-        unit=""
-        .formatValue=${twoDecimals}
-        .value=${this.currentAltViewFillAlpha()}
-        @change=${this.onAltViewFillAlphaChange}
-      ></setting-slider>
+        <setting-slider
+          label=${translateText("graphics_setting.icon_size_label")}
+          description=${translateText("graphics_setting.icon_size_desc")}
+          id="icon-size-slider"
+          min=${ICON_SIZE_MIN}
+          max=${ICON_SIZE_MAX}
+          step=${ICON_SIZE_STEP}
+          unit=""
+          .formatValue=${whole}
+          .value=${this.currentIconSize()}
+          @change=${this.onIconSizeChange}
+        ></setting-slider>
 
-      <setting-slider
-        label=${translateText("graphics_setting.coordinate_grid_opacity_label")}
-        description=${translateText(
-          "graphics_setting.coordinate_grid_opacity_desc",
-        )}
-        id="coordinate-grid-opacity-slider"
-        min=${COORDINATE_GRID_OPACITY_MIN}
-        max=${COORDINATE_GRID_OPACITY_MAX}
-        step=${COORDINATE_GRID_OPACITY_STEP}
-        unit=""
-        .formatValue=${twoDecimals}
-        .value=${this.currentCoordinateGridOpacity()}
-        @change=${this.onCoordinateGridOpacityChange}
-      ></setting-slider>
+        <setting-toggle
+          label=${translateText("graphics_setting.classic_icons_label")}
+          description=${translateText("graphics_setting.classic_icons_desc")}
+          id="classic-icons-toggle"
+          .checked=${this.currentClassicIcons()}
+          @change=${this.onToggleClassicIcons}
+        ></setting-toggle>
 
-      <setting-slider
-        label=${translateText("graphics_setting.rail_distance_label")}
-        description=${translateText("graphics_setting.rail_distance_desc")}
-        id="rail-distance-slider"
-        min=${RAIL_ZOOM_MIN}
-        max=${RAIL_ZOOM_MAX}
-        step=${RAIL_ZOOM_STEP}
-        unit=""
-        .formatValue=${oneDecimal}
-        .value=${RAIL_ZOOM_MAX - this.currentRailMinZoom()}
-        @change=${this.onRailDrawDistanceChange}
-      ></setting-slider>
+        <setting-toggle
+          label=${translateText("graphics_setting.classic_numbers_label")}
+          description=${translateText("graphics_setting.classic_numbers_desc")}
+          id="classic-numbers-toggle"
+          .checked=${this.currentClassicNumbers()}
+          @change=${this.onToggleClassicNumbers}
+        ></setting-toggle>
 
-      <setting-slider
-        label=${translateText("graphics_setting.rail_thickness_label")}
-        description=${translateText("graphics_setting.rail_thickness_desc")}
-        id="rail-thickness-slider"
-        min=${RAIL_THICKNESS_MIN}
-        max=${RAIL_THICKNESS_MAX}
-        step=${RAIL_THICKNESS_STEP}
-        unit=""
-        .formatValue=${oneDecimal}
-        .value=${this.currentRailThickness()}
-        @change=${this.onRailThicknessChange}
-      ></setting-slider>
+        <setting-toggle
+          label=${translateText("graphics_setting.structure_dots_label")}
+          description=${translateText("graphics_setting.structure_dots_desc")}
+          id="structure-dots-toggle"
+          .checked=${this.currentShowDots()}
+          @change=${this.onToggleShowDots}
+        ></setting-toggle>
 
-      ${this.renderMapLayers()}
+        <!-- 🗺️ Map -->
+        ${GraphicsAdvancedSettings.section("graphics_setting.section_map")}
+        <setting-toggle
+          label=${translateText("graphics_setting.naval_hover_highlight_label")}
+          description=${translateText(
+            "graphics_setting.naval_hover_highlight_desc",
+          )}
+          id="naval-highlight-toggle"
+          .checked=${this.currentNavalHighlight()}
+          @change=${this.onToggleNavalHighlight}
+        ></setting-toggle>
 
-      <!-- ⛰️ Terrain -->
-      ${GraphicsAdvancedSettings.section("graphics_setting.section_terrain")}
-      <setting-color
-        label=${translateText("graphics_setting.background_color_label")}
-        description=${translateText("graphics_setting.background_color_desc")}
-        id="background-color-picker"
-        .value=${this.currentBackgroundColor()}
-        @change=${this.onBackgroundColorChange}
-      ></setting-color>
+        <setting-toggle
+          label=${translateText("graphics_setting.classic_bot_colors_label")}
+          description=${translateText(
+            "graphics_setting.classic_bot_colors_desc",
+          )}
+          id="classic-bot-colors-toggle"
+          .checked=${this.currentClassicBotColors()}
+          @change=${this.onToggleClassicBotColors}
+        ></setting-toggle>
 
-      <setting-color
-        label=${translateText("graphics_setting.ocean_color_label")}
-        description=${translateText("graphics_setting.ocean_color_desc")}
-        id="ocean-color-picker"
-        .value=${this.currentOceanColor()}
-        @change=${this.onOceanColorChange}
-      ></setting-color>
+        <setting-slider
+          label=${translateText("graphics_setting.highlight_fill_label")}
+          description=${translateText("graphics_setting.highlight_fill_desc")}
+          id="highlight-fill-slider"
+          min=${HIGHLIGHT_FILL_MIN}
+          max=${HIGHLIGHT_FILL_MAX}
+          step=${HIGHLIGHT_FILL_STEP}
+          unit=""
+          .formatValue=${twoDecimals}
+          .value=${this.currentHighlightFill()}
+          @change=${this.onHighlightFillChange}
+        ></setting-slider>
 
-      <setting-color
-        label=${translateText("graphics_setting.sand_color_label")}
-        description=${translateText("graphics_setting.sand_color_desc")}
-        id="sand-color-picker"
-        .value=${this.currentSandColor()}
-        @change=${this.onSandColorChange}
-      ></setting-color>
+        <setting-slider
+          label=${translateText("graphics_setting.highlight_brighten_label")}
+          description=${translateText(
+            "graphics_setting.highlight_brighten_desc",
+          )}
+          id="highlight-brighten-slider"
+          min=${HIGHLIGHT_BRIGHTEN_MIN}
+          max=${HIGHLIGHT_BRIGHTEN_MAX}
+          step=${HIGHLIGHT_BRIGHTEN_STEP}
+          unit=""
+          .formatValue=${twoDecimals}
+          .value=${this.currentHighlightBrighten()}
+          @change=${this.onHighlightBrightenChange}
+        ></setting-slider>
 
-      <setting-color
-        label=${translateText("graphics_setting.plains_color_label")}
-        description=${translateText("graphics_setting.plains_color_desc")}
-        id="plains-color-picker"
-        .value=${this.currentPlainsColor()}
-        @change=${this.onPlainsColorChange}
-      ></setting-color>
+        <setting-slider
+          label=${translateText("graphics_setting.highlight_thicken_label")}
+          description=${translateText(
+            "graphics_setting.highlight_thicken_desc",
+          )}
+          id="highlight-thicken-slider"
+          min=${HIGHLIGHT_THICKEN_MIN}
+          max=${HIGHLIGHT_THICKEN_MAX}
+          step=${HIGHLIGHT_THICKEN_STEP}
+          unit=""
+          .formatValue=${whole}
+          .value=${this.currentHighlightThicken()}
+          @change=${this.onHighlightThickenChange}
+        ></setting-slider>
 
-      <setting-color
-        label=${translateText("graphics_setting.highland_color_label")}
-        description=${translateText("graphics_setting.highland_color_desc")}
-        id="highland-color-picker"
-        .value=${this.currentHighlandColor()}
-        @change=${this.onHighlandColorChange}
-      ></setting-color>
+        <setting-slider
+          label=${translateText("graphics_setting.territory_sat_label")}
+          description=${translateText("graphics_setting.territory_sat_desc")}
+          id="territory-saturation-slider"
+          min=${TERRITORY_SAT_MIN}
+          max=${TERRITORY_SAT_MAX}
+          step=${TERRITORY_SAT_STEP}
+          unit=""
+          .formatValue=${twoDecimals}
+          .value=${this.currentTerritorySat()}
+          @change=${this.onTerritorySatChange}
+        ></setting-slider>
 
-      <setting-color
-        label=${translateText("graphics_setting.mountain_color_label")}
-        description=${translateText("graphics_setting.mountain_color_desc")}
-        id="mountain-color-picker"
-        .value=${this.currentMountainColor()}
-        @change=${this.onMountainColorChange}
-      ></setting-color>
+        <setting-slider
+          label=${translateText("graphics_setting.territory_alpha_label")}
+          description=${translateText("graphics_setting.territory_alpha_desc")}
+          id="territory-alpha-slider"
+          min=${TERRITORY_ALPHA_MIN}
+          max=${TERRITORY_ALPHA_MAX}
+          step=${TERRITORY_ALPHA_STEP}
+          unit=""
+          .formatValue=${twoDecimals}
+          .value=${this.currentTerritoryAlpha()}
+          @change=${this.onTerritoryAlphaChange}
+        ></setting-slider>
 
-      <setting-color
-        label=${translateText("graphics_setting.nuke_color_label")}
-        description=${translateText("graphics_setting.nuke_color_desc")}
-        id="nuke-color-picker"
-        .value=${this.currentNukeColor()}
-        @change=${this.onNukeColorChange}
-      ></setting-color>
+        <setting-slider
+          label=${translateText("graphics_setting.alt_view_fill_alpha_label")}
+          description=${translateText(
+            "graphics_setting.alt_view_fill_alpha_desc",
+          )}
+          id="alt-view-fill-alpha-slider"
+          min=${ALT_VIEW_FILL_ALPHA_MIN}
+          max=${ALT_VIEW_FILL_ALPHA_MAX}
+          step=${ALT_VIEW_FILL_ALPHA_STEP}
+          unit=""
+          .formatValue=${twoDecimals}
+          .value=${this.currentAltViewFillAlpha()}
+          @change=${this.onAltViewFillAlphaChange}
+        ></setting-slider>
 
-      <!-- ✨ Effects -->
-      ${GraphicsAdvancedSettings.section("graphics_setting.section_effects")}
-      <setting-toggle
-        label=${translateText("user_setting.special_effects_label")}
-        description=${translateText("user_setting.special_effects_desc")}
-        id="special-effects-toggle"
-        .checked=${this.currentSpecialEffects()}
-        @change=${this.onToggleSpecialEffects}
-      ></setting-toggle>
+        <setting-slider
+          label=${translateText(
+            "graphics_setting.coordinate_grid_opacity_label",
+          )}
+          description=${translateText(
+            "graphics_setting.coordinate_grid_opacity_desc",
+          )}
+          id="coordinate-grid-opacity-slider"
+          min=${COORDINATE_GRID_OPACITY_MIN}
+          max=${COORDINATE_GRID_OPACITY_MAX}
+          step=${COORDINATE_GRID_OPACITY_STEP}
+          unit=""
+          .formatValue=${twoDecimals}
+          .value=${this.currentCoordinateGridOpacity()}
+          @change=${this.onCoordinateGridOpacityChange}
+        ></setting-slider>
 
-      <setting-toggle
-        label=${translateText("graphics_setting.fallout_label")}
-        description=${translateText("graphics_setting.fallout_desc")}
-        id="fallout-toggle"
-        .checked=${this.currentFallout()}
-        @change=${this.onToggleFallout}
-      ></setting-toggle>
+        <setting-slider
+          label=${translateText("graphics_setting.rail_distance_label")}
+          description=${translateText("graphics_setting.rail_distance_desc")}
+          id="rail-distance-slider"
+          min=${RAIL_ZOOM_MIN}
+          max=${RAIL_ZOOM_MAX}
+          step=${RAIL_ZOOM_STEP}
+          unit=""
+          .formatValue=${oneDecimal}
+          .value=${RAIL_ZOOM_MAX - this.currentRailMinZoom()}
+          @change=${this.onRailDrawDistanceChange}
+        ></setting-slider>
 
-      <setting-slider
-        label=${translateText("user_setting.highlight_glow_strength_label")}
-        description=${translateText(
-          "user_setting.highlight_small_players_desc",
-        )}
-        id="glow-strength-slider"
-        min=${GLOW_STRENGTH_MIN}
-        max=${GLOW_STRENGTH_MAX}
-        step=${GLOW_STRENGTH_STEP}
-        .value=${Math.round(this.currentGlowStrength() * 100)}
-        @change=${this.onGlowStrengthChange}
-      ></setting-slider>
+        <setting-slider
+          label=${translateText("graphics_setting.rail_thickness_label")}
+          description=${translateText("graphics_setting.rail_thickness_desc")}
+          id="rail-thickness-slider"
+          min=${RAIL_THICKNESS_MIN}
+          max=${RAIL_THICKNESS_MAX}
+          step=${RAIL_THICKNESS_STEP}
+          unit=""
+          .formatValue=${oneDecimal}
+          .value=${this.currentRailThickness()}
+          @change=${this.onRailThicknessChange}
+        ></setting-slider>
 
-      ${this.renderCosmetics()}
+        ${this.renderMapLayers()}
 
-      <button
-        id="graphics-reset"
-        class="flex flex-col items-start w-full p-4 mt-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all text-left"
-        @click=${this.onResetClick}
-      >
-        <div class="text-white font-bold text-base block mb-1">
-          ${translateText("graphics_setting.reset_label")}
+        <!-- ⛰️ Terrain -->
+        ${GraphicsAdvancedSettings.section("graphics_setting.section_terrain")}
+        <setting-color
+          label=${translateText("graphics_setting.background_color_label")}
+          description=${translateText("graphics_setting.background_color_desc")}
+          id="background-color-picker"
+          .value=${this.currentBackgroundColor()}
+          @change=${this.onBackgroundColorChange}
+        ></setting-color>
+
+        <setting-color
+          label=${translateText("graphics_setting.ocean_color_label")}
+          description=${translateText("graphics_setting.ocean_color_desc")}
+          id="ocean-color-picker"
+          .value=${this.currentOceanColor()}
+          @change=${this.onOceanColorChange}
+        ></setting-color>
+
+        <setting-color
+          label=${translateText("graphics_setting.sand_color_label")}
+          description=${translateText("graphics_setting.sand_color_desc")}
+          id="sand-color-picker"
+          .value=${this.currentSandColor()}
+          @change=${this.onSandColorChange}
+        ></setting-color>
+
+        <setting-color
+          label=${translateText("graphics_setting.plains_color_label")}
+          description=${translateText("graphics_setting.plains_color_desc")}
+          id="plains-color-picker"
+          .value=${this.currentPlainsColor()}
+          @change=${this.onPlainsColorChange}
+        ></setting-color>
+
+        <setting-color
+          label=${translateText("graphics_setting.highland_color_label")}
+          description=${translateText("graphics_setting.highland_color_desc")}
+          id="highland-color-picker"
+          .value=${this.currentHighlandColor()}
+          @change=${this.onHighlandColorChange}
+        ></setting-color>
+
+        <setting-color
+          label=${translateText("graphics_setting.mountain_color_label")}
+          description=${translateText("graphics_setting.mountain_color_desc")}
+          id="mountain-color-picker"
+          .value=${this.currentMountainColor()}
+          @change=${this.onMountainColorChange}
+        ></setting-color>
+
+        <setting-color
+          label=${translateText("graphics_setting.nuke_color_label")}
+          description=${translateText("graphics_setting.nuke_color_desc")}
+          id="nuke-color-picker"
+          .value=${this.currentNukeColor()}
+          @change=${this.onNukeColorChange}
+        ></setting-color>
+
+        <!-- ✨ Effects -->
+        ${GraphicsAdvancedSettings.section("graphics_setting.section_effects")}
+        <setting-toggle
+          label=${translateText("user_setting.special_effects_label")}
+          description=${translateText("user_setting.special_effects_desc")}
+          id="special-effects-toggle"
+          .checked=${this.currentSpecialEffects()}
+          @change=${this.onToggleSpecialEffects}
+        ></setting-toggle>
+
+        <setting-toggle
+          label=${translateText("graphics_setting.fallout_label")}
+          description=${translateText("graphics_setting.fallout_desc")}
+          id="fallout-toggle"
+          .checked=${this.currentFallout()}
+          @change=${this.onToggleFallout}
+        ></setting-toggle>
+
+        <setting-slider
+          label=${translateText("user_setting.highlight_glow_strength_label")}
+          description=${translateText(
+            "user_setting.highlight_small_players_desc",
+          )}
+          id="glow-strength-slider"
+          min=${GLOW_STRENGTH_MIN}
+          max=${GLOW_STRENGTH_MAX}
+          step=${GLOW_STRENGTH_STEP}
+          .value=${Math.round(this.currentGlowStrength() * 100)}
+          @change=${this.onGlowStrengthChange}
+        ></setting-slider>
+
+        ${this.renderCosmetics()}
+
+        <div class="flex flex-row items-center w-full px-3 py-2 mt-3 gap-3">
+          <div class="flex flex-col flex-1 min-w-0">
+            <div class="text-white font-medium text-sm">
+              ${translateText("graphics_setting.reset_label")}
+            </div>
+            <div class="text-white/50 text-xs leading-snug">
+              ${translateText("graphics_setting.reset_desc")}
+            </div>
+          </div>
+          <button
+            id="graphics-reset"
+            class="shrink-0 h-9 px-3 text-sm font-medium rounded-md border border-white/10 text-white bg-white/5 hover:bg-white/15 transition-colors"
+            @click=${this.onResetClick}
+          >
+            ${translateText("graphics_setting.reset_button")}
+          </button>
         </div>
-        <div class="text-white/50 text-sm leading-snug">
-          ${translateText("graphics_setting.reset_desc")}
-        </div>
-      </button>
+      </div>
     `;
   }
 }

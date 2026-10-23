@@ -275,6 +275,9 @@ export interface Unit extends UnitLike {
 
   // SAMs & Missile Silos
   launch(): void;
+  // Silos: reserves the earliest free departure tick (at least one after the
+  // last reserved one, never before now) and returns it.
+  reserveNukeDeparture(): Tick;
   reloadMissile(): void;
   isInCooldown(): boolean;
   missileTimerQueue(): number[];
@@ -290,7 +293,7 @@ export interface Unit extends UnitLike {
 
   // Upgradable Structures
   level(): number;
-  increaseLevel(): void;
+  increaseLevel(amount?: number): void;
   decreaseLevel(destroyer?: Player): void;
 }
 
@@ -416,6 +419,9 @@ export interface Player extends PlayerLike {
   findUnitToUpgrade(type: UnitType, targetTile: TileRef): Unit | false;
   canUpgradeUnit(unit: Unit): boolean;
   upgradeUnit(unit: Unit): void;
+  // Spends gold on upgrades of `types`, round-robin over every owned unit of
+  // them, lowest level first. Returns the number of levels bought.
+  maxUpgradeUnits(types: readonly UnitType[]): number;
   captureUnit(unit: Unit): void;
 
   // Relations & Diplomacy

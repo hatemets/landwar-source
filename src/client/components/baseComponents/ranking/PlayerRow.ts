@@ -95,7 +95,7 @@ export class PlayerRow extends LitElement {
         data-player-status="winner"
         class="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full border border-yellow-300/40 bg-yellow-400 text-yellow-950 shadow-lg"
         role="img"
-        aria-label=${translateText("clan_modal.history_result_victory")}
+        aria-label=${translateText("game_history.history_result_victory")}
       >
         <svg
           viewBox="0 0 24 24"
@@ -117,7 +117,7 @@ export class PlayerRow extends LitElement {
         data-player-status="eliminated"
         class="absolute -bottom-1 -right-1 leading-none drop-shadow-md"
         role="img"
-        aria-label=${translateText("clan_modal.history_result_defeat")}
+        aria-label=${translateText("game_history.history_result_defeat")}
       >
         <span class="text-sm leading-none" aria-hidden="true">💀</span>
       </span>
@@ -132,14 +132,6 @@ export class PlayerRow extends LitElement {
           data-player-identity
           class="flex min-w-0 flex-1 items-center gap-2 text-left"
         >
-          ${this.player.clanTag
-            ? html`<div
-                data-player-clan-tag
-                class="inline-flex min-w-0 max-w-[40%] shrink-0 rounded-md border border-malibu-blue/20 bg-malibu-blue/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-aquarius/85"
-              >
-                <span class="truncate">${this.player.clanTag}</span>
-              </div>`
-            : ""}
           <div
             data-player-name
             class="min-w-0 flex-1 truncate text-sm font-semibold tracking-wide text-white/85 sm:text-[15px]"
@@ -211,7 +203,7 @@ export class PlayerRow extends LitElement {
           class="h-2 w-full overflow-hidden rounded-full bg-white/[0.07]"
         >
           <div
-            class="h-full rounded-full bg-gradient-to-r from-malibu-blue/65 to-aquarius shadow-[0_0_10px_rgba(63,169,245,0.2)] w-(--width)"
+            class="h-full rounded-full bg-gradient-to-r from-malibu-blue/65 to-aquarius w-(--width)"
             style="--width: ${width}%;"
           ></div>
         </div>

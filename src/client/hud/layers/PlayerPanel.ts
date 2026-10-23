@@ -406,40 +406,38 @@ export class PlayerPanel extends LitElement implements Controller {
       case PlayerType.Nation:
         return {
           labelKey: "player_type.nation",
-          classes: "border-indigo-400/25 bg-indigo-500/10 text-indigo-200",
+          classes: "bg-indigo-500/15 text-indigo-200",
           icon: "🏛️",
         };
       case PlayerType.Bot:
         return {
           labelKey: "player_type.bot",
-          classes: "border-purple-400/25 bg-purple-500/10 text-purple-200",
+          classes: "bg-purple-500/15 text-purple-200",
           icon: "⚔️",
         };
       case PlayerType.Human:
       default:
         return {
           labelKey: "player_type.player",
-          classes: "border-zinc-400/20 bg-zinc-500/5 text-zinc-300",
+          classes: "bg-gray-800 text-gray-300",
           icon: "👤",
         };
     }
   }
 
   private getRelationClass(relation: Relation): string {
-    const base =
-      "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 " +
-      "shadow-[inset_0_0_8px_rgba(255,255,255,0.04)]";
+    const base = "inline-flex items-center gap-1 rounded-sm px-2 py-0.5";
 
     switch (relation) {
       case Relation.Hostile:
-        return `${base} border-red-400/30 bg-red-500/10 text-red-200`;
+        return `${base} bg-red-500/15 text-red-200`;
       case Relation.Distrustful:
-        return `${base} border-red-300/40 bg-red-300/10 text-red-300`;
+        return `${base} bg-red-300/15 text-red-300`;
       case Relation.Friendly:
-        return `${base} border-emerald-400/30 bg-emerald-500/10 text-emerald-200`;
+        return `${base} bg-emerald-500/15 text-emerald-200`;
       case Relation.Neutral:
       default:
-        return `${base} border-zinc-400/30 bg-zinc-500/10 text-zinc-200`;
+        return `${base} bg-gray-800 text-gray-200`;
     }
   }
 
@@ -477,26 +475,20 @@ export class PlayerPanel extends LitElement implements Controller {
     const secs = this.getTraitorRemainingSeconds(other);
     const label = secs !== null ? renderDuration(secs) : null;
     const dotCls =
-      secs !== null
-        ? `mx-1 size-1 rounded-full bg-red-400/70 ${secs <= 10 ? "animate-pulse" : ""}`
-        : "";
+      secs !== null ? "mx-1 size-1 rounded-full bg-red-400/70" : "";
 
     return html`
       <div class="mt-1" role="status" aria-live="polite" aria-atomic="true">
         <span
-          class="inline-flex items-center gap-2 rounded-full border border-red-400/30
-            bg-red-500/10 px-2.5 py-0.5 text-sm font-semibold text-red-200
-            shadow-[inset_0_0_8px_rgba(239,68,68,0.12)]"
+          class="inline-flex items-center gap-2 rounded-sm bg-red-500/15 px-2 py-0.5 text-sm font-medium text-red-200"
           title=${translateText("player_panel.traitor")}
         >
           <img src=${traitorIcon} alt="" aria-hidden="true" class="size-4.5" />
-          <span class="tracking-tight"
-            >${translateText("player_panel.traitor")}</span
-          >
+          <span>${translateText("player_panel.traitor")}</span>
           ${label
             ? html`<span class=${dotCls}></span>
                 <span
-                  class="tabular-nums font-bold text-red-100 whitespace-nowrap text-sm"
+                  class="tabular-nums font-medium text-red-100 whitespace-nowrap text-sm"
                 >
                   ${label}
                 </span>`
@@ -525,7 +517,7 @@ export class PlayerPanel extends LitElement implements Controller {
 
     return html`
       <ui-divider></ui-divider>
-      <div class="grid auto-cols-fr grid-flow-col gap-1">
+      <div class="grid auto-cols-fr grid-flow-col gap-2">
         ${canReport
           ? actionButton({
               onClick: (e: MouseEvent) => this.openReport(e, other),
@@ -564,7 +556,7 @@ export class PlayerPanel extends LitElement implements Controller {
 
     return html`
       <div class="mt-1">
-        <span class="text-sm font-semibold ${cls}">${name}</span>
+        <span class="text-xs font-medium ${cls}">${name}</span>
       </div>
     `;
   }
@@ -598,7 +590,7 @@ export class PlayerPanel extends LitElement implements Controller {
 
         <div class="flex-1 min-w-0 flex items-center gap-2">
           <h2
-            class="min-w-0 text-xl font-bold tracking-[-0.01em] text-zinc-50 truncate"
+            class="min-w-0 text-lg font-semibold text-gray-50 truncate"
             title=${other.displayName()}
           >
             ${other.displayName()}
@@ -606,15 +598,13 @@ export class PlayerPanel extends LitElement implements Controller {
         </div>
         ${chip
           ? html`<span
-              class=${`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs font-semibold ${chip.classes}`}
+              class=${`inline-flex items-center gap-1 rounded-sm px-2 py-0.5 text-xs font-medium ${chip.classes}`}
               role="status"
               aria-label=${translateText(chip.labelKey)}
               title=${translateText(chip.labelKey)}
             >
               <span aria-hidden="true" class="leading-none">${chip.icon}</span>
-              <span class="tracking-tight"
-                >${translateText(chip.labelKey)}</span
-              >
+              <span>${translateText(chip.labelKey)}</span>
             </span>`
           : html``}
       </div>
@@ -627,27 +617,27 @@ export class PlayerPanel extends LitElement implements Controller {
     return html`
       <div class="mb-1 flex justify-between gap-2">
         <div
-          class="inline-flex items-center gap-1.5 rounded-lg bg-white/4 px-3 py-1.5 shrink-0
+          class="inline-flex items-center gap-1.5 rounded-md bg-gray-800 px-3 py-2 shrink-0
                     text-white w-35"
         >
           <span class="mr-0.5">💰</span>
-          <span translate="no" class="tabular-nums w-[5ch] font-semibold">
+          <span translate="no" class="tabular-nums w-[5ch] font-medium">
             ${renderNumber(other.gold() || 0)}
           </span>
-          <span class="text-zinc-200 whitespace-nowrap">
+          <span class="text-gray-200 whitespace-nowrap">
             ${translateText("player_panel.gold")}</span
           >
         </div>
 
         <div
-          class="inline-flex items-center gap-1.5 rounded-lg bg-white/4 px-3 py-1.5
+          class="inline-flex items-center gap-1.5 rounded-md bg-gray-800 px-3 py-2
                     text-white w-35 shrink-0"
         >
           <span class="mr-0.5">🛡️</span>
-          <span translate="no" class="tabular-nums w-[5ch] font-semibold">
+          <span translate="no" class="tabular-nums w-[5ch] font-medium">
             ${renderTroops(other.troops() || 0)}
           </span>
-          <span class="text-zinc-200 whitespace-nowrap">
+          <span class="text-gray-200 whitespace-nowrap">
             ${translateText("player_panel.troops")}</span
           >
         </div>
@@ -659,14 +649,14 @@ export class PlayerPanel extends LitElement implements Controller {
     return html`
       <ui-divider></ui-divider>
       <button
-        class="flex w-full items-center justify-between rounded-xl bg-white/5 px-3 py-2 text-left text-white hover:bg-white/8 active:scale-[0.995] transition"
+        class="flex w-full items-center justify-between rounded-md bg-gray-800 px-3 py-2 text-left text-white hover:bg-gray-700 transition-colors"
         @click=${(e: Event) => this.handleToggleRocketDirection(e)}
       >
         <div class="flex flex-col">
-          <span class="text-sm font-semibold tracking-tight">
+          <span class="text-sm font-medium">
             ${translateText("player_panel.flip_rocket_trajectory")}
           </span>
-          <span class="text-xs text-zinc-300" translate="no">
+          <span class="text-xs text-gray-300" translate="no">
             ${this.uiState.rocketDirectionUp
               ? translateText("player_panel.arc_up")
               : translateText("player_panel.arc_down")}
@@ -682,12 +672,12 @@ export class PlayerPanel extends LitElement implements Controller {
       <!-- Betrayals -->
       <div class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2">
         <div
-          class="flex items-center gap-2 text-[15px] font-medium text-zinc-100 leading-snug"
+          class="flex items-center gap-2 text-sm font-medium text-gray-100 leading-snug"
         >
           <span aria-hidden="true">⚠️</span>
           <span>${translateText("player_panel.betrayals")}</span>
         </div>
-        <div class="text-right text-[14px] font-semibold text-zinc-200">
+        <div class="text-right text-sm font-medium tabular-nums text-gray-200">
           ${other.betrayals()}
         </div>
       </div>
@@ -695,14 +685,12 @@ export class PlayerPanel extends LitElement implements Controller {
       <!-- Trading / Embargo -->
       <div class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2">
         <div
-          class="flex items-center gap-2 text-[15px] font-medium text-zinc-100 leading-snug"
+          class="flex items-center gap-2 text-sm font-medium text-gray-100 leading-snug"
         >
           <span aria-hidden="true">⚓</span>
           <span>${translateText("player_panel.trading")}</span>
         </div>
-        <div
-          class="flex items-center justify-end gap-2 text-[14px] font-semibold"
-        >
+        <div class="flex items-center justify-end gap-2 text-sm font-medium">
           ${other.hasEmbargoAgainst(my)
             ? html`<span class="text-amber-400"
                 >${translateText("player_panel.stopped")}</span
@@ -742,49 +730,44 @@ export class PlayerPanel extends LitElement implements Controller {
     return html`
       <div class="select-none">
         <div class="flex items-center justify-between mb-2">
-          <div
-            id="alliances-title"
-            class="text-[15px] font-medium text-zinc-200"
-          >
+          <div id="alliances-title" class="text-sm font-medium text-gray-200">
             ${translateText("player_panel.alliances")}
           </div>
           <span
             aria-labelledby="alliances-title"
-            class="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-[10px]
-                 text-[12px] text-zinc-100 bg-white/10 border border-white/20"
+            class="inline-flex items-center justify-center min-w-5 h-5 px-2 rounded-sm
+                 text-xs tabular-nums text-gray-100 bg-gray-700"
           >
             ${allies.length}
           </span>
         </div>
 
-        <div
-          class="rounded-lg bg-zinc-800/70 ring-1 ring-zinc-700/60 w-full min-w-0"
-        >
+        <div class="rounded-lg bg-gray-800 w-full min-w-0">
           <ul
             class="max-h-48 overflow-y-auto p-2
-                 flex flex-wrap gap-1.5
-                 scrollbar-thin scrollbar-thumb-zinc-600 hover:scrollbar-thumb-zinc-500 scrollbar-track-zinc-800"
+                 flex flex-wrap gap-2
+                 scrollbar-thin scrollbar-thumb-gray-600 hover:scrollbar-thumb-gray-500 scrollbar-track-gray-800"
             role="list"
             aria-labelledby="alliances-title"
             translate="no"
           >
             ${alliesSorted.length === 0
-              ? html`<li class="text-zinc-400 text-[14px] px-1">
+              ? html`<li class="text-gray-400 text-sm px-1">
                   ${translateText("common.none")}
                 </li>`
               : alliesSorted.map((p) => {
                   const remainingSeconds = remainingSecondsFor(p);
                   return html`<li
                     class="max-w-full inline-flex items-center gap-1.5
-                           rounded-md border border-white/10 bg-white/5
-                           px-2.5 py-1 text-[14px] text-zinc-100
-                           hover:bg-white/8 active:scale-[0.99] transition"
+                           rounded-sm bg-gray-700
+                           px-2 py-1 text-sm text-gray-100
+                           hover:bg-gray-600 transition-colors"
                     title=${p.displayName()}
                   >
                     <span class="truncate">${p.displayName()}</span>
                     ${remainingSeconds !== null
                       ? html`<span
-                          class="text-[11px] font-semibold leading-none tabular-nums ${this.getExpiryColorClass(
+                          class="text-xs font-medium leading-none tabular-nums ${this.getExpiryColorClass(
                             remainingSeconds,
                           )}"
                           >${renderDuration(remainingSeconds)}</span
@@ -801,13 +784,13 @@ export class PlayerPanel extends LitElement implements Controller {
   private renderAllianceExpiry() {
     if (this.allianceExpiryText === null) return html``;
     return html`
-      <div class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-base">
-        <div class="font-semibold text-zinc-300">
+      <div class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
+        <div class="font-medium text-gray-300">
           ${translateText("player_panel.alliance_time_remaining")}
         </div>
-        <div class="text-right font-semibold">
+        <div class="text-right font-medium">
           <span
-            class="inline-flex items-center rounded-full px-2 py-0.5 text-[14px] font-bold ${this.getExpiryColorClass(
+            class="inline-flex items-center rounded-sm px-2 py-0.5 text-sm font-medium tabular-nums ${this.getExpiryColorClass(
               this.allianceExpirySeconds,
             )}"
             >${this.allianceExpiryText}</span
@@ -832,8 +815,8 @@ export class PlayerPanel extends LitElement implements Controller {
     const canEmbargo = this.actions?.interaction?.canEmbargo;
 
     return html`
-      <div class="flex flex-col gap-2.5">
-        <div class="grid auto-cols-fr grid-flow-col gap-1">
+      <div class="flex flex-col gap-2">
+        <div class="grid auto-cols-fr grid-flow-col gap-2">
           ${actionButton({
             onClick: (e: MouseEvent) => this.handleChat(e, my, other),
             icon: chatIcon,
@@ -888,7 +871,7 @@ export class PlayerPanel extends LitElement implements Controller {
         ${other === my
           ? html``
           : html`
-              <div class="grid auto-cols-fr grid-flow-col gap-1">
+              <div class="grid auto-cols-fr grid-flow-col gap-2">
                 ${canEmbargo
                   ? actionButton({
                       onClick: (e: MouseEvent) =>
@@ -933,7 +916,7 @@ export class PlayerPanel extends LitElement implements Controller {
               </div>
             `}
         ${other === my
-          ? html`<div class="grid auto-cols-fr grid-flow-col gap-1">
+          ? html`<div class="grid auto-cols-fr grid-flow-col gap-2">
               ${actionButton({
                 onClick: (e: MouseEvent) => this.onStopTradingEnemiesClick(e),
                 icon: stopTradingIcon,
@@ -989,35 +972,15 @@ export class PlayerPanel extends LitElement implements Controller {
 
     return html`
       <style>
-        /* Soft glowing ring animation for traitors */
         .traitor-ring {
-          border-radius: 1rem;
-          box-shadow:
-            0 0 0 2px rgba(239, 68, 68, 0.34),
-            0 0 12px 4px rgba(239, 68, 68, 0.22),
-            inset 0 0 14px rgba(239, 68, 68, 0.13);
-          animation: glowPulse 2.4s ease-in-out infinite;
-        }
-        @keyframes glowPulse {
-          0%,
-          100% {
-            box-shadow:
-              0 0 0 2px rgba(239, 68, 68, 0.22),
-              0 0 8px 2px rgba(239, 68, 68, 0.15),
-              inset 0 0 8px rgba(239, 68, 68, 0.07);
-          }
-          50% {
-            box-shadow:
-              0 0 0 4px rgba(239, 68, 68, 0.38),
-              0 0 18px 6px rgba(239, 68, 68, 0.26),
-              inset 0 0 18px rgba(239, 68, 68, 0.15);
-          }
+          outline: 2px solid rgba(239, 68, 68, 0.6);
+          outline-offset: -2px;
         }
       </style>
 
       <div
         class="fixed inset-0 z-10001 flex items-center justify-center overflow-auto
-               bg-black/15 backdrop-brightness-110 pointer-events-auto"
+               bg-black/15 pointer-events-auto"
         @contextmenu=${(e: MouseEvent) => e.preventDefault()}
         @wheel=${(e: MouseEvent) => e.stopPropagation()}
         @click=${() => this.hide()}
@@ -1027,12 +990,10 @@ export class PlayerPanel extends LitElement implements Controller {
           @click=${(e: MouseEvent) => e.stopPropagation()}
         >
           <div class="relative">
+            <div class="absolute inset-2 -z-10 rounded-lg bg-black/25"></div>
             <div
-              class="absolute inset-2 -z-10 rounded-2xl bg-black/25 backdrop-blur-[2px]"
-            ></div>
-            <div
-              class=${`relative w-full bg-zinc-900/95 rounded-2xl text-zinc-100 shadow-2xl shadow-black/50
-                 ${other.isTraitor() ? "traitor-ring" : "ring-1 ring-white/5"}`}
+              class=${`relative w-full bg-gray-900 rounded-lg text-gray-100
+                 ${other.isTraitor() ? "traitor-ring" : ""}`}
             >
               <div class="overflow-visible">
                 <div
@@ -1041,7 +1002,7 @@ export class PlayerPanel extends LitElement implements Controller {
                   <div class="sticky top-0 z-20 flex justify-end p-2">
                     <button
                       @click=${this.handleClose}
-                      class="absolute right-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full bg-zinc-700 text-white shadow-sm hover:bg-red-500 transition-colors"
+                      class="absolute right-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-md bg-gray-800 text-white hover:bg-gray-700 transition-colors"
                       aria-label=${translateText("common.close") || "Close"}
                       title=${translateText("common.close") || "Close"}
                     >
@@ -1050,7 +1011,7 @@ export class PlayerPanel extends LitElement implements Controller {
                   </div>
 
                   <div
-                    class="p-6 flex flex-col gap-2 font-sans antialiased text-[14.5px] leading-relaxed"
+                    class="p-6 flex flex-col gap-3 font-sans antialiased text-sm leading-relaxed"
                   >
                     <!-- Identity (flag, name, type, traitor, relation) -->
                     <div class="mb-1">

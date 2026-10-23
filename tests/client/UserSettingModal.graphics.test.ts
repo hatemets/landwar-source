@@ -231,9 +231,10 @@ describe("Graphics tab: advanced options folded in from the in-game modal", () =
     flip(el, "classic-icons-toggle");
     flip(el, "classic-numbers-toggle");
     flip(el, "structure-dots-toggle");
+    // Classic (bitmap) numbers are off by default, so the toggle turns them on.
     expect(overrides().structure).toMatchObject({
       classicIcons: false,
-      classicNumbers: false,
+      classicNumbers: true,
       showDots: false,
     });
 
