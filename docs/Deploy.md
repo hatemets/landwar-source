@@ -47,7 +47,8 @@ Database choice:
 
 7. Point the domain's A record at the `static_ip` output. Caddy gets the certificate when the first request arrives.
 8. In GitHub, create the environment `production` (Settings > Environments). Add each `github_variables` output as a repository variable.
-9. Run the **🚀 Deploy** workflow by hand, or push to `main`.
+9. Create the public source repository and its deploy key (see [Source code](#source-code)).
+10. Run the **🚀 Deploy** workflow by hand, or push to `main`.
 
 The master applies database migrations when it starts.
 
@@ -64,17 +65,34 @@ The master applies database migrations when it starts.
 
 Terraform writes these into the instance metadata and Secret Manager. `infra/vm/deploy.sh` turns them into `/opt/landwar/app.env`.
 
-| Variable               | Source             | Notes                                            |
-| ---------------------- | ------------------ | ------------------------------------------------ |
-| `GAME_ENV`             | fixed `prod`       |                                                  |
-| `DOMAIN`               | `domain`           | Apex domain.                                     |
-| `PUBLIC_ORIGIN`        | `https://<domain>` | Google redirects back here.                      |
-| `NUM_WORKERS`          | `num_workers`      | About 300 MB each.                               |
-| `INSTANCE_LETTER`      | fixed `a`          | First letter of every game id.                   |
-| `GOOGLE_CLIENT_ID`     | variable           |                                                  |
-| `GOOGLE_CLIENT_SECRET` | secret             |                                                  |
-| `SESSION_SECRET`       | secret, random     | Signs session cookies and join tokens.           |
-| `DATABASE_URL`         | secret             | Built for Cloud SQL, or `external_database_url`. |
-| `GIT_COMMIT`           | image build arg    | Set by the workflow.                             |
+| Variable               | Source             | Notes                                                               |
+| ---------------------- | ------------------ | ------------------------------------------------------------------- |
+| `GAME_ENV`             | fixed `prod`       |                                                                     |
+| `DOMAIN`               | `domain`           | Apex domain.                                                        |
+| `PUBLIC_ORIGIN`        | `https://<domain>` | Google redirects back here.                                         |
+| `NUM_WORKERS`          | `num_workers`      | About 300 MB each.                                                  |
+| `INSTANCE_LETTER`      | fixed `a`          | First letter of every game id.                                      |
+| `GOOGLE_CLIENT_ID`     | variable           |                                                                     |
+| `GOOGLE_CLIENT_SECRET` | secret             |                                                                     |
+| `SESSION_SECRET`       | secret, random     | Signs session cookies and join tokens.                              |
+| `DATABASE_URL`         | secret             | Built for Cloud SQL, or `external_database_url`.                    |
+| `GIT_COMMIT`           | image build arg    | Set by the workflow.                                                |
 | `DB_POOL_MAX`          | fixed `5`          | Per process. Keep `5 * (NUM_WORKERS + 1)` under the database limit. |
-| others                 | `extra_env`        | Optional values, e.g. `ADMIN_BOT_API_KEY`.       |
+| others                 | `extra_env`        | Optional values, e.g. `ADMIN_BOT_API_KEY`.                          |
+
+## Source code
+
+AGPL-3.0 requires that players can get the source of the build they play. This repository stays private. Before each deploy, the workflow runs `scripts/publish-source.sh`, which pushes one snapshot commit to the public repository https://github.com/hatemets/landwar-source and tags it `build-<commit>`. The main menu links that tag (`sourceCodeUrl` in `src/client/GameVersion.ts`).
+
+- The snapshot leaves out the files in the script's `EXCLUDE` list. Add private notes there, or keep them out of git.
+- Actions are off in the public repository, so its copy of the workflows never runs.
+- The workflow pushes with the secret `SOURCE_DEPLOY_KEY`, an SSH key that is a write deploy key on the public repository. To replace it:
+
+  ```bash
+  ssh-keygen -t ed25519 -N "" -f key
+  gh repo deploy-key add key.pub -R hatemets/landwar-source --allow-write --title "landwar deploy workflow"
+  gh secret set SOURCE_DEPLOY_KEY -R hatemets/landwar < key
+  rm key key.pub
+  ```
+
+- A rollback (`deploy.sh <older-commit-sha>`) needs no new snapshot: that build was published when it was first deployed.

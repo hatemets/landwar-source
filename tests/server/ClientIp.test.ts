@@ -18,9 +18,9 @@ describe("clientIp", () => {
   });
 
   it("ignores addresses the client put in X-Forwarded-For itself", () => {
-    expect(
-      clientIp(req("127.0.0.1", "1.1.1.1, 203.0.113.7, 172.18.0.3")),
-    ).toBe("203.0.113.7");
+    expect(clientIp(req("127.0.0.1", "1.1.1.1, 203.0.113.7, 172.18.0.3"))).toBe(
+      "203.0.113.7",
+    );
   });
 
   it("falls back to the furthest address with no proxy in front", () => {

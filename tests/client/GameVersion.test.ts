@@ -184,7 +184,11 @@ describe("sourceCodeUrl", () => {
   });
 
   it("links the repository when the build names no commit", () => {
-    expect(sourceCodeUrl("DEV")).toBe("https://github.com/hatemets/landwar-source");
-    expect(sourceCodeUrl("")).toBe("https://github.com/hatemets/landwar-source");
+    expect(sourceCodeUrl("DEV")).toBe(
+      "https://github.com/hatemets/landwar-source",
+    );
+    expect(sourceCodeUrl("")).toBe(
+      "https://github.com/hatemets/landwar-source",
+    );
   });
 });

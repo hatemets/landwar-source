@@ -8,4 +8,4 @@ Copyright © OpenFront and Contributors.
 - Assets: Creative Commons Attribution-ShareAlike 4.0 (CC BY-SA 4.0), unless a file states otherwise. See `LICENSE-ASSETS`.
 - Upstream terms and attribution rules: see `LICENSING.md` and `CREDITS.md`.
 
-Changes made by the LandWar project are recorded in the git history on branch `landwar/main`.
+Changes made by the LandWar project are listed in `docs/LANDWAR-CHANGES.md`. The source of each deployed build is at https://github.com/hatemets/landwar-source, tagged `build-<commit>`.
