@@ -283,13 +283,11 @@ describe("JoinLobbyModal map preview", () => {
     expect(preview.style.display).toBe("none");
   });
 
-  // Tags, not one card per setting: a lobby with many settings has to stay
-  // readable next to the preview without pushing the player list away.
-  it("lists each notable setting as one tag next to the preview", () => {
-    const tags = (config: Record<string, unknown>) =>
-      renderConfig(config).querySelectorAll(`${SETTINGS} > span`).length;
+  it("lists each notable setting as one table row next to the preview", () => {
+    const rows = (config: Record<string, unknown>) =>
+      renderConfig(config).querySelectorAll(`${SETTINGS} tbody tr`).length;
 
-    expect(tags({ infiniteGold: true, instantBuild: true })).toBe(tags({}) + 2);
+    expect(rows({ infiniteGold: true, instantBuild: true })).toBe(rows({}) + 2);
   });
 });
 

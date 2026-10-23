@@ -14,8 +14,7 @@ import { homeHref, translateText } from "../../Utils";
 import {
   disabledUnitsBox,
   hostCheatsBox,
-  LOBBY_SETTING_TAG,
-  lobbySettingTagText,
+  lobbySettingsTable,
   notableLobbySettings,
 } from "../../utilities/LobbySettingsSummary";
 const exitIcon = assetUrl("images/ExitIconWhite.svg");
@@ -186,13 +185,8 @@ export class SettingsModal extends LitElement implements Controller {
           ${translateText("user_setting.modifiers")}
         </div>
         ${settings.length > 0
-          ? html`<div class="flex flex-wrap gap-2 px-3 pt-1" data-modifier-tags>
-              ${settings.map(
-                (s) =>
-                  html`<span class=${LOBBY_SETTING_TAG}
-                    >${lobbySettingTagText(s)}</span
-                  >`,
-              )}
+          ? html`<div class="px-3 pt-1" data-modifier-tags>
+              ${lobbySettingsTable(settings)}
             </div>`
           : null}
         ${disabledUnits} ${hostCheats}

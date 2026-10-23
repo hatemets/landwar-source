@@ -8,11 +8,6 @@ import { GameConfig } from "@openfront/engine-api/Schemas";
 import { html, TemplateResult } from "lit";
 import { renderDuration, translateText } from "../../client/Utils";
 
-// The homepage lobby card's modifier pill, one size down: a lobby can run a
-// dozen settings and they all have to fit beside the preview.
-export const LOBBY_SETTING_TAG =
-  "rounded bg-malibu-blue px-1.5 py-0.5 text-[11px] font-bold tracking-widest text-white";
-
 const DISABLED_UNIT_KEYS: Record<string, string> = {
   City: "unit_type.city",
   Port: "unit_type.port",
@@ -195,6 +190,36 @@ export function lobbySettingTagText(setting: {
   return setting.value === translateText("common.enabled")
     ? label
     : `${label}: ${setting.value}`;
+}
+
+/**
+ * The notable settings as a two-column table, one row each: name on the
+ * left, value on the right.
+ */
+export function lobbySettingsTable(
+  settings: { label: string; value: string }[],
+): TemplateResult {
+  return html`
+    <table class="w-full text-sm">
+      <tbody>
+        ${settings.map(
+          (s) => html`
+            <tr class="border-b border-[var(--field-line)] last:border-b-0">
+              <th
+                scope="row"
+                class="py-1.5 pr-4 text-left font-normal text-[var(--field-muted)]"
+              >
+                ${s.label.replace(/[:：\s]+$/u, "")}
+              </th>
+              <td class="py-1.5 text-right text-[var(--field-paper)]">
+                ${s.value}
+              </td>
+            </tr>
+          `,
+        )}
+      </tbody>
+    </table>
+  `;
 }
 
 /** The units the lobby turned off, as a red box; null when none are. */

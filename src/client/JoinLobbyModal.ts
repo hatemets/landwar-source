@@ -39,7 +39,7 @@ import { nationsConfigToSlider } from "./utilities/GameConfigHelpers";
 import {
   disabledUnitsBox,
   hostCheatsBox,
-  LOBBY_SETTING_TAG,
+  lobbySettingsTable,
   lobbySettingTagText,
   notableLobbySettings,
 } from "./utilities/LobbySettingsSummary";
@@ -688,12 +688,7 @@ export class JoinLobbyModal extends BaseModal {
     );
     const modeSubtitle = getGameModeLabel(c);
 
-    const tags = notableLobbySettings(c, this.nationCount).map(
-      (s) =>
-        html`<span class="${LOBBY_SETTING_TAG}"
-          >${lobbySettingTagText(s)}</span
-        >`,
-    );
+    const settings = notableLobbySettings(c, this.nationCount);
 
     // object-contain, not object-cover: the preview is here to be studied
     // while waiting, so a wide or tall map must show whole rather than cropped
@@ -709,7 +704,7 @@ export class JoinLobbyModal extends BaseModal {
       <div class="flex flex-col sm:flex-row gap-4 mb-6">
         <div
           data-test-map-preview
-          class="flex items-center justify-center w-full ${tags.length > 0
+          class="flex items-center justify-center w-full ${settings.length > 0
             ? "sm:w-3/5"
             : ""} shrink-0 rounded-lg border border-white/10 bg-black/20 overflow-hidden"
         >
@@ -723,12 +718,9 @@ export class JoinLobbyModal extends BaseModal {
             }}
           />
         </div>
-        ${tags.length > 0
-          ? html`<div
-              data-test-lobby-settings
-              class="flex flex-wrap content-start gap-1 min-w-0 flex-1 uppercase"
-            >
-              ${tags}
+        ${settings.length > 0
+          ? html`<div data-test-lobby-settings class="min-w-0 flex-1">
+              ${lobbySettingsTable(settings)}
             </div>`
           : html``}
       </div>

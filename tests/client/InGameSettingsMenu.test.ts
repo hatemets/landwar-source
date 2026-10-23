@@ -210,8 +210,8 @@ describe("in-game menu opens the shared settings modal", () => {
     donateTroops: false,
   } as GameConfig;
   const modifierTags = () =>
-    [...menu.querySelectorAll("[data-modifier-tags] span")].map(
-      (tag) => tag.textContent,
+    [...menu.querySelectorAll("[data-modifier-tags] tr")].map((row) =>
+      [...row.children].map((cell) => cell.textContent?.trim()).join(": "),
     );
 
   it("shows the game's modifiers", async () => {
@@ -225,8 +225,8 @@ describe("in-game menu opens the shared settings modal", () => {
     await openMenu();
 
     expect(modifierTags()).toEqual([
-      "host_modal.crowded",
-      "game_settings.random_spawn",
+      "host_modal.crowded: common.enabled",
+      "game_settings.random_spawn: common.enabled",
       "game_settings.nations: 5",
     ]);
   });
