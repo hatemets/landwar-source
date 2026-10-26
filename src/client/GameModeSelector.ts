@@ -16,7 +16,9 @@ import {
 } from "./components/LobbyCard";
 import {
   MAP_REGIONS,
+  mapFocus,
   mapRegions,
+  type GlobeFocus,
   type GlobeRegionPin,
   type MapRegion,
 } from "./globe/MapRegions";
@@ -158,6 +160,8 @@ export class GameModeSelector extends LitElement {
   @state() private backendOutage = false;
   // The region picked on the globe; the upcoming list shows only its lobbies.
   @state() private regionFilter: MapRegion | null = null;
+  // The hovered lobby's place, which the globe turns into view.
+  @state() private globeFocus: GlobeFocus | null = null;
   private serverTimeOffset: number = 0;
   private countdownTimer: number | null = null;
 
@@ -551,6 +555,8 @@ export class GameModeSelector extends LitElement {
     }));
   }
 
+  private clearGlobeFocus = () => (this.globeFocus = null);
+
   // A second click on the selected region shows every lobby again.
   private onRegionSelect = (e: Event) => {
     const { region } = (e as GlobeRegionSelectEvent).detail;
@@ -624,7 +630,14 @@ export class GameModeSelector extends LitElement {
                     config?.nations === "disabled"
                       ? mode
                       : `${mode} · ${translateText("player_type.nation")}`;
-                  return html`<div class="min-w-0">
+                  const focus = mapFocus(config?.gameMap);
+                  return html`<div
+                    class="min-w-0"
+                    @pointerenter=${() => (this.globeFocus = focus)}
+                    @pointerleave=${this.clearGlobeFocus}
+                    @focusin=${() => (this.globeFocus = focus)}
+                    @focusout=${this.clearGlobeFocus}
+                  >
                     ${this.renderLobbyCard(lobby, subtitle, heroHeight)}
                   </div>`;
                 })}
@@ -648,6 +661,7 @@ export class GameModeSelector extends LitElement {
           fill="0.86"
           interactive
           .pins=${this.regionPins()}
+          .focusOn=${this.globeFocus}
           @globe-region-select=${this.onRegionSelect}
           ?orbiting=${(this.lobbies === null && !this.offlineForLobbies()) ||
           this.retryPending}

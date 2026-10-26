@@ -43,3 +43,5 @@ infra/terraform/terraform.tfvars
 
 # Private business notes
 BUSINESS-TEST-PLAN.md
+MARKET-STRATEGY.md
+DOMAIN-INCIDENT.md

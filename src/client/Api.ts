@@ -43,6 +43,47 @@ export async function fetchPlayerById(
   return fetchPublicPlayerProfile(playerId);
 }
 
+// GET /api/players/:publicId/games — keyset-paginated personal game history.
+// Public (no auth). `filter` (mode bucket) and `type` (game-type split) are
+// orthogonal; `cursor` is the opaque token from the previous response's
+// nextCursor, passed back unchanged.
+export async function fetchPublicPlayerGames(
+  publicId: string,
+  opts: {
+    filter?: PlayerGameModeFilter;
+    type?: PlayerGameTypeFilter;
+    cursor?: string;
+  } = {},
+): Promise<PublicPlayerGamesResponse | { error: "failed" }> {
+  try {
+    const params = new URLSearchParams();
+    if (opts.filter) params.set("filter", opts.filter);
+    if (opts.type) params.set("type", opts.type);
+    if (opts.cursor) params.set("cursor", opts.cursor);
+    const query = params.toString();
+    const res = await fetch(
+      `/api/players/${encodeURIComponent(publicId)}/games${query ? `?${query}` : ""}`,
+      { headers: { Accept: "application/json" } },
+    );
+    if (!res.ok) {
+      console.warn("fetchPublicPlayerGames: unexpected status", res.status);
+      return { error: "failed" };
+    }
+    const parsed = PublicPlayerGamesResponseSchema.safeParse(await res.json());
+    if (!parsed.success) {
+      console.warn(
+        "fetchPublicPlayerGames: Zod validation failed",
+        parsed.error,
+      );
+      return { error: "failed" };
+    }
+    return parsed.data;
+  } catch (err) {
+    console.warn("fetchPublicPlayerGames: request failed", err);
+    return { error: "failed" };
+  }
+}
+
 // GET /public/player/:publicId — public player profile (stats tree). No auth,
 // so logged-out visitors can view shared profiles.
 export async function fetchPublicPlayerProfile(
@@ -78,55 +119,6 @@ export async function fetchPublicPlayerProfile(
   } catch (err) {
     console.warn("fetchPublicPlayerProfile: request failed", err);
     return false;
-  }
-}
-
-// GET /public/player/:publicId/games — keyset-paginated personal game history.
-// Public (no auth). `filter` (mode bucket) and `type` (game-type split) are
-// orthogonal; `cursor` is the opaque token from the previous response's
-// nextCursor — round-trip verbatim, never construct it.
-export async function fetchPublicPlayerGames(
-  publicId: string,
-  opts: {
-    filter?: PlayerGameModeFilter;
-    type?: PlayerGameTypeFilter;
-    cursor?: string;
-  } = {},
-): Promise<PublicPlayerGamesResponse | { error: "failed" }> {
-  try {
-    const url = new URL(
-      `${getApiBase()}/public/player/${encodeURIComponent(publicId)}/games`,
-      window.location.origin,
-    );
-    if (opts.filter) url.searchParams.set("filter", opts.filter);
-    if (opts.type) url.searchParams.set("type", opts.type);
-    if (opts.cursor) url.searchParams.set("cursor", opts.cursor);
-
-    const res = await fetch(url.toString(), {
-      headers: { Accept: "application/json" },
-    });
-    if (!res.ok) {
-      console.warn(
-        "fetchPublicPlayerGames: unexpected status",
-        res.status,
-        res.statusText,
-      );
-      return { error: "failed" };
-    }
-
-    const json = await res.json();
-    const parsed = PublicPlayerGamesResponseSchema.safeParse(json);
-    if (!parsed.success) {
-      console.warn(
-        "fetchPublicPlayerGames: Zod validation failed",
-        parsed.error,
-      );
-      return { error: "failed" };
-    }
-    return parsed.data;
-  } catch (err) {
-    console.warn("fetchPublicPlayerGames: request failed", err);
-    return { error: "failed" };
   }
 }
 

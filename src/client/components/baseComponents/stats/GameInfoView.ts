@@ -125,7 +125,7 @@ export class GameInfoView extends LitElement {
     return html`
       <div
         role="alert"
-        class="flex min-h-80 flex-col items-center justify-center rounded-lg bg-[var(--field-raised)] p-6 text-center text-[var(--field-paper)]"
+        class="flex min-h-80 flex-col items-center justify-center p-6 text-center text-[var(--field-paper)]"
       >
         <div
           class="mb-4 flex size-12 items-center justify-center rounded-lg bg-[var(--field-danger-soft)] text-[var(--field-danger)]"

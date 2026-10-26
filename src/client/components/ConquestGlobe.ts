@@ -7,7 +7,11 @@ import {
 } from "lit";
 import { customElement, property, query } from "lit/decorators.js";
 import type { ConquestGlobeScene } from "../globe/ConquestGlobeScene";
-import type { GlobeRegionPin, MapRegion } from "../globe/MapRegions";
+import type {
+  GlobeFocus,
+  GlobeRegionPin,
+  MapRegion,
+} from "../globe/MapRegions";
 import { whenPageIdle } from "../WhenPageIdle";
 
 /** Purple, black and orange, in the order they win. */
@@ -59,6 +63,8 @@ export class ConquestGlobe extends LitElement {
    * `globe-region-select`; only an `interactive` globe takes clicks.
    */
   @property({ attribute: false }) pins: readonly GlobeRegionPin[] = [];
+  /** A place to turn into view. */
+  @property({ attribute: false }) focusOn: GlobeFocus | null = null;
 
   @query("canvas") private canvas!: HTMLCanvasElement;
 
@@ -124,6 +130,7 @@ export class ConquestGlobe extends LitElement {
   updated(changed: PropertyValues<this>) {
     if (changed.has("orbiting")) this.scene?.setOrbiting(this.orbiting);
     if (changed.has("pins")) this.scene?.setPins(this.pins);
+    if (changed.has("focusOn")) this.scene?.setFocus(this.focusOn);
   }
 
   render() {
@@ -224,6 +231,7 @@ export class ConquestGlobe extends LitElement {
           });
           this.scene.setOrbiting(this.orbiting);
           this.scene.setPins(this.pins);
+          this.scene.setFocus(this.focusOn);
           this.resize();
           this.refreshAll();
         })

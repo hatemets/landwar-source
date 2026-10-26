@@ -405,13 +405,18 @@ body:not(.in-game) #sidebar-menu .nav-menu-item.active {
 }
 .menu-lobby-list {
   display: grid;
-  overflow: hidden;
   gap: 0;
-  border-radius: var(--field-radius-lg);
-  background: var(--field-surface);
 }
-.menu-lobby-list > * + * {
-  border-top: 1px solid var(--field-line);
+/* Rows stand on the page with no box, dividers or hover fill. */
+.menu-lobby-list .menu-lobby-card,
+.menu-lobby-list .menu-lobby-card:hover:not(:disabled) {
+  border-radius: var(--field-radius-lg);
+  background: transparent;
+}
+/* The bare map, whole: no backdrop, and never cropped. */
+.menu-lobby-list .menu-lobby-card__image {
+  background: transparent;
+  object-fit: contain;
 }
 .menu-lobby-slot {
   min-height: 0;
@@ -534,7 +539,7 @@ body:not(.in-game) #sidebar-menu .nav-menu-item.active {
   width: 160px !important;
   height: 96px !important;
   border-radius: var(--field-radius);
-  background: var(--field-raised);
+  background: transparent;
   object-fit: contain;
 }
 .menu-lobby-card__name {
@@ -599,7 +604,7 @@ body:not(.in-game) #sidebar-menu .nav-menu-item.active {
   align-items: center;
   border: 0;
   border-radius: var(--field-radius-sm);
-  background: var(--field-hover) !important;
+  background: transparent !important;
   padding: 0 6px;
   color: var(--field-muted);
   font-size: 12px;
@@ -622,14 +627,66 @@ body:not(.in-game) #sidebar-menu .nav-menu-item.active {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  container-type: inline-size;
   border-radius: var(--field-radius-lg);
-  background: var(--field-raised);
+  background: transparent;
 }
 .lw-lobby-rows > * + * {
   border-top: 1px solid var(--field-line);
 }
 .lw-lobby-rows .menu-lobby-card:hover:not(:disabled) {
   background: var(--field-hover);
+}
+/* One slot holds exactly one card, so rows never overlap. */
+.lw-lobby-slot {
+  height: 116px;
+  min-width: 0;
+}
+/* Tags keep to one line: a tag that doesn't fit wraps out of sight whole. */
+.lw-lobby-rows .menu-lobby-card__status {
+  min-width: 0;
+  max-height: 20px;
+  overflow: hidden;
+  flex-wrap: wrap;
+}
+/* Player count sits under the details, so the name gets the full width. */
+.lw-lobby-rows .menu-lobby-card {
+  grid-template-columns: 160px minmax(0, 1fr);
+  grid-template-rows: auto auto auto auto;
+}
+.lw-lobby-rows .menu-lobby-card__image {
+  grid-row: 1 / span 4;
+}
+.lw-lobby-rows .menu-lobby-card__count {
+  display: block;
+  grid-column: 2;
+  grid-row: 3;
+  justify-self: start;
+  align-self: start;
+  line-height: 16px;
+}
+.lw-lobby-rows .menu-lobby-card__status {
+  grid-column: 2;
+  grid-row: 4;
+  margin-top: 2px;
+}
+/* Phones: match the image width the base card uses there. */
+@media (max-width: 720px) {
+  .lw-lobby-rows .menu-lobby-card {
+    grid-template-columns: 104px minmax(0, 1fr);
+  }
+}
+/* Narrow panes and phones: a smaller map. */
+@container (max-width: 440px) {
+  .lw-lobby-rows .menu-lobby-card {
+    grid-template-columns: 96px minmax(0, 1fr);
+    column-gap: 12px;
+    padding: 8px 12px;
+  }
+  .lw-lobby-rows .menu-lobby-card__image {
+    width: 96px !important;
+    height: 72px !important;
+  }
 }
 
 .field-modal-shell {

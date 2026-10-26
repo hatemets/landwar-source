@@ -32,9 +32,9 @@ const LINE_FROM = 1.0;
 const LINE_OUT = 0.12;
 const LINE_NORTH = 0.22;
 /** Card height in globe radii; the width follows its text. */
-const CARD_H = 0.15;
+const CARD_H = 0.2;
 /** Canvas pixels per card height, for crisp text on high-DPI screens. */
-const CANVAS_H = 72;
+const CANVAS_H = 96;
 /** A pin fades in between these facings (1 = straight at the camera). */
 const FADE_FROM = 0.12;
 const FADE_TO = 0.42;

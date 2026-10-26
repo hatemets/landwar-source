@@ -90,6 +90,10 @@ The game server only serves `index.html` and the WebSocket. All other assets (JS
 | `docs/API.md`                          | Public API endpoints                       |
 | `vite.config.ts`                       | Build config, CDN handling                 |
 
+## UI Style
+
+Never use emojis in UI, code or docs. Use inline SVG icons instead. Do not bold player names, rank numbers or ratios.
+
 ## UI Text / i18n
 
 All user-visible text must go through `translateText()` and have a corresponding entry added to `resources/lang/en.json`. Translations are managed via Crowdin. DO NOT modify any other translation files.

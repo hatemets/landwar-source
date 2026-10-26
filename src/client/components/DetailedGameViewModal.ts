@@ -59,8 +59,8 @@ const PANE_SLOTS = 2;
 /** Tab key for the overview: every bucket at once, as three panes. */
 const ALL_TAB = "all";
 
-/** Slot height; cards and the spawning placeholder both fill it exactly. */
-const SLOT_CLASS = "h-16";
+/** Slot height (CSS): cards and the spawning placeholder both fill it exactly. */
+const SLOT_CLASS = "lw-lobby-slot";
 
 /** How long a card takes to slide into a freed slot. */
 const SLIDE_MS = 220;
@@ -298,7 +298,7 @@ export class DetailedGameViewModal extends BaseModal {
           : tab === ALL_TAB
             ? html`
                 <!-- One pane per scheduled bucket, cards stacked within it. -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
                   ${SCHEDULED_PANES.map((type) =>
                     this.renderPane(
                       translateText(`detailed_view.pane_${type}`),

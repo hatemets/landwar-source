@@ -12,9 +12,7 @@ export const signedOutNotice = (
   message: string = translateText("account_modal.sign_in_desc"),
 ): TemplateResult => html`
   <div class="p-6">
-    <div
-      class="flex flex-col items-center gap-4 rounded-lg bg-[var(--field-raised)] p-6 text-center"
-    >
+    <div class="flex flex-col items-center gap-4 p-6 text-center">
       <p class="text-sm text-[var(--field-muted)]">${message}</p>
       <o-button
         variant="primary"

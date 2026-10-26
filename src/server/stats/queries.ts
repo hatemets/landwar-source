@@ -6,7 +6,19 @@ import {
   users,
   userStats,
 } from "@landwar/db/schema";
-import { and, count, desc, eq, gt, sql } from "drizzle-orm";
+import {
+  and,
+  count,
+  desc,
+  eq,
+  gt,
+  isNotNull,
+  isNull,
+  lt,
+  or,
+  type SQL,
+  sql,
+} from "drizzle-orm";
 
 export type StatsRow = Omit<
   typeof userStats.$inferSelect,
@@ -287,4 +299,117 @@ export async function ratingsForUser(
     else if (r.ladder === "ffa") out.ffa = { elo: r.elo };
   }
   return out;
+}
+
+export const GAME_HISTORY_PAGE_SIZE = 20;
+
+export interface PlayerGameRow {
+  gameId: string;
+  start: string;
+  durationSeconds: number;
+  map: string;
+  mode: string;
+  type: string;
+  playerTeams: string | null;
+  rankedType: string;
+  result: "victory" | "defeat" | "incomplete";
+  totalPlayers: number | null;
+  username: string;
+  clanTag: string | null;
+}
+
+// The cursor is the end time and id of the last game on the page. Callers pass
+// it back unchanged.
+function encodeCursor(endedAt: Date, gameId: string): string {
+  return Buffer.from(`${endedAt.toISOString()}|${gameId}`).toString(
+    "base64url",
+  );
+}
+
+function decodeCursor(
+  cursor: string,
+): { endedAt: Date; gameId: string } | null {
+  const [iso, gameId] = Buffer.from(cursor, "base64url").toString().split("|");
+  const endedAt = new Date(iso ?? "");
+  if (!gameId || Number.isNaN(endedAt.getTime())) return null;
+  return { endedAt, gameId };
+}
+
+// One page of a player's games, newest first. `filter` is the mode bucket and
+// `type` the game type. Humans-vs-nations is not stored, so it is always empty.
+// Returns null for a cursor that does not decode.
+export async function playerGamesPage(
+  db: Db,
+  userId: string,
+  opts: { filter?: string; type?: string; cursor?: string },
+): Promise<{ results: PlayerGameRow[]; nextCursor: string | null } | null> {
+  const conditions: SQL[] = [eq(gamePlayers.userId, userId)];
+  if (opts.type) {
+    conditions.push(sql`lower(${games.gameType}) = ${opts.type}`);
+  }
+  if (opts.filter === "ffa") {
+    conditions.push(eq(games.mode, "Free For All"), isNull(games.rankedType));
+  } else if (opts.filter === "team") {
+    conditions.push(eq(games.mode, "Team"));
+  } else if (opts.filter === "ranked") {
+    conditions.push(isNotNull(games.rankedType));
+  } else if (opts.filter === "hvn") {
+    conditions.push(sql`false`);
+  }
+  if (opts.cursor) {
+    const c = decodeCursor(opts.cursor);
+    if (c === null) return null;
+    conditions.push(
+      or(
+        lt(games.endedAt, c.endedAt),
+        and(eq(games.endedAt, c.endedAt), lt(games.id, c.gameId)),
+      )!,
+    );
+  }
+  const rows = await db
+    .select({
+      gameId: games.id,
+      startedAt: games.startedAt,
+      endedAt: games.endedAt,
+      durationMs: games.durationMs,
+      map: games.map,
+      mode: games.mode,
+      type: games.gameType,
+      rankedType: games.rankedType,
+      playerCount: games.playerCount,
+      winnerUserId: games.winnerUserId,
+      won: gamePlayers.won,
+      username: gamePlayers.displayName,
+    })
+    .from(gamePlayers)
+    .innerJoin(games, eq(games.id, gamePlayers.gameId))
+    .where(and(...conditions))
+    .orderBy(desc(games.endedAt), desc(games.id))
+    .limit(GAME_HISTORY_PAGE_SIZE + 1);
+  const page = rows.slice(0, GAME_HISTORY_PAGE_SIZE);
+  const last = page[page.length - 1];
+  return {
+    results: page.map((r) => ({
+      gameId: r.gameId,
+      start: r.startedAt.toISOString(),
+      durationSeconds: Math.round(r.durationMs / 1000),
+      map: r.map,
+      mode: r.mode,
+      type: r.type,
+      playerTeams: null,
+      rankedType: r.rankedType ?? "unranked",
+      result: r.won
+        ? "victory"
+        : r.winnerUserId === null
+          ? "incomplete"
+          : "defeat",
+      totalPlayers: r.playerCount,
+      username: r.username,
+      clanTag: null,
+    })),
+    nextCursor:
+      rows.length > GAME_HISTORY_PAGE_SIZE && last
+        ? encodeCursor(last.endedAt, last.gameId)
+        : null,
+  };
 }

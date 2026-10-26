@@ -1,14 +1,21 @@
 import { ID } from "@openfront/engine-api/Schemas";
 import type { Express } from "express";
 import { z } from "zod";
+import {
+  PlayerGameModeFilterSchema,
+  PlayerGameTypeFilterSchema,
+} from "@openfront/shared/ApiSchemas";
 import { SESSION_COOKIE } from "../auth/config";
 import { readCookie } from "../auth/routes";
 import { userForSession } from "../auth/sessions";
+import { users } from "@landwar/db/schema";
+import { eq } from "drizzle-orm";
 import { db } from "../db";
 import { FFA_LADDER, loadGameRecord } from "../GameStore";
 import { logger } from "../Logger";
 import {
   leaderboard,
+  playerGamesPage,
   profileForClient,
   publicProfile,
   rankedPage,
@@ -74,6 +81,43 @@ export function registerStatsRoutes(app: Express): void {
       res.json(profile);
     } catch (error) {
       log.error("failed to read a profile", { error: String(error) });
+      res.status(500).json({ error: "internal_error" });
+    }
+  });
+
+  // A player's finished games, newest first, one page per request.
+  app.get("/api/players/:publicId/games", async (req, res) => {
+    const publicId = PublicIdSchema.safeParse(req.params.publicId);
+    const query = z
+      .object({
+        filter: PlayerGameModeFilterSchema.optional(),
+        type: PlayerGameTypeFilterSchema.optional(),
+        cursor: z.string().max(200).optional(),
+      })
+      .safeParse(req.query);
+    if (!publicId.success || !query.success) {
+      res.status(400).json({ error: "Invalid request" });
+      return;
+    }
+    try {
+      const rows = await db()
+        .db.select({ id: users.id })
+        .from(users)
+        .where(eq(users.publicId, publicId.data))
+        .limit(1);
+      const user = rows[0];
+      if (!user) {
+        res.status(404).json({ error: "Player not found" });
+        return;
+      }
+      const page = await playerGamesPage(db().db, user.id, query.data);
+      if (page === null) {
+        res.status(400).json({ error: "Invalid cursor" });
+        return;
+      }
+      res.json(page);
+    } catch (error) {
+      log.error("failed to read player games", { error: String(error) });
       res.status(500).json({ error: "internal_error" });
     }
   });

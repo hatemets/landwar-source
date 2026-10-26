@@ -5,4 +5,5 @@ linkWorkspacePackages: true
 
 allowBuilds:
   canvas: false
+  core-js: false
   esbuild: false

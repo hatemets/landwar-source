@@ -1,7 +1,10 @@
 import { createDb, type DbHandle } from "@landwar/db/client";
 import { runMigrations } from "@landwar/db/migrate";
 import { games, users } from "@landwar/db/schema";
-import { PlayerProfileSchema } from "@openfront/shared/ApiSchemas";
+import {
+  PlayerProfileSchema,
+  PublicPlayerGamesResponseSchema,
+} from "@openfront/shared/ApiSchemas";
 import { randomUUID } from "crypto";
 import { inArray } from "drizzle-orm";
 import express from "express";
@@ -183,6 +186,36 @@ describe.skipIf(!url)("game store (database)", () => {
       expect(((await past.json()) as { message: string }).message).toMatch(
         /^Page must be between 1 and \d+$/,
       );
+    });
+
+    it("serves a player's game history", async () => {
+      const res = await fetch(`${base}/api/players/${winnerPublicId}/games`);
+      expect(res.status).toBe(200);
+      const page = PublicPlayerGamesResponseSchema.parse(await res.json());
+      expect(page.results).toHaveLength(2);
+      expect(page.results[0]).toMatchObject({
+        result: "victory",
+        type: "Public",
+      });
+      expect(page.nextCursor).toBeNull();
+      const none = await fetch(
+        `${base}/api/players/${winnerPublicId}/games?filter=ranked`,
+      );
+      expect(
+        ((await none.json()) as { results: unknown[] }).results,
+      ).toHaveLength(0);
+      const ffa = await fetch(
+        `${base}/api/players/${winnerPublicId}/games?filter=ffa&type=public`,
+      );
+      expect(
+        ((await ffa.json()) as { results: unknown[] }).results,
+      ).toHaveLength(2);
+      const bad = await fetch(
+        `${base}/api/players/${winnerPublicId}/games?cursor=!!`,
+      );
+      expect(bad.status).toBe(400);
+      const missing = await fetch(`${base}/api/players/nosuchplayer/games`);
+      expect(missing.status).toBe(404);
     });
 
     it("serves the leaderboard", async () => {

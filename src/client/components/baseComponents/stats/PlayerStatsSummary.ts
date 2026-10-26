@@ -117,7 +117,7 @@ type UnitIconName = keyof typeof UNIT_ICONS;
 
 const INVERTED_UNIT_ICONS: ReadonlySet<UnitIconName> = new Set(["troop"]);
 
-const UNIT_ICON_BOX = "ml-1 inline-block h-[1em] w-[1em] object-contain";
+const UNIT_ICON_BOX = "inline-block h-4 w-4 object-contain";
 const UNIT_ICON_SCALES: Partial<Record<UnitIconName, number>> = {
   city: 1.1,
   port: 1.11,
@@ -337,16 +337,20 @@ export class PlayerStatsSummary extends LitElement {
         </div>
         <span class="sr-only">${fullLabel}</span>
         <div
+          data-value
           class="mt-1 truncate text-2xl font-black leading-none tabular-nums"
         >
-          ${value}<img
+          ${value}
+        </div>
+        <div class="mt-1.5 flex items-center justify-center gap-1">
+          <img
             data-unit
             src=${assetUrl(UNIT_ICONS[icon])}
             style=${iconStyle}
             alt=""
             aria-hidden="true"
-            class="${UNIT_ICON_BOX} align-[-0.1em]"
-          /><span data-per-game class="ml-1 text-xs font-semibold text-white/35"
+            class=${UNIT_ICON_BOX}
+          /><span data-per-game class="text-xs font-semibold text-white/35"
             >${translateText("player_stats_tree.stats_per_game_suffix")}</span
           >
         </div>

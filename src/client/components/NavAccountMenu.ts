@@ -303,27 +303,30 @@ export class NavAccountMenu extends LitElement {
 
   private renderMenu(): TemplateResult {
     return html`
-      <!-- No vertical padding on the panel: items run edge to edge so a hovered
-           row (the red Log out especially) fills the corner instead of leaving
-           a dead strip under it. overflow-hidden clips them to the radius.
-
-           Width grows to the longest label (translations run longer than the
+      <!-- Width grows to the longest label (translations run longer than the
            English) up to a cap, past which labels wrap instead of pushing the
-           panel off-screen — the cap also tracks the viewport for narrow
-           phones. -->
+           panel off-screen. The cap also tracks the viewport for narrow
+           phones. Buttons are pills by default, so every item sets its own
+           radius. -->
       <div
         role="menu"
         aria-label=${translateText("nav_account_menu.title")}
-        class="w-max min-w-60 max-w-[min(20rem,calc(100vw-1rem))] rounded-xl border border-white/10 bg-zinc-900 shadow-xl overflow-hidden"
+        class="w-max min-w-52 max-w-[min(20rem,calc(100vw-1rem))] p-1.5 rounded-xl border border-white/10 bg-zinc-900 shadow-xl"
       >
         ${this.items().map(
           (item) => html`
+            ${item.danger
+              ? html`<div
+                  class="my-1.5 h-px bg-white/10"
+                  role="separator"
+                ></div>`
+              : nothing}
             <button
               role="menuitem"
               data-menu-item=${item.key}
               @click=${() => this.selectItem(item)}
-              class="w-full flex items-center gap-3 px-4 py-3 text-left text-sm font-medium normal-case tracking-normal cursor-pointer transition-colors ${item.danger
-                ? "text-red-400 hover:bg-red-500/10 border-t border-white/10"
+              class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left text-sm font-medium leading-5 normal-case tracking-normal cursor-pointer transition-colors ${item.danger
+                ? "text-red-400 hover:bg-red-500/10"
                 : "text-white/80 hover:bg-white/10 hover:text-white"}"
             >
               <span class="w-4 h-4 shrink-0">${item.icon}</span>
@@ -341,14 +344,13 @@ export class NavAccountMenu extends LitElement {
     return menuIcon("chevron-down", this.menuOpen ? "rotate-180" : "");
   }
 
-  // Avatar / spinner / person icon / email badge, shared by both triggers.
+  // Avatar / spinner / person icon, shared by both triggers.
   // `ids` is populated for the desktop instance only — NavAccountButton and
   // PortalAccountButton drive that one by id — while the data-account-*
   // hooks are what both instances are updated through.
   private renderIdentityIcons(opts: {
     ids: boolean;
     iconClass: string;
-    badgeClass: string;
   }): TemplateResult {
     const id = (name: string) => (opts.ids ? name : undefined);
     return html`
@@ -372,26 +374,6 @@ export class NavAccountMenu extends LitElement {
         class="hidden ${opts.iconClass}"
         >${menuIcon("user-round")}</span
       >
-      <span
-        id=${ifDefined(id("nav-account-email-badge"))}
-        data-account-email-badge
-        class="hidden ${opts.badgeClass} w-4 h-4 rounded-full bg-slate-900/80 border border-white/20 flex items-center justify-center"
-        aria-hidden="true"
-      >
-        <svg
-          class="w-2.5 h-2.5 text-white/80"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path d="M4 6h16v12H4z" />
-          <path d="m4 7 8 6 8-6" />
-        </svg>
-      </span>
     `;
   }
 
@@ -417,7 +399,6 @@ export class NavAccountMenu extends LitElement {
           ${this.renderIdentityIcons({
             ids: true,
             iconClass: "w-5 h-5",
-            badgeClass: "absolute -top-1 -right-1.5",
           })}
         </span>
         <span
@@ -449,7 +430,6 @@ export class NavAccountMenu extends LitElement {
           ${this.renderIdentityIcons({
             ids: false,
             iconClass: "w-7 h-7",
-            badgeClass: "absolute -bottom-0.5 -right-0.5",
           })}
         </span>
         <!-- The sign-in label is desktop-only; on the top bar the icon alone is

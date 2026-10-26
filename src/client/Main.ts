@@ -12,6 +12,7 @@ import { GameEnv } from "@openfront/shared/configuration/Env";
 import { ClientEnv } from "src/client/ClientEnv";
 import { renderNavVersion } from "src/client/GameVersion";
 import { getUserMe } from "./Api";
+import { initAnalytics } from "./Analytics";
 import { userAuth } from "./Auth";
 
 import type { JoinLobbyResult } from "./ClientGameRunner";
@@ -1290,6 +1291,7 @@ const bootstrap = () => {
   installCtrlWheelZoomBlocker();
 
   initLayout();
+  initAnalytics();
   new Client().initialize();
   initNavigation();
   prefetchGameClient();

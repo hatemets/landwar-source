@@ -322,7 +322,7 @@ export class LeaderboardPlayerList extends LitElement {
         <tr class="bg-blue-600 border-t border-blue-400/30 shadow-2xl">
           <td class="py-3 px-4 text-center">
             <div
-              class="w-10 h-10 mx-auto flex items-center justify-center rounded-lg font-bold font-mono text-lg bg-white/20 text-white"
+              class="w-10 h-10 mx-auto flex items-center justify-center rounded-lg font-mono text-lg bg-white/20 text-white"
             >
               ${entry.rank}
             </div>
@@ -338,21 +338,21 @@ export class LeaderboardPlayerList extends LitElement {
                   class="min-w-0"
                   .username=${entry.accountUsername}
                   .publicId=${entry.playerId}
-                  .nameClass=${"font-bold text-white truncate text-base hover:underline"}
+                  .nameClass=${"text-white truncate text-base hover:underline"}
                   .onNameClick=${() => this.openProfile(entry.playerId)}
                 ></player-name>
               </div>
             </div>
           </td>
           <td class="py-3 px-4 text-right">
-            <span class="font-mono text-white font-bold">${entry.elo}</span>
+            <span class="font-mono text-white font-medium">${entry.elo}</span>
           </td>
           <td class="py-3 px-4 text-right">
-            <span class="font-mono text-white font-bold">${entry.games}</span>
+            <span class="font-mono text-white font-medium">${entry.games}</span>
           </td>
           <td class="py-3 px-4 text-right pr-6">
             <div class="inline-flex flex-col items-end">
-              <span class="font-mono font-bold text-white"
+              <span class="font-mono text-white"
                 >${(entry.winRate * 100).toFixed(1)}%</span
               >
               <span
@@ -377,12 +377,27 @@ export class LeaderboardPlayerList extends LitElement {
         3: "text-amber-600 bg-amber-600/10 ring-1 ring-amber-600/20",
       }?.[displayRank] ?? "text-white/40 bg-white/5";
 
+    const crown = html`<svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      class="w-5 h-5"
+      aria-hidden="true"
+    >
+      <path d="M3 7l4.5 4L12 4l4.5 7L21 7l-2 11H5L3 7zm2.2 13h13.6v2H5.2v-2z" />
+    </svg>`;
+    const medal = html`<svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      class="w-5 h-5"
+      aria-hidden="true"
+    >
+      <path d="M7 2h4l1 5-2.5 1.5L7 2zm6 0h4l-3.5 6.5L11 7l2-5z" />
+      <circle cx="12" cy="15" r="6" />
+    </svg>`;
     const rankIcon =
-      {
-        1: "👑",
-        2: "🥈",
-        3: "🥉",
-      }?.[displayRank] ?? String(displayRank);
+      { 1: crown, 2: medal, 3: medal }?.[displayRank] ?? String(displayRank);
 
     return html`
       <tr
@@ -393,7 +408,7 @@ export class LeaderboardPlayerList extends LitElement {
       >
         <td class="py-3 px-4 text-center">
           <div
-            class="w-10 h-10 mx-auto flex items-center justify-center rounded-lg font-bold font-mono text-lg ${rankColor}"
+            class="w-10 h-10 mx-auto flex items-center justify-center rounded-lg font-mono text-lg ${rankColor}"
           >
             ${rankIcon}
           </div>
@@ -404,7 +419,7 @@ export class LeaderboardPlayerList extends LitElement {
               class="min-w-0"
               .username=${player.accountUsername}
               .publicId=${player.playerId}
-              .nameClass=${"font-bold text-blue-300 truncate text-base hover:underline"}
+              .nameClass=${"text-blue-300 truncate text-base hover:underline"}
               .onNameClick=${() => this.openProfile(player.playerId)}
             ></player-name>
           </div>
@@ -418,7 +433,7 @@ export class LeaderboardPlayerList extends LitElement {
         <td class="py-3 px-4 text-right pr-6">
           <div class="inline-flex flex-col items-end">
             <span
-              class="font-mono font-bold ${player.winRate >= 0.5
+              class="font-mono ${player.winRate >= 0.5
                 ? "text-green-400"
                 : "text-red-400"}"
               >${(player.winRate * 100).toFixed(1)}%</span

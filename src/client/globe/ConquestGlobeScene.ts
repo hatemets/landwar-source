@@ -11,6 +11,7 @@ import {
   IcosahedronGeometry,
   Line,
   LineBasicMaterial,
+  Matrix4,
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
@@ -34,7 +35,7 @@ import {
   mulberry32,
 } from "./ConquestWorld";
 import { GlobePins } from "./GlobePins";
-import type { GlobeRegionPin, MapRegion } from "./MapRegions";
+import type { GlobeFocus, GlobeRegionPin, MapRegion } from "./MapRegions";
 
 /**
  * Renders a ConquestSim on a low-poly, slowly turning Earth: flat-shaded
@@ -101,6 +102,8 @@ const COMET_NODE = 0.6;
 const COMET_RING_SEGMENTS = 128;
 /** Per second, how fast a released drag's spin dies away. */
 const DRAG_DAMPING = 2.5;
+/** Per second, how fast the globe turns to a focused place. */
+const FOCUS_RATE = 4;
 const X_AXIS = new Vector3(1, 0, 0);
 const Y_AXIS = new Vector3(0, 1, 0);
 
@@ -111,6 +114,10 @@ export class ConquestGlobeScene {
   private readonly scene = new Scene();
   private readonly camera = new PerspectiveCamera(FOV, 1, 0.1, 200);
   private readonly spin = new Group();
+  private readonly tilt = new Group();
+  /** The place the globe turns to show, while a lobby is hovered. */
+  private focus: GlobeFocus | null = null;
+  private readonly focusAnchor = new Vector3();
   /** Turned by mouse or touch drags, around the camera's axes. */
   private readonly grab = new Group();
   private readonly comet = new Group();
@@ -207,6 +214,18 @@ export class ConquestGlobeScene {
     return this.pins.pick(tmpNdc, this.camera);
   }
 
+  /**
+   * Turns the globe until this place faces the camera;
+   * null lets the globe spin on from where it stands.
+   */
+  setFocus(focus: GlobeFocus | null) {
+    this.focus = focus;
+    if (focus !== null) {
+      this.focusAnchor.set(...fromLatLon(focus.lat, focus.lon));
+      this.dragVelocity.x = this.dragVelocity.y = 0;
+    }
+  }
+
   /** Shows (or fades out) the golden comet that circles the globe. */
   setOrbiting(on: boolean) {
     this.cometTarget = on ? 1 : 0;
@@ -286,9 +305,11 @@ export class ConquestGlobeScene {
 
     this.flushColors();
     this.updateBoats();
-    this.spin.rotation.y += this.spinRate * dt;
+    const focusEarth = this.focus !== null && !this.dragging;
+    if (focusEarth) this.turnToFocus(dt);
+    else this.spin.rotation.y += this.spinRate * dt;
     this.clouds.rotation.y += this.spinRate * 1.25 * dt;
-    if (!this.dragging) {
+    if (!this.dragging && !focusEarth) {
       const v = this.dragVelocity;
       if (v.x !== 0 || v.y !== 0) {
         this.rotateGrab(v.x * dt, v.y * dt);
@@ -303,6 +324,23 @@ export class ConquestGlobeScene {
     this.renderNow();
     this.raf = requestAnimationFrame(this.frame);
   };
+
+  /** Eases the drag frame so the focused place faces the camera, north up. */
+  private turnToFocus(dt: number) {
+    // The globe frame's turn, short of the drag frame.
+    tmpQuat.copy(this.tilt.quaternion).multiply(this.spin.quaternion);
+    const a = tmpA.copy(this.focusAnchor).applyQuaternion(tmpQuat);
+    const n = tmpB.copy(Y_AXIS).applyQuaternion(tmpQuat);
+    n.addScaledVector(a, -n.dot(a)).normalize();
+    tmpFrom.makeBasis(a, n, tmpC.crossVectors(a, n));
+    const c = tmpA.copy(this.camera.position).normalize();
+    const up = tmpB.copy(Y_AXIS).addScaledVector(c, -c.y).normalize();
+    tmpTo.makeBasis(c, up, tmpC.crossVectors(c, up));
+    // From and to are rotations, so the inverse is the transpose.
+    tmpTo.multiply(tmpFrom.transpose());
+    tmpQuat.setFromRotationMatrix(tmpTo);
+    this.grab.quaternion.slerp(tmpQuat, 1 - Math.exp(-FOCUS_RATE * dt));
+  }
 
   private renderNow() {
     this.scene.updateMatrixWorld();
@@ -392,7 +430,7 @@ export class ConquestGlobeScene {
     scene.add(sun);
 
     // Axial tilt, tipped towards the viewer so the north reads well.
-    const tilt = new Group();
+    const tilt = this.tilt;
     tilt.rotation.set(0.32, 0, 23.4 * DEG);
     scene.add(this.grab);
     this.grab.add(tilt);
@@ -747,5 +785,10 @@ export class ConquestGlobeScene {
 }
 
 const tmp = new Vector3();
+const tmpA = new Vector3();
+const tmpB = new Vector3();
+const tmpC = new Vector3();
+const tmpFrom = new Matrix4();
+const tmpTo = new Matrix4();
 const tmpQuat = new Quaternion();
 const tmpNdc = new Vector2();

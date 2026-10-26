@@ -322,9 +322,14 @@ describe("PlayerStatsSummary", () => {
     // One square box for every icon, scaled to fit, so layout never shifts
     // with the icon's shape.
     for (const icon of summary.querySelectorAll("[data-unit]")) {
-      expect(icon.className).toContain("h-[1em]");
-      expect(icon.className).toContain("w-[1em]");
+      expect(icon.className).toContain("h-4");
+      expect(icon.className).toContain("w-4");
       expect(icon.className).toContain("object-contain");
+      // The icon is on its own row, apart from the metric value.
+      expect(icon.parentElement?.hasAttribute("data-value")).toBe(false);
+      expect(
+        icon.closest("[data-stat]")?.querySelector("[data-value] img"),
+      ).toBeNull();
     }
 
     // Assets pad their canvas by different amounts, so each is corrected to
