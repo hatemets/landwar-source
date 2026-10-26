@@ -9,6 +9,7 @@ import {
 import { customElement, property } from "lit/decorators.js";
 import { translateText } from "../../../Utils";
 import { PlayerInfo, RANK_TYPE_LABEL_KEYS, RankType } from "./GameInfoRanking";
+import { menuIcon } from "../../ui/MenuIcon";
 
 const goldCoinIcon = assetUrl("images/GoldCoinIcon.svg");
 
@@ -119,7 +120,7 @@ export class PlayerRow extends LitElement {
         role="img"
         aria-label=${translateText("game_history.history_result_defeat")}
       >
-        <span class="text-sm leading-none" aria-hidden="true">💀</span>
+        ${menuIcon("skull", "size-3.5 text-red-400")}
       </span>
     `;
   }

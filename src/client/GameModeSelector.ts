@@ -4,6 +4,7 @@ import { assetUrl } from "@openfront/shared/AssetUrls";
 import { PublicGameInfo, PublicGames } from "@openfront/shared/WireSchemas";
 import { html, LitElement, nothing, type TemplateResult } from "lit";
 import { customElement, state } from "lit/decorators.js";
+import { track } from "./Analytics";
 import "./components/ConquestGlobe";
 import type { GlobeRegionSelectEvent } from "./components/ConquestGlobe";
 import {
@@ -16,9 +17,7 @@ import {
 } from "./components/LobbyCard";
 import {
   MAP_REGIONS,
-  mapFocus,
   mapRegions,
-  type GlobeFocus,
   type GlobeRegionPin,
   type MapRegion,
 } from "./globe/MapRegions";
@@ -160,8 +159,6 @@ export class GameModeSelector extends LitElement {
   @state() private backendOutage = false;
   // The region picked on the globe; the upcoming list shows only its lobbies.
   @state() private regionFilter: MapRegion | null = null;
-  // The hovered lobby's place, which the globe turns into view.
-  @state() private globeFocus: GlobeFocus | null = null;
   private serverTimeOffset: number = 0;
   private countdownTimer: number | null = null;
 
@@ -535,6 +532,7 @@ export class GameModeSelector extends LitElement {
       ...(this.lobbies?.games?.ffa ?? []),
       ...(this.lobbies?.games?.team ?? []),
       ...(this.lobbies?.games?.special ?? []),
+      ...(this.lobbies?.games?.goldrush ?? []),
       ...(this.lobbies?.games?.hosted ?? []),
     ];
   }
@@ -554,8 +552,6 @@ export class GameModeSelector extends LitElement {
       selected: region === this.regionFilter,
     }));
   }
-
-  private clearGlobeFocus = () => (this.globeFocus = null);
 
   // A second click on the selected region shows every lobby again.
   private onRegionSelect = (e: Event) => {
@@ -630,14 +626,7 @@ export class GameModeSelector extends LitElement {
                     config?.nations === "disabled"
                       ? mode
                       : `${mode} · ${translateText("player_type.nation")}`;
-                  const focus = mapFocus(config?.gameMap);
-                  return html`<div
-                    class="min-w-0"
-                    @pointerenter=${() => (this.globeFocus = focus)}
-                    @pointerleave=${this.clearGlobeFocus}
-                    @focusin=${() => (this.globeFocus = focus)}
-                    @focusout=${this.clearGlobeFocus}
-                  >
+                  return html`<div class="min-w-0">
                     ${this.renderLobbyCard(lobby, subtitle, heroHeight)}
                   </div>`;
                 })}
@@ -661,7 +650,6 @@ export class GameModeSelector extends LitElement {
           fill="0.86"
           interactive
           .pins=${this.regionPins()}
-          .focusOn=${this.globeFocus}
           @globe-region-select=${this.onRegionSelect}
           ?orbiting=${(this.lobbies === null && !this.offlineForLobbies()) ||
           this.retryPending}
@@ -701,6 +689,7 @@ export class GameModeSelector extends LitElement {
   private openRanked = () => {
     if (this.blockedFromApiAction()) return;
     if (!this.validateUsername()) return;
+    track("play_clicked", { mode: "ranked" });
     document.dispatchEvent(
       new CustomEvent("open-matchmaking", { detail: { mode: "1v1" } }),
     );
@@ -713,6 +702,7 @@ export class GameModeSelector extends LitElement {
 
   private openSinglePlayerModal = () => {
     if (!this.validateUsername()) return;
+    track("play_clicked", { mode: "solo" });
     whenModalLoaded("single-player-modal", () =>
       (
         document.querySelector("single-player-modal") as SinglePlayerModal
@@ -723,6 +713,7 @@ export class GameModeSelector extends LitElement {
   private openHostLobby = () => {
     if (this.blockedFromApiAction()) return;
     if (!this.validateUsername()) return;
+    track("play_clicked", { mode: "create" });
     whenModalLoaded("host-lobby-modal", () =>
       (document.querySelector("host-lobby-modal") as HostLobbyModal)?.open(),
     );
@@ -731,6 +722,7 @@ export class GameModeSelector extends LitElement {
   private openJoinLobby = () => {
     if (this.blockedFromApiAction()) return;
     if (!this.validateUsername()) return;
+    track("play_clicked", { mode: "join" });
     whenModalLoaded("join-lobby-modal", () =>
       (document.querySelector("join-lobby-modal") as JoinLobbyModal)?.open(),
     );

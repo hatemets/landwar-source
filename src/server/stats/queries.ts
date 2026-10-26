@@ -1,11 +1,11 @@
-import type { Db } from "@landwar/db/client";
+import type { Db } from "@kleopolis/db/client";
 import {
   gamePlayers,
   games,
   playerRatings,
   users,
   userStats,
-} from "@landwar/db/schema";
+} from "@kleopolis/db/schema";
 import {
   and,
   count,

@@ -1,4 +1,4 @@
-import type { Db } from "@landwar/db/client";
+import type { Db } from "@kleopolis/db/client";
 import {
   gamePlayers,
   gameRecords,
@@ -6,7 +6,7 @@ import {
   playerRatings,
   users,
   userStats,
-} from "@landwar/db/schema";
+} from "@kleopolis/db/schema";
 import {
   ATTACK_INDEX_SENT,
   BOAT_INDEX_DESTROY,

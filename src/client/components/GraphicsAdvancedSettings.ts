@@ -972,7 +972,7 @@ export class GraphicsAdvancedSettings extends LitElement {
     const cosmetics = this.currentCosmetics();
     const showFrom = cosmetics.showFrom ?? "everyone";
     return html`
-      <!-- 👑 Cosmetics -->
+      <!-- Cosmetics -->
       ${GraphicsAdvancedSettings.section("graphics_setting.section_cosmetics")}
       <setting-select
         label=${translateText("graphics_setting.cosmetics_show_from_label")}
@@ -1026,7 +1026,7 @@ export class GraphicsAdvancedSettings extends LitElement {
 
     return html`
       <div class="flex flex-col gap-2">
-        <!-- 💡 Lighting -->
+        <!-- Lighting -->
         ${GraphicsAdvancedSettings.section("graphics_setting.section_lighting")}
         <setting-slider
           label=${translateText("graphics_setting.lighting_ambient_label")}
@@ -1056,7 +1056,7 @@ export class GraphicsAdvancedSettings extends LitElement {
           @change=${this.onUnitGlowChange}
         ></setting-slider>
 
-        <!-- 🏷️ Name labels -->
+        <!-- Name labels -->
         ${GraphicsAdvancedSettings.section(
           "graphics_setting.section_name_labels",
         )}
@@ -1133,7 +1133,7 @@ export class GraphicsAdvancedSettings extends LitElement {
           @change=${this.onToggleNamesColored}
         ></setting-toggle>
 
-        <!-- 🏰 Structure icons -->
+        <!-- Structure icons -->
         ${GraphicsAdvancedSettings.section(
           "graphics_setting.section_structure_icons",
         )}
@@ -1174,7 +1174,7 @@ export class GraphicsAdvancedSettings extends LitElement {
           @change=${this.onToggleShowDots}
         ></setting-toggle>
 
-        <!-- 🗺️ Map -->
+        <!-- Map -->
         ${GraphicsAdvancedSettings.section("graphics_setting.section_map")}
         <setting-toggle
           label=${translateText("graphics_setting.naval_hover_highlight_label")}
@@ -1325,7 +1325,7 @@ export class GraphicsAdvancedSettings extends LitElement {
 
         ${this.renderMapLayers()}
 
-        <!-- ⛰️ Terrain -->
+        <!-- Terrain -->
         ${GraphicsAdvancedSettings.section("graphics_setting.section_terrain")}
         <setting-color
           label=${translateText("graphics_setting.background_color_label")}
@@ -1383,7 +1383,7 @@ export class GraphicsAdvancedSettings extends LitElement {
           @change=${this.onNukeColorChange}
         ></setting-color>
 
-        <!-- ✨ Effects -->
+        <!-- Effects -->
         ${GraphicsAdvancedSettings.section("graphics_setting.section_effects")}
         <setting-toggle
           label=${translateText("user_setting.special_effects_label")}

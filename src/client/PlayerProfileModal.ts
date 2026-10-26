@@ -24,6 +24,7 @@ import {
   playerProfileUrl,
 } from "./utilities/PlayerProfileUrl";
 import { currentPagePath, translateText } from "./Utils";
+import { menuIcon } from "./components/ui/MenuIcon";
 
 export { playerProfileUrl };
 
@@ -113,7 +114,9 @@ export class PlayerProfileModal extends BaseModal {
     if (!publicId) {
       return html`
         <div class="flex flex-col items-center justify-center p-12 text-center">
-          <span class="text-4xl mb-4">🎮</span>
+          <span class="mb-4 text-white/40"
+            >${menuIcon("gamepad-2", "size-10")}</span
+          >
           <p class="text-white/40 text-sm">
             ${translateText("account_modal.no_games")}
           </p>

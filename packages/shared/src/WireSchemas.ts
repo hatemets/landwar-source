@@ -137,6 +137,7 @@ export const PublicGameTypeSchema = z.enum([
   "ffa",
   "team",
   "special",
+  "goldrush",
   "hosted",
 ]);
 

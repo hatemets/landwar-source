@@ -35,7 +35,7 @@ const OVERSCAN_ROWS = 4;
 // The pinned row only renders separately when the viewer sits below the
 // always-visible top ranks of the scroll window.
 const PINNED_VISIBLE_THRESHOLD = 4;
-// Trailing chrome track holding the ⚙️ menu, not a column of data.
+// Trailing chrome track holding the settings menu, not a column of data.
 const PICKER_TRACK = "32px";
 
 const ALIGNMENT_CLASS: Record<ColumnAlignment, string> = {
@@ -114,7 +114,7 @@ export abstract class StatsTable extends LitElement {
 
   /**
    * Columns this render shows: every non-hideable column plus the hideable
-   * ones the ⚙️ menu has selected, in registry order.
+   * ones the settings menu has selected, in registry order.
    */
   private visibleColumns(): readonly ColumnDef[] {
     const selected = this.userSettings.statsColumns(this.tableKind);

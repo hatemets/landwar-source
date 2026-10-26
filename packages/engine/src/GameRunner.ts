@@ -131,7 +131,7 @@ export async function createGameRunnerFromSnapshot(
     teamGameSpawnAreas: gameMap.teamGameSpawnAreas,
   });
   // No init(): the snapshot already holds every execution init() adds.
-  return new GameRunner(
+  const gr = new GameRunner(
     game,
     new Executor(
       game,
@@ -141,6 +141,9 @@ export async function createGameRunnerFromSnapshot(
     ),
     callBack,
   );
+  // The host's view starts empty, so the first tick sends the whole state.
+  gr.fullStatePending = true;
+  return gr;
 }
 
 export class GameRunner {
@@ -152,6 +155,8 @@ export class GameRunner {
   // Name placements are recomputed periodically; a runner that starts
   // mid-game (restored from a snapshot) computes them on its first tick.
   private viewDataStale = true;
+  /** Set on a restored runner: its next tick also sends the whole state. */
+  fullStatePending = false;
 
   constructor(
     public game: Game,
@@ -220,12 +225,17 @@ export class GameRunner {
     const wasInSpawnPhase = this.game.inSpawnPhase();
     let updates: GameUpdates;
     let tickExecutionDuration: number;
+    const fullState = this.fullStatePending;
 
     try {
       const startTime = performance.now();
       updates = this.game.executeNextTick();
       const endTime = performance.now();
       tickExecutionDuration = endTime - startTime;
+      if (fullState) {
+        this.fullStatePending = false;
+        this.game.addFullStateUpdates();
+      }
     } catch (error: unknown) {
       if (error instanceof Error) {
         console.error("Game tick error:", error.message);
@@ -293,6 +303,7 @@ export class GameRunner {
         : {}),
       tickExecutionDuration: tickExecutionDuration,
       pendingTurns: pendingTurns ?? 0,
+      ...(fullState ? { fullState } : {}),
     });
     this.isExecuting = false;
     return true;

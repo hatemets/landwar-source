@@ -15,6 +15,7 @@ resource "google_project_service" "apis" {
     "monitoring.googleapis.com",
     "oslogin.googleapis.com",
     "secretmanager.googleapis.com",
+    "servicenetworking.googleapis.com",
     "sqladmin.googleapis.com",
     "sts.googleapis.com",
   ])
@@ -82,17 +83,23 @@ resource "random_password" "session_secret" {
 }
 
 locals {
-  secrets = {
+  # Secret Manager refuses an empty secret, so Discord's is added only once set.
+  discord_secret = nonsensitive(var.discord_client_secret != "")
+  secrets = merge({
     "session-secret"       = random_password.session_secret.result
     "google-client-secret" = var.google_client_secret
     "database-url"         = local.use_cloud ? local.cloudsql_database_url : var.external_database_url
-  }
+    }, local.discord_secret ? {
+    "discord-client-secret" = var.discord_client_secret
+  } : {})
   # Env var each secret becomes on the VM.
-  secret_env = {
+  secret_env = merge({
     "session-secret"       = "SESSION_SECRET"
     "google-client-secret" = "GOOGLE_CLIENT_SECRET"
     "database-url"         = "DATABASE_URL"
-  }
+    }, local.discord_secret ? {
+    "discord-client-secret" = "DISCORD_CLIENT_SECRET"
+  } : {})
 }
 
 resource "google_secret_manager_secret" "app" {

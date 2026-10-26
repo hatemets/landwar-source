@@ -16,7 +16,7 @@ export type JoinCosmetics =
 
 // Checks the cosmetics a player asks to wear, and turns the names into what
 // the game renders. A country flag is free. Anything else must be owned. A
-// guest owns nothing. Cosmetics LandWar does not sell are dropped: the client
+// guest owns nothing. Cosmetics Kleopolis does not sell are dropped: the client
 // only sends what it holds, and there is nothing to check them against.
 export async function resolveJoinCosmetics(
   refs: PlayerCosmeticRefs | undefined,

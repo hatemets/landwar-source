@@ -1,5 +1,5 @@
-import type { Db } from "@landwar/db/client";
-import { ownedCosmetics, wallets } from "@landwar/db/schema";
+import type { Db } from "@kleopolis/db/client";
+import { ownedCosmetics, wallets } from "@kleopolis/db/schema";
 import { and, eq, sql } from "drizzle-orm";
 import { isUniqueViolation } from "../dbErrors";
 import { type Offer, STARTING_SOFT } from "./catalog";

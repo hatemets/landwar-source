@@ -2,7 +2,7 @@ import type { Cosmetics } from "@openfront/shared/CosmeticSchemas";
 
 // What the shop sells. Everything here is free to use and costs soft currency,
 // which players earn by playing. The flags are files in resources/flags. The
-// patterns are drawn here from a few lines of code, so LandWar ships no
+// patterns are drawn here from a few lines of code, so Kleopolis ships no
 // licensed artwork.
 
 type Rarity = "common" | "uncommon" | "rare" | "epic" | "legendary";

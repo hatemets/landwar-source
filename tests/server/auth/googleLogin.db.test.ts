@@ -1,6 +1,6 @@
-import { createDb, type DbHandle } from "@landwar/db/client";
-import { runMigrations } from "@landwar/db/migrate";
-import { users } from "@landwar/db/schema";
+import { createDb, type DbHandle } from "@kleopolis/db/client";
+import { runMigrations } from "@kleopolis/db/migrate";
+import { users } from "@kleopolis/db/schema";
 import { eq } from "drizzle-orm";
 import express from "express";
 import type { Server } from "http";
@@ -156,6 +156,29 @@ describe.skipIf(!url)("Google sign-in (database)", () => {
     expect(after).toHaveLength(1);
     expect(after[0]!.id).toBe(before[0]!.id);
     expect(after[0]!.publicId).toBe(before[0]!.publicId);
+  });
+
+  it("does not give a guest an account's id", async () => {
+    const [account] = await handle.db
+      .select()
+      .from(users)
+      .where(eq(users.googleSub, google.profile.sub));
+    const guestToken = (guestId: string) =>
+      fetch(`${base}/api/auth/token`, {
+        method: "POST",
+        headers: {
+          origin: "http://localhost:8888",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ guestId }),
+      }).then((r) => r.json() as Promise<{ kind: string; id: string }>);
+
+    const taken = await guestToken(account!.id);
+    expect(taken.kind).toBe("guest");
+    expect(taken.id).not.toBe(account!.id);
+
+    const ownId = "6f1c2a4e-8b3d-4f5a-9c7e-1d2b3a4c5e6f";
+    expect((await guestToken(ownId)).id).toBe(ownId);
   });
 
   it("rejects a callback whose state does not match", async () => {

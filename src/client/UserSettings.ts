@@ -431,6 +431,15 @@ export class UserSettings {
     return this.getBool("settings.lobbyIdVisibility", true);
   }
 
+  // Hidden by default, so a stream or screenshot never shows the email.
+  accountEmailVisible() {
+    return this.getBool("settings.accountEmailVisible", false);
+  }
+
+  setAccountEmailVisible(value: boolean) {
+    this.setBool("settings.accountEmailVisible", value);
+  }
+
   lobbyStartAlerts() {
     return this.getBool("settings.lobbyStartAlerts", false);
   }

@@ -4,7 +4,7 @@ import { AudioMixer, streamsMusic } from "./AudioMixer";
 
 // Long enough not to sound like a cut, short enough that the lobby is not
 // still playing menu music when the map appears.
-// Off until a licensed menu track is added. See docs/LANDWAR-CHANGES.md.
+// Off until a licensed menu track is added. See docs/KLEOPOLIS-CHANGES.md.
 const MENU_THEME_ENABLED = false;
 
 const MENU_FADE_MS = 700;
@@ -202,7 +202,7 @@ export function startMenuMusic(
   };
 
   const start = () => {
-    // No menu theme ships with LandWar. The OpenFront theme is restricted.
+    // No menu theme ships with Kleopolis. The OpenFront theme is restricted.
     if (!MENU_THEME_ENABLED) return;
     if (theme !== null) return;
     // Nothing to hear on a channel the player has turned off, and on the Web

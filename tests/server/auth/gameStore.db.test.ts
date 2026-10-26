@@ -1,6 +1,6 @@
-import { createDb, type DbHandle } from "@landwar/db/client";
-import { runMigrations } from "@landwar/db/migrate";
-import { games, users } from "@landwar/db/schema";
+import { createDb, type DbHandle } from "@kleopolis/db/client";
+import { runMigrations } from "@kleopolis/db/migrate";
+import { games, users } from "@kleopolis/db/schema";
 import {
   PlayerProfileSchema,
   PublicPlayerGamesResponseSchema,
@@ -12,7 +12,7 @@ import type { Server } from "http";
 import type { AddressInfo } from "net";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { loadGameRecord, saveGameRecord } from "../../../src/server/GameStore";
-import { upsertGoogleUser } from "../../../src/server/auth/users";
+import { googleUser } from "../../util/TestUsers";
 import {
   leaderboard,
   profileForClient,
@@ -40,13 +40,13 @@ describe.skipIf(!url)("game store (database)", () => {
   beforeAll(async () => {
     await runMigrations(url!);
     handle = createDb(url!);
-    const winner = await upsertGoogleUser(handle.db, {
+    const winner = await googleUser(handle.db, {
       sub: subs[0]!,
       email: "winner@example.com",
       name: "Winner",
       picture: null,
     });
-    const loser = await upsertGoogleUser(handle.db, {
+    const loser = await googleUser(handle.db, {
       sub: subs[1]!,
       email: "loser@example.com",
       name: "Loser",

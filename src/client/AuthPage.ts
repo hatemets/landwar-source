@@ -3,7 +3,7 @@ import { html, LitElement, TemplateResult } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { hasLinkedIdentity } from "./AccountIdentity";
 import { getUserMe } from "./Api";
-import { googleLogin } from "./Auth";
+import { discordLogin, googleLogin } from "./Auth";
 import { statusNotice } from "./components/ui/StatusNotice";
 import { consumeLoginResult, LoginResult } from "./LoginResult";
 import { modalRouter } from "./ModalRouter";
@@ -120,7 +120,6 @@ abstract class AuthPage extends LitElement {
   }
 
   render(): TemplateResult {
-    // Google is the only sign-in provider configured by LandWar's backend.
     return html`
       <div class="auth-page">
         <div class="auth-page__inner">
@@ -147,6 +146,17 @@ abstract class AuthPage extends LitElement {
           ${this.renderLoginError()}
 
           <div class="auth-page__options">
+            <button
+              @click=${() => discordLogin(currentPagePath("/"))}
+              class="auth-provider-button auth-provider-discord"
+            >
+              <img
+                src=${assetUrl("images/DiscordLogo.svg")}
+                alt=${translateText("account_modal.discord_alt")}
+                class="w-6 h-6"
+              />
+              <span>${translateText("main.login_discord")}</span>
+            </button>
             <!-- Google brand guidelines: the multicolor "G" mark -->
             <button
               @click=${() => googleLogin(currentPagePath("/"))}

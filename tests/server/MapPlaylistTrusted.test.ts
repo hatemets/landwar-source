@@ -1,6 +1,9 @@
 import { GameConfig, GameConfigSchema } from "@openfront/engine-api/Schemas";
 import { describe, expect, it, vi } from "vitest";
-import { MapPlaylist } from "../../src/server/MapPlaylist";
+import {
+  MapPlaylist,
+  TRUSTED_PUBLIC_EVERY,
+} from "../../src/server/MapPlaylist";
 
 vi.mock("../../src/server/MapLandTiles", () => ({
   getMapLandTiles: async () => 1_000_000,
@@ -12,8 +15,15 @@ vi.mock("../../src/server/MapLandTiles", () => ({
 // 7 is coprime with the 3-type scheduling cycle, so the trusted slot rotates
 // across all game types instead of pinning to one.
 describe("MapPlaylist trusted-only public games", () => {
-  it("marks every 7th game trusted-only across all types", async () => {
+  it("is off by default, because no Kleopolis account is trusted", async () => {
     const playlist = new MapPlaylist();
+    for (let i = 0; i < 21; i++) {
+      expect((await playlist.gameConfig("ffa")).trusted).toBeUndefined();
+    }
+  });
+
+  it("marks every 7th game trusted-only across all types", async () => {
+    const playlist = new MapPlaylist(TRUSTED_PUBLIC_EVERY);
     const trusted: boolean[] = [];
     const types = ["ffa", "team", "special"] as const;
     for (let i = 0; i < 14; i++) {
@@ -30,8 +40,8 @@ describe("MapPlaylist trusted-only public games", () => {
   });
 
   it("counts per playlist instance, starting open", async () => {
-    const a = new MapPlaylist();
-    const b = new MapPlaylist();
+    const a = new MapPlaylist(TRUSTED_PUBLIC_EVERY);
+    const b = new MapPlaylist(TRUSTED_PUBLIC_EVERY);
     for (let i = 0; i < 6; i++) await a.gameConfig("ffa");
     expect((await a.gameConfig("ffa")).trusted).toBe(true);
     // b has its own counter: its first game is open.
@@ -41,7 +51,7 @@ describe("MapPlaylist trusted-only public games", () => {
   it("caps trusted games at 25 players so they fill", async () => {
     // 1M land tiles gives open-lobby tiers of 50/40/25 (75 in team mode), so
     // any uncapped roll would regularly exceed the trusted cap.
-    const playlist = new MapPlaylist();
+    const playlist = new MapPlaylist(TRUSTED_PUBLIC_EVERY);
     const types = ["ffa", "team", "special"] as const;
     const trustedTypes: string[] = [];
     for (let i = 0; i < 21; i++) {
@@ -59,7 +69,7 @@ describe("MapPlaylist trusted-only public games", () => {
   it("never rolls the crowded modifier for trusted special games", async () => {
     // Crowded would set 60/125 players only for the trusted cap to undo it,
     // leaving a badge with no effect — so it must be excluded up front.
-    const playlist = new MapPlaylist() as unknown as {
+    const playlist = new MapPlaylist(TRUSTED_PUBLIC_EVERY) as unknown as {
       getSpecialConfig(trusted: boolean): Promise<GameConfig>;
     };
     for (let i = 0; i < 50; i++) {
@@ -72,7 +82,7 @@ describe("MapPlaylist trusted-only public games", () => {
   it("does not depend on Math.random", async () => {
     const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.1);
     try {
-      const playlist = new MapPlaylist();
+      const playlist = new MapPlaylist(TRUSTED_PUBLIC_EVERY);
       expect((await playlist.gameConfig("ffa")).trusted).toBeUndefined();
       randomSpy.mockReturnValue(0.9);
       for (let i = 0; i < 5; i++) await playlist.gameConfig("team");

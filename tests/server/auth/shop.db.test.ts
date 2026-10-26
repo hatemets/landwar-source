@@ -1,6 +1,6 @@
-import { createDb, type DbHandle } from "@landwar/db/client";
-import { runMigrations } from "@landwar/db/migrate";
-import { games, users } from "@landwar/db/schema";
+import { createDb, type DbHandle } from "@kleopolis/db/client";
+import { runMigrations } from "@kleopolis/db/migrate";
+import { games, users } from "@kleopolis/db/schema";
 import { randomUUID } from "crypto";
 import { inArray } from "drizzle-orm";
 import express from "express";
@@ -8,7 +8,7 @@ import type { Server } from "http";
 import type { AddressInfo } from "net";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createSession } from "../../../src/server/auth/sessions";
-import { upsertGoogleUser } from "../../../src/server/auth/users";
+import { googleUser } from "../../util/TestUsers";
 import { saveGameRecord } from "../../../src/server/GameStore";
 import { FLAGS, PALETTES, PATTERNS } from "../../../src/server/shop/catalog";
 import { sampleRecord } from "../GameStore.fixture";
@@ -29,7 +29,7 @@ describe.skipIf(!url)("shop (database)", () => {
   const gameIds: string[] = [];
 
   async function account(name: string): Promise<Player> {
-    const u = await upsertGoogleUser(handle.db, {
+    const u = await googleUser(handle.db, {
       sub: `shop-${randomUUID()}`,
       email: `${name}@example.com`,
       name,
@@ -326,7 +326,7 @@ describe.skipIf(!url)("shop (database)", () => {
       ).toEqual({ ok: false });
     });
 
-    it("drops cosmetics LandWar does not sell", async () => {
+    it("drops cosmetics Kleopolis does not sell", async () => {
       const p = await account("Dropper");
       expect(
         await resolve(

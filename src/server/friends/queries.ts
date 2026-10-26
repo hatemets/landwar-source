@@ -1,5 +1,5 @@
-import type { Db } from "@landwar/db/client";
-import { friendships, users } from "@landwar/db/schema";
+import type { Db } from "@kleopolis/db/client";
+import { friendships, users } from "@kleopolis/db/schema";
 import { and, count, desc, eq, or, sql } from "drizzle-orm";
 import { isUniqueViolation } from "../dbErrors";
 

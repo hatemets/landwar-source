@@ -1,4 +1,4 @@
-# Local Postgres for LandWar. Start with: docker compose up -d
+# Local Postgres for Kleopolis. Start with: docker compose up -d
 services:
   postgres:
     image: postgres:17

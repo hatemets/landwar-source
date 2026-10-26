@@ -10,6 +10,7 @@ import {
 import { UIState } from "../../UIState";
 import { translateText } from "../../Utils";
 import { GameView, PlayerView } from "../../view";
+import { menuIcon } from "../../components/ui/MenuIcon";
 
 @customElement("send-resource-modal")
 export class SendResourceModal extends LitElement {
@@ -254,7 +255,7 @@ export class SendResourceModal extends LitElement {
           aria-label=${this.i18n.closeLabel()}
           title=${this.i18n.closeLabel()}
         >
-          ✕
+          ${menuIcon("x", "size-4")}
         </button>
       </div>
     `;

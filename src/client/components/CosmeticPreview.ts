@@ -19,6 +19,7 @@ import "./EffectPreview";
 import { observeNear } from "./LazyVisibility";
 import { renderPatternPreview } from "./PatternPreview";
 import "./PlutoniumIcon";
+import { menuIcon } from "./ui/MenuIcon";
 
 @customElement("cosmetic-preview")
 export class CosmeticPreview extends LitElement {
@@ -240,18 +241,20 @@ export class CosmeticPreview extends LitElement {
             ? html`<span
                 data-subscription-perk="verified_name"
                 class=${perkClass}
-                ><span class="text-green-400">✓</span> ${translateText(
-                  "cosmetics.verified_name",
-                )}</span
+                >${menuIcon(
+                  "check",
+                  "size-3 text-green-400 mr-1 align-[-0.15em]",
+                )}${translateText("cosmetics.verified_name")}</span
               >`
             : nothing}
           ${licencePerks && subscription.canCreatePublicLobbies
             ? html`<span
                 data-subscription-perk="public_lobbies"
                 class=${perkClass}
-                ><span class="text-green-400">✓</span> ${translateText(
-                  "cosmetics.public_lobbies",
-                )}</span
+                >${menuIcon(
+                  "check",
+                  "size-3 text-green-400 mr-1 align-[-0.15em]",
+                )}${translateText("cosmetics.public_lobbies")}</span
               >`
             : nothing}
         </div>

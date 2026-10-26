@@ -1,6 +1,6 @@
 import { generateCryptoRandomUUID } from "./Utils";
 
-// LandWar sign-in. The server sets a session cookie after Google sign-in. A
+// Kleopolis sign-in. The server sets a session cookie after Google sign-in. A
 // join token is issued by /api/auth/token. The server signs it and names the
 // account, or a guest id for a guest. The token is kept in memory only and is
 // renewed before it expires.
@@ -88,15 +88,30 @@ async function currentJoinToken(): Promise<JoinToken | null> {
   return refreshJoinToken();
 }
 
-// Sign-in with Google is the only method. It is a full-page redirect. The
-// server returns the player to `returnPath`, by default the page they came from.
-export function googleLogin(returnPath?: string): void {
+// Sign-in is a full-page redirect to Google or Discord. The server returns the
+// player to `returnPath`, by default the page they came from.
+function providerLogin(provider: "google" | "discord", returnPath?: string) {
   const back = returnPath ?? window.location.pathname + window.location.search;
-  window.location.href = `/api/auth/google?return=${encodeURIComponent(back)}`;
+  window.location.href = `/api/auth/${provider}?return=${encodeURIComponent(back)}`;
 }
 
+export function googleLogin(returnPath?: string): void {
+  providerLogin("google", returnPath);
+}
+
+export function discordLogin(returnPath?: string): void {
+  providerLogin("discord", returnPath);
+}
+
+// Signed in, the same redirect links the provider to the account. The server
+// returns to the account page with a `link=` result.
 export async function linkGoogle(): Promise<boolean> {
   googleLogin();
+  return true;
+}
+
+export async function linkDiscord(): Promise<boolean> {
+  discordLogin();
   return true;
 }
 

@@ -2,6 +2,7 @@ import { ClientID, GameID } from "@openfront/engine-api/Schemas";
 import { TileRef } from "@openfront/engine-api/game/GameMap";
 import {
   BuildableUnit,
+  GameType,
   PlayerType,
   Structures,
   UnitType,
@@ -70,6 +71,11 @@ import {
   UserSettings,
 } from "./UserSettings";
 import { createCanvas } from "./Utils";
+import {
+  loadGameSnapshot,
+  removeGameSnapshot,
+  saveGameSnapshot,
+} from "./GameSnapshotStore";
 import { WebGLFrameBuilder } from "./WebGLFrameBuilder";
 import { WorkerClient } from "./WorkerClient";
 import { MapLayerController } from "./controllers/MapLayerController";
@@ -89,6 +95,7 @@ import {
 } from "./render/gl";
 import { ALL_UNIT_TYPES, UnitState } from "./render/types";
 import { audioMixer, initAudioMixer } from "./sound/AudioMixer";
+import { track } from "./Analytics";
 import { SoundManager } from "./sound/SoundManager";
 import { themeProvider } from "./theme/ThemeProvider";
 import { GameView, PlayerView } from "./view";
@@ -665,8 +672,7 @@ async function createClientGame(
   // Kick off the font-atlas fetch so it overlaps with worker init; the
   // render passes need it parsed before createWebGLView runs.
   const atlasDataLoad = preloadAtlasData();
-  const worker = new WorkerClient(lobbyConfig.gameStartInfo, clientID);
-  await worker.initialize();
+  const { worker, resumeTick } = await startWorker(lobbyConfig, clientID);
   await atlasDataLoad;
   const gameView = new GameView(
     worker,
@@ -862,12 +868,56 @@ async function createClientGame(
       webglBuilder,
       graphicsListenerAbort,
       disposeRenderer,
+      resumeTick,
     );
   } catch (err) {
     soundManager.dispose();
     throw err;
   }
 }
+
+/**
+ * Whether this game keeps a local snapshot to resume from after a page
+ * reload. Singleplayer games end with the page, and replays have no live
+ * turns to catch up on.
+ */
+function resumable(lobbyConfig: LobbyConfig): boolean {
+  return (
+    lobbyConfig.gameRecord === undefined &&
+    lobbyConfig.gameStartInfo?.config.gameType !== GameType.Singleplayer
+  );
+}
+
+/**
+ * The game's worker, resumed from this browser's stored snapshot of the game
+ * when there is one, so a rejoin only runs the turns played since it.
+ */
+async function startWorker(
+  lobbyConfig: LobbyConfig,
+  clientID: ClientID | undefined,
+): Promise<{ worker: WorkerClient; resumeTick: number }> {
+  const gameStartInfo = lobbyConfig.gameStartInfo!;
+  const stored = resumable(lobbyConfig)
+    ? await loadGameSnapshot(gameStartInfo.gameID)
+    : undefined;
+  if (stored !== undefined) {
+    const worker = new WorkerClient(gameStartInfo, clientID, stored.snapshot);
+    try {
+      await worker.initialize();
+      console.log(`resumed game from snapshot at tick ${stored.tick}`);
+      return { worker, resumeTick: stored.tick };
+    } catch (err) {
+      console.warn("snapshot restore failed, replaying the game", err);
+      void removeGameSnapshot(gameStartInfo.gameID);
+    }
+  }
+  const worker = new WorkerClient(gameStartInfo, clientID);
+  await worker.initialize();
+  return { worker, resumeTick: 0 };
+}
+
+/** How often a resumable game stores its snapshot. */
+const SNAPSHOT_INTERVAL_MS = 30_000;
 
 export class ClientGameRunner {
   private myPlayer: PlayerView | null = null;
@@ -882,6 +932,8 @@ export class ClientGameRunner {
 
   private lastMessageTime: number = 0;
   private connectionCheckInterval: NodeJS.Timeout | null = null;
+  private snapshotInterval: NodeJS.Timeout | null = null;
+  private snapshotSaving = false;
   private goToPlayerTimeout: NodeJS.Timeout | null = null;
 
   private lastTickReceiveTime: number = 0;
@@ -901,8 +953,11 @@ export class ClientGameRunner {
     private webglBuilder: WebGLFrameBuilder | null = null,
     private graphicsListenerAbort: AbortController | null = null,
     private disposeRenderer: (() => void) | null = null,
+    /** The tick the worker resumed at (0 for a fresh game). */
+    resumeTick = 0,
   ) {
     this.lastMessageTime = Date.now();
+    this.turnsSeen = resumeTick;
   }
 
   /**
@@ -923,6 +978,11 @@ export class ClientGameRunner {
   public start() {
     this.soundManager.playBackgroundMusic();
     console.log("starting client game");
+    const config = this.lobby.gameStartInfo?.config;
+    track("match_ready", {
+      game_type: config?.gameType ?? "unknown",
+      ranked: config?.rankedType !== undefined,
+    });
 
     this.isActive = true;
     this.lastMessageTime = Date.now();
@@ -960,6 +1020,13 @@ export class ClientGameRunner {
       DoTargetPlayerEvent,
       this.doTargetPlayerUnderCursor.bind(this),
     );
+
+    if (resumable(this.lobby)) {
+      this.snapshotInterval = setInterval(
+        () => this.saveSnapshot(),
+        SNAPSHOT_INTERVAL_MS,
+      );
+    }
 
     this.renderer.initialize();
     this.input.initialize();
@@ -1129,8 +1196,32 @@ export class ClientGameRunner {
     };
     this.transport.updateCallback(onconnect, onmessage);
     console.log("sending join game");
-    // Rejoin game from the start so we don't miss any turns.
-    this.transport.rejoinGame(0);
+    // Rejoin from the first turn the worker hasn't run: turn 0, or the tick
+    // of the snapshot it resumed from.
+    this.transport.rejoinGame(this.turnsSeen);
+  }
+
+  /** Stores a snapshot to resume from after a page reload. */
+  private saveSnapshot() {
+    // Skip while catching up: the worker is busy and the game is behind.
+    if (
+      !this.isActive ||
+      this.snapshotSaving ||
+      this.awaitingStart ||
+      this.gameView.isCatchingUp() ||
+      this.gameView.gameOver()
+    ) {
+      return;
+    }
+    const gameID = this.lobby.gameStartInfo!.gameID;
+    this.snapshotSaving = true;
+    this.worker
+      .snapshot(ClientEnv.gitCommit())
+      .then(({ snapshot, tick }) => saveGameSnapshot(gameID, tick, snapshot))
+      .catch((err) => console.warn("game snapshot failed", err))
+      .finally(() => {
+        this.snapshotSaving = false;
+      });
   }
 
   public stop() {
@@ -1156,6 +1247,13 @@ export class ClientGameRunner {
     if (this.goToPlayerTimeout) {
       clearTimeout(this.goToPlayerTimeout);
       this.goToPlayerTimeout = null;
+    }
+    if (this.snapshotInterval) {
+      clearInterval(this.snapshotInterval);
+      this.snapshotInterval = null;
+    }
+    if (this.gameView.gameOver() && this.lobby.gameStartInfo !== undefined) {
+      void removeGameSnapshot(this.lobby.gameStartInfo.gameID);
     }
   }
 

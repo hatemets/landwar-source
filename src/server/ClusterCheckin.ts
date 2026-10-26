@@ -83,7 +83,7 @@ export function registeredSite(): string | undefined {
 }
 
 /**
- * Whether this server joins an OpenFront-style cluster API. LandWar runs on its
+ * Whether this server joins an OpenFront-style cluster API. Kleopolis runs on its
  * own and has no such API, so this is off unless CLUSTER_CHECKIN=true. While it
  * is off the master schedules public lobbies by itself.
  */

@@ -33,7 +33,7 @@ import {
   userAuth,
 } from "./Auth";
 import { ClientEnv } from "./ClientEnv";
-import { fetchAccountProfile } from "./LandWarAccount";
+import { fetchAccountProfile } from "./KleopolisAccount";
 import { ensureServerList } from "./ServerList";
 import { UserSettings } from "./UserSettings";
 

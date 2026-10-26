@@ -562,6 +562,8 @@ export interface Game extends GameLike {
   inSpawnPhase(): boolean;
   endSpawnPhase(): void;
   executeNextTick(): GameUpdates;
+  /** Adds the whole visible state to this tick's updates (after a restore). */
+  addFullStateUpdates(): void;
   drainPackedTileUpdates(): Uint32Array;
   recordMotionPlan(record: MotionPlanRecord): void;
   drainPackedMotionPlans(): Uint32Array | null;

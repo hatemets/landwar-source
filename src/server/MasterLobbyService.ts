@@ -279,6 +279,7 @@ export class MasterLobbyService {
       ffa: [],
       team: [],
       special: [],
+      goldrush: [],
       hosted: [],
     };
 

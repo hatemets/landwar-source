@@ -58,6 +58,7 @@ import {
 } from "./LobbyEvents";
 import { LocalServer } from "./LocalServer";
 import { describeSocketClose } from "./SocketClose";
+import { track } from "./Analytics";
 import { homeHref, translateText } from "./Utils";
 import { PlayerView } from "./view";
 
@@ -261,6 +262,7 @@ export class Transport {
   private localServer: LocalServer;
 
   private buffer: ClientMessage[] = [];
+  private sentFirstAction = false;
 
   private onconnect: () => void;
   private onmessage: (msg: ServerMessage) => void;
@@ -1032,6 +1034,15 @@ export class Transport {
   }
 
   private sendIntent(intent: Intent) {
+    // Activation: the first attack, by land or by boat. A spawn alone is
+    // not a decision about the map.
+    if (
+      !this.sentFirstAction &&
+      (intent.type === "attack" || intent.type === "boat")
+    ) {
+      this.sentFirstAction = true;
+      track("first_valid_action", { type: intent.type });
+    }
     const msg = {
       type: "intent",
       intent: intent,

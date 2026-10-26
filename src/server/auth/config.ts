@@ -72,7 +72,7 @@ export function googleRedirectUri(): string {
   return `${publicOrigin()}/api/auth/google/callback`;
 }
 
-export interface GoogleEndpoints {
+export interface OAuthEndpoints {
   authorization: string;
   token: string;
   userinfo: string;
@@ -81,7 +81,7 @@ export interface GoogleEndpoints {
 // Google's own endpoints. A development run may point GOOGLE_OAUTH_BASE_URL at
 // a stand-in server that serves /auth, /token and /userinfo, so the sign-in
 // flow can run without real credentials. Staging and production refuse it.
-export function googleEndpoints(): GoogleEndpoints {
+export function googleEndpoints(): OAuthEndpoints {
   const base = process.env.GOOGLE_OAUTH_BASE_URL;
   if (!base) {
     return {
@@ -92,6 +92,46 @@ export function googleEndpoints(): GoogleEndpoints {
   }
   if (isDeployedEnvironment()) {
     throw new Error("GOOGLE_OAUTH_BASE_URL is not allowed in deployment");
+  }
+  const root = base.replace(/\/+$/, "");
+  return {
+    authorization: `${root}/auth`,
+    token: `${root}/token`,
+    userinfo: `${root}/userinfo`,
+  };
+}
+
+export function discordClientId(): string {
+  const v = process.env.DISCORD_CLIENT_ID;
+  if (!v) throw new Error("DISCORD_CLIENT_ID is not set. See example.env.");
+  return v;
+}
+
+export function discordClientSecret(): string {
+  const v = process.env.DISCORD_CLIENT_SECRET;
+  if (!v) {
+    throw new Error("DISCORD_CLIENT_SECRET is not set. See example.env.");
+  }
+  return v;
+}
+
+export function discordRedirectUri(): string {
+  return `${publicOrigin()}/api/auth/discord/callback`;
+}
+
+// Discord's own endpoints. As with Google, a development run may point
+// DISCORD_OAUTH_BASE_URL at a stand-in that serves /auth, /token and /userinfo.
+export function discordEndpoints(): OAuthEndpoints {
+  const base = process.env.DISCORD_OAUTH_BASE_URL;
+  if (!base) {
+    return {
+      authorization: "https://discord.com/oauth2/authorize",
+      token: "https://discord.com/api/oauth2/token",
+      userinfo: "https://discord.com/api/users/@me",
+    };
+  }
+  if (isDeployedEnvironment()) {
+    throw new Error("DISCORD_OAUTH_BASE_URL is not allowed in deployment");
   }
   const root = base.replace(/\/+$/, "");
   return {

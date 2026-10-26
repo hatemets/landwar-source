@@ -101,7 +101,7 @@
     "vitest-canvas-mock": "^1.1.4"
   },
   "dependencies": {
-    "@landwar/db": "workspace:*",
+    "@kleopolis/db": "workspace:*",
     "@openfront/engine": "workspace:*",
     "@openfront/engine-api": "workspace:*",
     "@openfront/engine-lib": "workspace:*",

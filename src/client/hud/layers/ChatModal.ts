@@ -10,6 +10,7 @@ import { CloseViewEvent, ShowChatMenuEvent } from "../../InputHandler";
 import { TransformHandler } from "../../TransformHandler";
 import { SendQuickChatEvent } from "../../Transport";
 import { hasOwnTranslation, translateText } from "../../Utils";
+import { menuIcon } from "../../components/ui/MenuIcon";
 
 export type QuickChatPhrase = {
   key: string;
@@ -141,7 +142,7 @@ export class ChatModal extends LitElement {
             aria-label=${translateText("common.close")}
             @click=${() => this.close()}
           >
-            ✕
+            ${menuIcon("x", "size-4")}
           </button>
           <div
             class="bg-gray-900 p-4 rounded-lg text-white

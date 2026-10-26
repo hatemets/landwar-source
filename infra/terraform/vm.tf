@@ -43,12 +43,13 @@ locals {
   # Plain (non-secret) server env. The VM writes it to /opt/landwar/app.env
   # on every deploy, so a change here needs only `terraform apply` and a deploy.
   app_env = merge({
-    GAME_ENV         = "prod"
-    DOMAIN           = var.domain
-    PUBLIC_ORIGIN    = "https://${var.domain}"
-    NUM_WORKERS      = tostring(var.num_workers)
-    INSTANCE_LETTER  = "a"
-    GOOGLE_CLIENT_ID = var.google_client_id
+    GAME_ENV          = "prod"
+    DOMAIN            = var.domain
+    PUBLIC_ORIGIN     = "https://${var.domain}"
+    NUM_WORKERS       = tostring(var.num_workers)
+    INSTANCE_LETTER   = "a"
+    GOOGLE_CLIENT_ID  = var.google_client_id
+    DISCORD_CLIENT_ID = var.discord_client_id
     # The master and each worker hold a pool of this size. db-f1-micro
     # allows 25 connections in all.
     DB_POOL_MAX = "5"

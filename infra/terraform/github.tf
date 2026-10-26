@@ -17,7 +17,9 @@ resource "google_iam_workload_identity_pool_provider" "github" {
     "attribute.repository" = "assertion.repository"
     "attribute.ref"        = "assertion.ref"
   }
-  attribute_condition = "assertion.repository == \"${var.github_repo}\" && assertion.ref == \"${var.github_deploy_ref}\""
+  # job_workflow_ref pins the token to deploy.yml, so no other workflow in the
+  # repo (or a reusable one it calls) can act as the deployer.
+  attribute_condition = "assertion.repository == \"${var.github_repo}\" && assertion.ref == \"${var.github_deploy_ref}\" && assertion.job_workflow_ref == \"${var.github_repo}/.github/workflows/deploy.yml@${var.github_deploy_ref}\""
 
   oidc {
     issuer_uri = "https://token.actions.githubusercontent.com"

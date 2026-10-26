@@ -66,7 +66,7 @@ const winnerMsg: ClientMessage = {
   allPlayersStats: { [CLIENT_ID]: { attacks: [100n] } },
 };
 
-// LandWar has no singleplayer archive endpoint, so a finished singleplayer
+// Kleopolis has no singleplayer archive endpoint, so a finished singleplayer
 // game must not be uploaded anywhere.
 describe("LocalServer archiving", () => {
   let fetchMock: ReturnType<typeof vi.fn>;

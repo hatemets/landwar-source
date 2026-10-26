@@ -14,6 +14,7 @@ import {
   UserSettings,
 } from "../UserSettings";
 import { translateText } from "../Utils";
+import { menuIcon } from "./ui/MenuIcon";
 
 const CUSTOM_VALUE = "custom";
 
@@ -158,10 +159,12 @@ export class GraphicsPresetSelector extends LitElement {
         ${selected.startsWith("user:")
           ? html`
               <button
-                class="shrink-0 h-9 px-3 rounded-md text-white/60 hover:text-white hover:bg-white/10"
+                class="shrink-0 h-9 px-3 inline-flex items-center justify-center rounded-md text-white/60 hover:text-white hover:bg-white/10"
+                aria-label=${translateText("graphics_setting.preset_delete")}
+                title=${translateText("graphics_setting.preset_delete")}
                 @click=${this.onDelete}
               >
-                ✕
+                ${menuIcon("x", "size-4")}
               </button>
             `
           : null}

@@ -13,11 +13,13 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
-// Accounts. A user signs in with Google only. `publicId` is the short id shown
-// in profile URLs and lobby rosters. It never changes.
+// Accounts. A user signs in with Google or Discord, and an account can hold
+// both. `publicId` is the short id shown in profile URLs and lobby rosters. It
+// never changes.
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
-  googleSub: text("google_sub").notNull().unique(),
+  googleSub: text("google_sub").unique(),
+  discordId: text("discord_id").unique(),
   email: text("email").notNull(),
   displayName: text("display_name").notNull(),
   avatarUrl: text("avatar_url"),
@@ -193,7 +195,7 @@ export const friendships = pgTable(
   ],
 );
 
-// Elo per ladder. LandWar rates public free-for-all games between accounts.
+// Elo per ladder. Kleopolis rates public free-for-all games between accounts.
 // Guests have no row.
 export const playerRatings = pgTable(
   "player_ratings",

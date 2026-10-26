@@ -1,6 +1,7 @@
 import { html, LitElement, nothing } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { translateText } from "../Utils";
+import { menuIcon } from "./ui/MenuIcon";
 
 /**
  * The loadout slot bar: one button per saved slot, a button to add another,
@@ -64,10 +65,10 @@ export class InventoryLoadoutMenu extends LitElement {
             aria-label=${translateText("inventory.loadout_delete_target", {
               name,
             })}
-            class="border-l border-white/15 px-2 text-xs font-black text-white/60 transition-colors hover:bg-white/10 hover:text-white"
+            class="inline-flex items-center border-l border-white/15 px-2 text-xs font-black text-white/60 transition-colors hover:bg-white/10 hover:text-white"
             @click=${() => this.onDelete?.(name)}
           >
-            ✕
+            ${menuIcon("x", "size-3.5")}
           </button>`
         : nothing}
     </div>`;

@@ -14,6 +14,7 @@ import {
   cosmeticRarityLabel,
 } from "./CosmeticPresentation";
 import type { CosmeticRenderCanvas } from "./cosmetics/CosmeticRenderCanvas";
+import { menuIcon } from "./ui/MenuIcon";
 
 export const TEAM_COLORS = [
   { name: "Red", hex: "#eb3333" },
@@ -365,7 +366,7 @@ export class CosmeticPreviewModal extends LitElement {
               class="flex h-8 w-8 items-center justify-center rounded-full bg-white/5 text-white/70 hover:bg-white/15 hover:text-white transition-colors"
               @click=${() => this.close()}
             >
-              ✕
+              ${menuIcon("x", "size-4")}
             </button>
           </div>
         </div>

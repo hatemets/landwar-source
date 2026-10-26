@@ -1,11 +1,11 @@
-import { createDb, type DbHandle } from "@landwar/db/client";
-import { runMigrations } from "@landwar/db/migrate";
-import { games, playerRatings, users } from "@landwar/db/schema";
+import { createDb, type DbHandle } from "@kleopolis/db/client";
+import { runMigrations } from "@kleopolis/db/migrate";
+import { games, playerRatings, users } from "@kleopolis/db/schema";
 import type { GameRecord } from "@openfront/shared/WireSchemas";
 import { randomUUID } from "crypto";
 import { and, eq, inArray } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { upsertGoogleUser } from "../../../src/server/auth/users";
+import { googleUser } from "../../util/TestUsers";
 import { saveGameRecord } from "../../../src/server/GameStore";
 import { sampleRecord } from "../GameStore.fixture";
 
@@ -24,7 +24,7 @@ describe.skipIf(!url)("ranked ratings (database)", () => {
     return id;
   };
   async function account(name: string) {
-    const u = await upsertGoogleUser(handle.db, {
+    const u = await googleUser(handle.db, {
       sub: `ranked-${randomUUID()}`,
       email: `${name}@example.com`,
       name,

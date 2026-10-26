@@ -3,7 +3,7 @@
 Production is one Compute Engine VM. It runs three containers from `infra/vm/compose.yaml`:
 
 - **caddy**: TLS with automatic Let's Encrypt certificates, on ports 80 and 443.
-- **app**: the LandWar image (nginx, master, `NUM_WORKERS` game workers).
+- **app**: the Kleopolis image (nginx, master, `NUM_WORKERS` game workers).
 - **cloudsql-proxy**: only when `database = "cloudsql"`.
 
 Games live in memory, so one stateful VM fits better than Cloud Run or a managed instance group. Caddy replaces a Google load balancer, which costs more than the VM.

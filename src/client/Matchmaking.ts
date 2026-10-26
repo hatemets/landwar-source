@@ -6,24 +6,32 @@ import { customElement, state } from "lit/decorators.js";
 import { ClientEnv } from "src/client/ClientEnv";
 import { responseHasLinkedIdentity } from "./AccountIdentity";
 import { getUserMe } from "./Api";
+import { track } from "./Analytics";
 import { getPlayToken } from "./Auth";
+import "./components/baseComponents/Button";
 import { BaseModal } from "./components/BaseModal";
 import { renderGlobeLoader } from "./components/ConquestGlobe";
 import "./components/Difficulties";
 import { GameStartAlertController } from "./components/GameStartAlertController";
 import { DEFAULT_TITLE_CLASS, modalHeader } from "./components/ui/ModalHeader";
+import { whenModalLoaded } from "./LazyModals";
 import type { JoinLobbyEvent } from "./Main";
 import {
   ensureServerList,
   matchmakingSite,
   redirectToGameVersion,
 } from "./ServerList";
+import type { SinglePlayerModal } from "./SinglePlayerModal";
 import { describeSocketClose } from "./SocketClose";
 import { translateText } from "./Utils";
 
 // The ranked queues. Same strings as RankedType, the server's `mode` param and
 // the `/?requeue=` value.
 export type MatchmakingMode = "1v1";
+
+// How long a player waits alone before the queue offers a practice match
+// against a bot.
+export const PRACTICE_OFFER_SECONDS = 30;
 
 type MatchmakingJoin = {
   type: "join";
@@ -36,6 +44,7 @@ export class MatchmakingModal extends BaseModal {
   private connectTimeout: ReturnType<typeof setTimeout> | null = null;
   private reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
   private watchdogTimeout: ReturnType<typeof setTimeout> | null = null;
+  private practiceTimeout: ReturnType<typeof setTimeout> | null = null;
   private reconnectAttempts = 0;
   private intentionalClose = false;
   // Which queue to join; set by Main from the open-matchmaking event
@@ -46,6 +55,7 @@ export class MatchmakingModal extends BaseModal {
   @state() private gameID: string | null = null;
   // The lobby's latest queue-size broadcast.
   @state() private queueSize: { count: number } | null = null;
+  @state() private offerPractice = false;
   private elo: number | string = "...";
   private readonly gameStartAlert = new GameStartAlertController(
     this,
@@ -99,7 +109,7 @@ export class MatchmakingModal extends BaseModal {
               </p>
             `
           : ""}
-        ${this.renderSearching()}
+        ${this.renderSearching()} ${this.renderPracticeOffer()}
       `;
     } else {
       return renderGlobeLoader(
@@ -129,6 +139,50 @@ export class MatchmakingModal extends BaseModal {
     `;
   }
 
+  // Few players are online at launch, so a lone player gets a way to play now
+  // instead of watching the radar. The match is local and unranked.
+  private renderPracticeOffer() {
+    if (!this.offerPractice) return "";
+    return html`
+      <div class="flex flex-col items-center gap-3 text-center">
+        <p class="text-sm text-white/60">
+          ${translateText("matchmaking_modal.no_opponent")}
+        </p>
+        <o-button
+          title=${translateText("matchmaking_modal.practice")}
+          @click=${this.startPractice}
+        ></o-button>
+      </div>
+    `;
+  }
+
+  private startPractice = () => {
+    track("play_clicked", { mode: "practice" });
+    // Leaves the queue: a player in a practice match cannot accept a match.
+    this.close();
+    whenModalLoaded("single-player-modal", () => {
+      void (
+        document.querySelector("single-player-modal") as SinglePlayerModal
+      )?.startPractice();
+    });
+  };
+
+  private startPracticeTimer() {
+    this.clearPracticeTimer();
+    this.practiceTimeout = setTimeout(() => {
+      this.practiceTimeout = null;
+      this.offerPractice = true;
+    }, PRACTICE_OFFER_SECONDS * 1000);
+  }
+
+  private clearPracticeTimer() {
+    if (this.practiceTimeout) {
+      clearTimeout(this.practiceTimeout);
+      this.practiceTimeout = null;
+    }
+    this.offerPractice = false;
+  }
+
   // Re-enter the queue after a pre-start match cancellation (a matched
   // player never connected to the game server). The modal is normally still
   // open on "waiting for game" at that point — reset back to searching and
@@ -147,6 +201,7 @@ export class MatchmakingModal extends BaseModal {
     this.intentionalClose = false;
     this.queueSize = null;
     this.reconnectAttempts = 0;
+    this.startPracticeTimer();
     this.connect();
     return true;
   }
@@ -286,6 +341,7 @@ export class MatchmakingModal extends BaseModal {
         this.intentionalClose = true;
         this.socket?.close();
         console.log(`matchmaking: got game ID: ${data.gameId}`);
+        this.clearPracticeTimer();
         this.gameID = data.gameId;
         this.gameCheckInterval = setInterval(() => this.checkGame(), 1000);
       }
@@ -370,6 +426,7 @@ export class MatchmakingModal extends BaseModal {
     this.intentionalClose = false;
     this.queueSize = null;
     this.reconnectAttempts = 0;
+    this.startPracticeTimer();
     this.connect();
   }
 
@@ -379,6 +436,7 @@ export class MatchmakingModal extends BaseModal {
     this.intentionalClose = true;
     this.socket?.close();
     this.clearWatchdog();
+    this.clearPracticeTimer();
     if (this.connectTimeout) {
       clearTimeout(this.connectTimeout);
       this.connectTimeout = null;

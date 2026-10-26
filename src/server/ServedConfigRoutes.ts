@@ -9,8 +9,8 @@ const resourcesDir = path.join(
 );
 
 // The small JSON configs the client reads from its API host in OpenFront.
-// LandWar serves them itself: the stream list from the files in
-// resources/, and an empty identity list, because LandWar links no outside
+// Kleopolis serves them itself: the stream list from the files in
+// resources/, and an empty identity list, because Kleopolis links no outside
 // identity. The cosmetics catalog is in shop/routes.ts.
 export function registerServedConfigRoutes(app: Express): void {
   const file = (name: string) => async (_req: unknown, res: any) => {

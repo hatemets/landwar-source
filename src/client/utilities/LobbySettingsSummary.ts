@@ -47,7 +47,11 @@ export function notableLobbySettings(
     });
   if (
     pm?.isHardNations ||
-    (c.gameType === GameType.Private && c.difficulty !== Difficulty.Easy)
+    (c.gameType === GameType.Private && c.difficulty !== Difficulty.Easy) ||
+    // Gold rush rolls its nations from Medium to Impossible.
+    (c.gameType === GameType.Public &&
+      c.nations !== "disabled" &&
+      c.difficulty !== Difficulty.Medium)
   )
     items.push({
       label: translateText("difficulty.difficulty"),

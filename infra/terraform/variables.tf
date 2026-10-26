@@ -78,6 +78,19 @@ variable "google_client_secret" {
   sensitive   = true
 }
 
+variable "discord_client_id" {
+  description = "Discord OAuth client id. Redirect URI: https://<domain>/api/auth/discord/callback. Empty turns Discord sign-in off."
+  type        = string
+  default     = ""
+}
+
+variable "discord_client_secret" {
+  description = "Discord OAuth client secret."
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
 variable "extra_env" {
   description = "Extra plain env vars for the server, e.g. { TURNSTILE_SITE_KEY = \"...\" }."
   type        = map(string)

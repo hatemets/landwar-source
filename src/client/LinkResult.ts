@@ -9,6 +9,7 @@ import { translateText } from "./Utils";
  */
 const LINK_RESULT_KEYS: Record<string, string> = {
   google: "account_modal.link_google_success",
+  discord: "account_modal.link_discord_success",
   already_linked: "account_modal.link_google_already_linked",
   error: "account_modal.link_google_error",
 };

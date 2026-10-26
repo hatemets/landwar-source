@@ -19,7 +19,7 @@ import { EngineConfig } from "@openfront/engine/configuration/EngineConfig";
 import { Player } from "@openfront/engine/game/Game";
 
 function makeConfig(gameConfig: Partial<GameConfig> = {}): EngineConfig {
-  // Pin the formula baseline; LandWar defaults are tested in EngineConfig.test.ts.
+  // Pin the formula baseline; Kleopolis defaults are tested in EngineConfig.test.ts.
   return new EngineConfig(
     { goldMultiplier: 1, ...gameConfig } as GameConfig,
     false,

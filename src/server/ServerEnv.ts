@@ -271,13 +271,22 @@ export class ServerEnv {
     return v;
   }
   static apiKey(): string {
-    return process.env.API_KEY ?? "";
+    return ServerEnv.rejectDevKey("API_KEY", process.env.API_KEY ?? "");
   }
   // Long-lived shared secret for the trusted admin bot HTTP API.
   // Undefined when unset, which disables the admin bot API entirely.
   static adminBotKey(): string | undefined {
     const v = process.env.ADMIN_BOT_API_KEY;
-    return v && v.length > 0 ? v : undefined;
+    return v && v.length > 0
+      ? ServerEnv.rejectDevKey("ADMIN_BOT_API_KEY", v)
+      : undefined;
+  }
+  // The dev keys in package.json are public, so a deployed server refuses them.
+  private static rejectDevKey(name: string, value: string): string {
+    if (ServerEnv.gameEnv !== GameEnv.Dev && value.startsWith("WARNING_DEV_")) {
+      throw new Error(`${name} must not be a development key in deployment`);
+    }
+    return value;
   }
   static adminBotHeader(): string {
     return "x-admin-bot-key";

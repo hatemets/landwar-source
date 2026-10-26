@@ -1,6 +1,6 @@
 # Design
 
-LandWar is a minimalist real-time strategy game built around precision,
+Kleopolis is a minimalist real-time strategy game built around precision,
 clarity and competitive depth. Every element on screen has a purpose.
 
 ## Product principles

@@ -17,6 +17,7 @@ import { getGamesPlayed, translateText } from "../../Utils";
 import { GameView } from "../../view";
 import { PlayerView } from "../../view/PlayerView";
 import { goldCoinIcon, soldierIcon } from "../HotbarIcons";
+import { menuIcon } from "../../components/ui/MenuIcon";
 const swordIcon = assetUrl("images/SwordIcon.svg");
 
 @customElement("control-panel")
@@ -463,7 +464,7 @@ export class ControlPanel extends LitElement implements Controller {
           ? "bg-orange-400/15 text-orange-300"
           : "bg-blue-400/15 text-blue-300"}"
       >
-        <span class="shrink-0">${isWarning ? "⚠" : "ℹ"}</span>
+        ${menuIcon(isWarning ? "triangle-alert" : "info", "size-3.5")}
         <span>${translateText(this._notification.message)}</span>
       </div>
     `;

@@ -174,7 +174,7 @@ export function defaultGameServerDeps(): GameServerDeps {
     archive: (record) => archive(finalizeGameRecord(record)),
     replayWinner: replayWinnerInChild,
     replayPending: () => winnerReplayMetrics.pending,
-    // LandWar sells no tribe names, so the pool is always empty.
+    // Kleopolis sells no tribe names, so the pool is always empty.
     fetchTribes: async () => [],
     env: () => ServerEnv.env(),
     turnIntervalMs: () => ServerEnv.turnIntervalMs(),

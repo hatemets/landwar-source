@@ -30,6 +30,8 @@ import { UIState } from "../../UIState";
 import { translateText } from "../../Utils";
 import { GameView, PlayerView, UnitView } from "../../view";
 import { getColoredSprite } from "../SpriteLoader";
+import { ifDefined } from "lit/directives/if-defined.js";
+import { menuIcon } from "../../components/ui/MenuIcon";
 const soldierIcon = assetUrl("images/SoldierIcon.svg");
 const swordIcon = assetUrl("images/SwordIcon.svg");
 
@@ -124,6 +126,7 @@ export class AttacksDisplay extends LitElement implements Controller {
     disabled?: boolean;
     translate?: boolean;
     hidden?: boolean;
+    ariaLabel?: string;
   }) {
     const {
       content,
@@ -132,6 +135,7 @@ export class AttacksDisplay extends LitElement implements Controller {
       disabled = false,
       translate = true,
       hidden = false,
+      ariaLabel,
     } = options;
 
     if (hidden) {
@@ -144,6 +148,8 @@ export class AttacksDisplay extends LitElement implements Controller {
         @click=${onClick}
         ?disabled=${disabled}
         ?translate=${translate}
+        aria-label=${ifDefined(ariaLabel)}
+        title=${ifDefined(ariaLabel)}
       >
         ${content}
       </button>
@@ -289,9 +295,11 @@ export class AttacksDisplay extends LitElement implements Controller {
           })}
           ${!attack.retreating
             ? this.renderButton({
-                content: "❌",
+                content: menuIcon("x", "size-4"),
+                ariaLabel: translateText("common.cancel"),
                 onClick: () => this.emitCancelAttackIntent(attack.id),
-                className: "ml-auto text-left shrink-0",
+                className:
+                  "ml-auto inline-flex items-center shrink-0 text-red-400",
                 disabled: attack.retreating,
               })
             : html`<span class="ml-auto truncate text-aquarius"
@@ -325,9 +333,11 @@ export class AttacksDisplay extends LitElement implements Controller {
           })}
           ${!landAttack.retreating
             ? this.renderButton({
-                content: "❌",
+                content: menuIcon("x", "size-4"),
+                ariaLabel: translateText("common.cancel"),
                 onClick: () => this.emitCancelAttackIntent(landAttack.id),
-                className: "ml-auto text-left shrink-0",
+                className:
+                  "ml-auto inline-flex items-center shrink-0 text-red-400",
                 disabled: landAttack.retreating,
               })
             : html`<span class="ml-auto truncate text-aquarius"
@@ -405,9 +415,11 @@ export class AttacksDisplay extends LitElement implements Controller {
                 >(${translateText("events_display.retreating")}...)</span
               >`
             : this.renderButton({
-                content: "\u274C",
+                content: menuIcon("x", "size-4"),
+                ariaLabel: translateText("common.cancel"),
                 onClick: () => this.emitBoatCancelIntent(boat.id()),
-                className: "ml-auto text-left shrink-0",
+                className:
+                  "ml-auto inline-flex items-center shrink-0 text-red-400",
                 disabled: boat.transportShipState().isRetreating,
               })}
         </div>

@@ -39,7 +39,7 @@ export function registerShopRoutes(app: Express): void {
       }
       const { cosmeticType, cosmeticName, currencyType, colorPaletteName } =
         body.data;
-      // LandWar has one currency.
+      // Kleopolis has one currency.
       if (currencyType !== "soft") {
         res.status(400).json({ reason: "Currency not accepted" });
         return;

@@ -47,6 +47,7 @@ describe("SoundEffectController", () => {
       unit: (id: number) => units.get(id),
       myPlayer: () => null,
       updatesSinceLastTick: () => undefined,
+      isFullStateTick: () => false,
     };
     controller = new SoundEffectController(game, eventBus);
   });

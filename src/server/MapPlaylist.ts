@@ -32,7 +32,10 @@ const CROWDED_PLAYER_COUNT = 125;
 // lobbies on offer at any moment are never all locked. Must stay coprime with
 // the 3-type ffa/team/special scheduling cycle (MasterLobbyService), or the
 // trusted slot aliases onto a single game type.
-const TRUSTED_PUBLIC_EVERY = 7;
+//
+// Off in Kleopolis: no account is ever trusted (Worker.ts joins every client
+// untrusted), so a trusted-only lobby would never let anyone in.
+export const TRUSTED_PUBLIC_EVERY = 7;
 
 // Trusted-only lobbies draw from a much smaller pool of eligible accounts, so
 // cap them well below the open-lobby sizes to keep them filling and starting.
@@ -117,10 +120,39 @@ const MUTUALLY_EXCLUSIVE_MODIFIERS: [ModifierKey, ModifierKey][] = [
   ["isNukesDisabled", "isWaterNukes"],
 ];
 
+// The gold rush queue: big maps with wide land and open sea, a rich start
+// and fast income. It alternates two variants, so one of each is usually on
+// offer: one with every missile disabled and Medium nations, and one with
+// missiles and nations that roll from Medium to Impossible.
+export const GOLD_RUSH_MAPS: readonly GameMapType[] = [
+  GameMapType.World,
+  GameMapType.GiantWorldMap,
+  GameMapType.Europe,
+  GameMapType.Asia,
+  GameMapType.Africa,
+  GameMapType.NorthAmerica,
+  GameMapType.SouthAmerica,
+];
+export const GOLD_RUSH_STARTING_GOLD = 50_000_000;
+export const GOLD_RUSH_GOLD_MULTIPLIER = 5;
+export const GOLD_RUSH_NATION_DIFFICULTIES: readonly Difficulty[] = [
+  Difficulty.Medium,
+  Difficulty.Hard,
+  Difficulty.Impossible,
+];
+// The units the nukes-disabled modifier removes.
+const MISSILE_UNITS: readonly UnitType[] = [
+  UnitType.MissileSilo,
+  UnitType.AtomBomb,
+  UnitType.HydrogenBomb,
+  UnitType.MIRV,
+  UnitType.SAMLauncher,
+];
+
 // Special games roll ffa/team per-game (see getSpecialConfig), so their
 // playlist is split in two rather than sharing one "special" queue -
 // each half can then fall back to the matching ffaFrequency/teamFrequency.
-type PlaylistKey = "ffa" | "team" | "specialFfa" | "specialTeam";
+type PlaylistKey = "ffa" | "team" | "specialFfa" | "specialTeam" | "goldRush";
 
 export class MapPlaylist {
   private playlists: Record<PlaylistKey, GameMapType[]> = {
@@ -128,14 +160,22 @@ export class MapPlaylist {
     team: [],
     specialFfa: [],
     specialTeam: [],
+    goldRush: [],
   };
 
   // Scheduled public games handed out so far, across all types.
   private scheduled = 0;
 
+  // Gold rush games handed out so far: even is no missiles, odd has missiles
+  // and a nation difficulty roll.
+  private goldRushScheduled = 0;
+
   // Rotation weight overrides from the API (see MapWeights.ts), spread over
   // each map's info.json frequencies when a playlist is built.
   private weightOverrides: MapWeightOverrides = {};
+
+  // null turns the trusted-only rotation off.
+  constructor(private readonly trustedEvery: number | null = null) {}
 
   // Queued playlists were built from the old weights, so drop them: a map
   // pulled to 0 must stop appearing now, not after a full rotation.
@@ -151,7 +191,8 @@ export class MapPlaylist {
 
   public async gameConfig(type: ScheduledPublicGameType): Promise<GameConfig> {
     this.scheduled++;
-    const trusted = this.scheduled % TRUSTED_PUBLIC_EVERY === 0;
+    const trusted =
+      this.trustedEvery !== null && this.scheduled % this.trustedEvery === 0;
     const config = await this.rollConfig(type, trusted);
     if (trusted) {
       config.trusted = true;
@@ -165,6 +206,9 @@ export class MapPlaylist {
   ): Promise<GameConfig> {
     if (type === "special") {
       return this.getSpecialConfig(trusted);
+    }
+    if (type === "goldrush") {
+      return this.getGoldRushConfig();
     }
 
     const mode = type === "ffa" ? GameMode.FFA : GameMode.Team;
@@ -225,6 +269,50 @@ export class MapPlaylist {
       // Overtime (the win threshold sinking after 30 minutes) is the default
       // for every public FFA game, so it carries no lobby modifier badge.
       overtime: mode === GameMode.FFA ? { enabled: true } : undefined,
+    } satisfies GameConfig;
+  }
+
+  private async getGoldRushConfig(): Promise<GameConfig> {
+    const map = this.getNextMap("goldrush");
+    const noMissiles = this.goldRushScheduled++ % 2 === 0;
+    const difficulty = noMissiles
+      ? Difficulty.Medium
+      : GOLD_RUSH_NATION_DIFFICULTIES[
+          Math.floor(Math.random() * GOLD_RUSH_NATION_DIFFICULTIES.length)
+        ]!;
+    return {
+      donateGold: false,
+      donateTroops: false,
+      gameMap: map,
+      maxPlayers: await this.lobbyMaxPlayers(map, GameMode.FFA),
+      gameType: GameType.Public,
+      gameMapSize: GameMapSize.Normal,
+      publicGameModifiers: {
+        startingGold: GOLD_RUSH_STARTING_GOLD,
+        goldMultiplier: GOLD_RUSH_GOLD_MULTIPLIER,
+        isNukesDisabled: noMissiles || undefined,
+      },
+      startingGold: GOLD_RUSH_STARTING_GOLD,
+      goldMultiplier: GOLD_RUSH_GOLD_MULTIPLIER,
+      difficulty,
+      infiniteGold: false,
+      infiniteTroops: false,
+      maxTimerValue: undefined,
+      instantBuild: false,
+      randomSpawn: false,
+      // Nations have no PVP immunity, so a rich start normally leaves them
+      // out (see rollConfig). Gold rush keeps them in both variants: with few
+      // players online, a lobby without nations is one player against bots.
+      nations: "default",
+      gameMode: GameMode.FFA,
+      bots: 400,
+      spawnImmunityDuration: this.getSpawnImmunityDuration(
+        undefined,
+        GOLD_RUSH_STARTING_GOLD,
+      ),
+      disabledUnits: noMissiles ? [...MISSILE_UNITS] : [],
+      disableClanTags: true,
+      overtime: { enabled: true },
     } satisfies GameConfig;
   }
 
@@ -524,6 +612,7 @@ export class MapPlaylist {
     if (type === "special") {
       return mode === GameMode.Team ? "specialTeam" : "specialFfa";
     }
+    if (type === "goldrush") return "goldRush";
     return type;
   }
 
@@ -623,6 +712,10 @@ export class MapPlaylist {
                 ? mapInfo.ffaFrequency
                 : mapInfo.multiplayerFrequency;
           }
+          break;
+        case "goldrush":
+          // A fixed list, one ticket each: the map files decide nothing here.
+          freq = GOLD_RUSH_MAPS.includes(map) ? 1 : 0;
           break;
       }
       for (let i = 0; i < freq; i++) {

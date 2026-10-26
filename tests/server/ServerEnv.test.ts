@@ -263,6 +263,6 @@ describe("ServerEnv.siteHost", () => {
   });
 });
 
-test("LandWar runs turns at 1.25x speed", () => {
+test("Kleopolis runs turns at 1.25x speed", () => {
   expect(ServerEnv.turnIntervalMs()).toBe(80);
 });

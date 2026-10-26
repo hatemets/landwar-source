@@ -6,6 +6,7 @@ import { ClientEnv } from "../../ClientEnv";
 import { Controller } from "../../Controller";
 import { NewLobbyEvent } from "../../Transport";
 import { GameView } from "../../view";
+import { menuIcon } from "../../components/ui/MenuIcon";
 
 // Shown to non-host players when the host reuses the private lobby for another
 // game. It reacts to NewLobbyEvent (fired when the server broadcasts the
@@ -75,11 +76,11 @@ export class NewLobbyPrompt extends LitElement implements Controller {
           @click=${this._handleJoin}
         ></o-button>
         <button
-          class="size-8 rounded-md text-white/70 hover:text-white hover:bg-gray-800 text-base leading-none transition-colors"
+          class="size-8 inline-flex items-center justify-center rounded-md text-white/70 hover:text-white hover:bg-gray-800 text-base leading-none transition-colors"
           aria-label=${translateText("new_lobby_prompt.dismiss")}
           @click=${this._handleDismiss}
         >
-          ✕
+          ${menuIcon("x", "size-4")}
         </button>
       </div>
     `;

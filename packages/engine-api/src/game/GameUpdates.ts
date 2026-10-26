@@ -68,6 +68,12 @@ export interface GameUpdateViewData {
   tickExecutionDuration?: number;
   pendingTurns?: number;
   /**
+   * True on the first tick of a game restored from a snapshot: the updates
+   * then also hold the whole state (every unit, owned tile, railroad...),
+   * not only what changed this tick.
+   */
+  fullState?: boolean;
+  /**
    * Packed tile refs that were inside a nuke blast radius this tick.
    * Used by the renderer to mark nukeable layer tiles as destroyed.
    * Absent when no nukes detonated.

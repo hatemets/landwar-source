@@ -1,4 +1,4 @@
-import { createDb, type DbHandle } from "@landwar/db/client";
+import { createDb, type DbHandle } from "@kleopolis/db/client";
 import { databaseUrl } from "./auth/config";
 
 let handle: DbHandle | null = null;

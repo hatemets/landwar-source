@@ -50,6 +50,7 @@ services:
     command:
       - "--address=0.0.0.0"
       - "--port=5432"
+      - "--private-ip"
       - "${CLOUDSQL_CONNECTION}"
     logging: *logging
 

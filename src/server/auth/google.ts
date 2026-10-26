@@ -20,14 +20,16 @@ const UserInfoSchema = z.object({
   picture: z.url().optional(),
 });
 
-export interface GoogleProfile {
+// The account details a sign-in provider gives. `sub` is the provider's own
+// stable id for the person.
+export interface ProviderProfile {
   sub: string;
   email: string;
   name: string;
   picture: string | null;
 }
 
-export interface GoogleLoginStart {
+export interface OAuthLoginStart {
   url: URL;
   state: string;
   codeVerifier: string;
@@ -43,7 +45,7 @@ function client(): OAuth2Client {
 
 // Starts Authorization Code + PKCE. The caller stores state and verifier in
 // short-lived cookies and checks them on the callback.
-export function startGoogleLogin(): GoogleLoginStart {
+export function startGoogleLogin(): OAuthLoginStart {
   const state = generateState();
   const codeVerifier = generateCodeVerifier();
   const url = client().createAuthorizationURLWithPKCE(
@@ -61,7 +63,7 @@ export async function finishGoogleLogin(
   code: string,
   codeVerifier: string,
   fetchFn: typeof fetch = fetch,
-): Promise<GoogleProfile> {
+): Promise<ProviderProfile> {
   const tokens = await client().validateAuthorizationCode(
     googleEndpoints().token,
     code,
@@ -74,7 +76,7 @@ export async function finishGoogleLogin(
 export async function readGoogleProfile(
   accessToken: string,
   fetchFn: typeof fetch = fetch,
-): Promise<GoogleProfile> {
+): Promise<ProviderProfile> {
   const response = await fetchFn(googleEndpoints().userinfo, {
     headers: { authorization: `Bearer ${accessToken}` },
   });

@@ -20,6 +20,7 @@ import { repeat } from "lit/directives/repeat.js";
 import { Theme, themeProvider } from "../theme/ThemeProvider";
 import { UserSettings } from "../UserSettings";
 import { getTranslatedPlayerTeamLabel, translateText } from "../Utils";
+import { menuIcon } from "./ui/MenuIcon";
 
 export interface TeamPreviewData {
   team: Team;
@@ -242,11 +243,13 @@ export class LobbyTeamView extends LitElement {
     return html`<button
       @click=${() => this.onToggleNameReveal?.(clientID)}
       title=${translateText("host_modal.toggle_name_reveal")}
-      style="background:none;border:none;cursor:pointer;font-size:13px;line-height:1;margin-left:4px;opacity:${on
+      aria-label=${translateText("host_modal.toggle_name_reveal")}
+      aria-pressed=${on}
+      style="display:inline-flex;align-items:center;background:none;border:none;cursor:pointer;line-height:1;margin-left:4px;opacity:${on
         ? "1"
         : "0.35"};"
     >
-      👁
+      ${menuIcon("eye", "size-3.5")}
     </button>`;
   }
 

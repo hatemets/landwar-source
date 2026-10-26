@@ -9,6 +9,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import { SendPlayerReportEvent } from "../../Transport";
 import { translateText } from "../../Utils";
 import { PlayerView } from "../../view";
+import { menuIcon } from "../../components/ui/MenuIcon";
 const reportIcon = assetUrl("images/SirenIconWhite.svg");
 
 // Picks a reason and files a report against `target` with the game server,
@@ -108,7 +109,7 @@ export class PlayerReportModal extends LitElement {
                 aria-label=${translateText("common.close")}
                 title=${translateText("common.close")}
               >
-                ✕
+                ${menuIcon("x", "size-4")}
               </button>
             </div>
 

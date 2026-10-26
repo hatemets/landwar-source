@@ -17,7 +17,7 @@ export interface NukeMagnitude {
   outer: number;
 }
 
-// LandWar defaults: 2x gold and 1.25x the original 100 ms tick rate.
+// Kleopolis defaults: 2x gold and 1.25x the original 100 ms tick rate.
 export const DEFAULT_GOLD_MULTIPLIER = 2;
 export const DEFAULT_TURN_INTERVAL_MS = 100 / 1.25;
 

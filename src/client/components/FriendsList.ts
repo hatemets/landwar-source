@@ -13,6 +13,7 @@ import { showInGameConfirm } from "../InGameModal";
 import { parsePlayerProfilePath } from "../utilities/PlayerProfileUrl";
 import { showToast, translateText } from "../Utils";
 import { playerNameLink } from "./ui/PlayerNameLink";
+import { menuIcon } from "./ui/MenuIcon";
 
 const PAGE_LIMIT = 20;
 
@@ -279,7 +280,7 @@ export class FriendsList extends LitElement {
       <div
         class="bg-blue-500/10 border border-blue-500/30 rounded-xl p-3 flex items-center gap-3"
       >
-        <span class="text-blue-400 text-lg shrink-0">🛡️</span>
+        ${menuIcon("shield", "size-5 text-blue-400")}
         <p class="text-sm text-white/80">
           ${translateText("friends.team_info")}
         </p>
@@ -291,7 +292,7 @@ export class FriendsList extends LitElement {
     return html`
       <div class="bg-white/5 rounded-xl border border-white/10 p-6">
         <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
-          <span class="text-blue-400">➕</span>
+          ${menuIcon("user-plus", "size-5 text-blue-400")}
           ${translateText("friends.add_friend")}
         </h3>
         <div class="flex flex-col sm:flex-row gap-3">
@@ -327,7 +328,7 @@ export class FriendsList extends LitElement {
     return html`
       <div class="bg-white/5 rounded-xl border border-white/10 p-6">
         <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
-          <span class="text-blue-400">✉️</span>
+          ${menuIcon("mail", "size-5 text-blue-400")}
           ${translateText("friends.pending_requests")}
         </h3>
         ${this.incoming.length > 0
@@ -416,7 +417,7 @@ export class FriendsList extends LitElement {
         <div
           class="bg-white/5 rounded-xl border border-white/10 p-12 flex flex-col items-center justify-center text-center"
         >
-          <div class="text-4xl mb-3">👥</div>
+          <div class="mb-3 text-white/40">${menuIcon("users", "size-10")}</div>
           <p class="text-white/60 text-sm">
             ${translateText("friends.no_friends")}
           </p>
@@ -427,7 +428,7 @@ export class FriendsList extends LitElement {
     return html`
       <div class="bg-white/5 rounded-xl border border-white/10 p-6">
         <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
-          <span class="text-blue-400">👥</span>
+          ${menuIcon("users", "size-5 text-blue-400")}
           ${translateText("friends.your_friends")}
           <span class="text-xs text-white/40 font-medium">
             (${this.friendsTotal})

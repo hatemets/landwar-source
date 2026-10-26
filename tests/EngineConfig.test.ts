@@ -25,7 +25,7 @@ describe("EngineConfig.unitInfo", () => {
   });
 });
 
-describe("LandWar defaults", () => {
+describe("Kleopolis defaults", () => {
   it("uses 2x gold and preserves an explicit multiplier", () => {
     expect(new EngineConfig({} as GameConfig, false).goldMultiplier()).toBe(2);
     expect(

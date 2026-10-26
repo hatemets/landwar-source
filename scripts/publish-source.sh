@@ -41,7 +41,7 @@ done
 
 git -C "$WORK" add -A -f
 git -C "$WORK" \
-  -c user.name="LandWar" -c user.email="noreply@github.com" \
+  -c user.name="Kleopolis" -c user.email="noreply@github.com" \
   commit -q --allow-empty -m "Source of build ${SHA:-$REV}"
 
 if [ -n "$SHA" ]; then

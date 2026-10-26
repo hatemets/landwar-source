@@ -1,4 +1,4 @@
-import { runMigrations } from "@landwar/db/migrate";
+import { runMigrations } from "@kleopolis/db/migrate";
 import { GameEnv } from "@openfront/shared/configuration/Env";
 import cluster from "cluster";
 import crypto from "crypto";
@@ -9,6 +9,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { databaseUrl } from "./auth/config";
 import { registerAuthRoutes } from "./auth/routes";
+import { registerUsernameRoutes } from "./auth/usernameRoutes";
 import {
   applyCheckinState,
   CHECKIN_INTERVAL_MS,
@@ -51,9 +52,24 @@ const log = logger.child({ comp: "m" });
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-app.use(express.json());
+// Before the routes: middleware added after them never runs for their paths.
+app.set("trust proxy", TRUSTED_PROXY_HOPS);
+app.use(
+  rateLimit({
+    windowMs: 1000, // 1 second
+    max: 20, // 20 requests per IP per second
+  }),
+);
+
+app.use("/api", (_req, res, next) => {
+  setNoStoreHeaders(res);
+  next();
+});
+
+app.use(express.json({ limit: "64kb" }));
 
 registerAuthRoutes(app);
+registerUsernameRoutes(app);
 registerStatsRoutes(app);
 registerClusterListRoute(app);
 registerFriendsRoutes(app);
@@ -89,19 +105,6 @@ app.use(
     },
   }),
 );
-
-app.set("trust proxy", TRUSTED_PROXY_HOPS);
-app.use(
-  rateLimit({
-    windowMs: 1000, // 1 second
-    max: 20, // 20 requests per IP per second
-  }),
-);
-
-app.use("/api", (_req, res, next) => {
-  setNoStoreHeaders(res);
-  next();
-});
 
 // Start the master process
 export async function startMaster() {

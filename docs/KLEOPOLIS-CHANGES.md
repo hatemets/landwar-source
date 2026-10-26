@@ -1,6 +1,6 @@
-# LandWar changes to the OpenFront base
+# Kleopolis changes to the OpenFront base
 
-LandWar is a fork of OpenFront. See `NOTICE.md` for the upstream credit. This file lists what the fork removes or stubs, and why. For the upstream design, see `docs/Architecture.md`.
+Kleopolis is a fork of OpenFront. See `NOTICE.md` for the upstream credit. This file lists what the fork removes or stubs, and why. For the upstream design, see `docs/Architecture.md`.
 
 ## Kept
 

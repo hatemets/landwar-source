@@ -1,5 +1,5 @@
-import type { Db } from "@landwar/db/client";
-import { sessions, users } from "@landwar/db/schema";
+import type { Db } from "@kleopolis/db/client";
+import { sessions, users } from "@kleopolis/db/schema";
 import { createHash, randomBytes } from "crypto";
 import { eq } from "drizzle-orm";
 import { SESSION_TTL_MS } from "./config";

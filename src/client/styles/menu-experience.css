@@ -857,6 +857,14 @@ body:not(.in-game) #sidebar-menu .nav-menu-item.active {
 .auth-experience o-button button:hover {
   background: var(--field-hover) !important;
 }
+/* Discord brand guidelines: white mark and text on Blurple. */
+.auth-provider-discord {
+  background: #5865f2 !important;
+  color: #fff !important;
+}
+.auth-provider-discord:hover {
+  background: #4752c4 !important;
+}
 .auth-email-form {
   display: grid;
   gap: 12px;
@@ -1961,6 +1969,8 @@ body.page-chromeless .menu-topbar-spacer {
   line-height: 1.5;
 }
 .auth-page__options {
+  display: grid;
+  gap: 12px;
   width: 100%;
 }
 .auth-page .lw-notice {

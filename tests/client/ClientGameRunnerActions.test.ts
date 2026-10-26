@@ -114,6 +114,7 @@ function makeRunner(overrides: {
     isLand: () => true,
     hasOwner: () => overrides.hasOwner ?? false,
     owner: () => ({ id: () => "enemy1" }),
+    gameOver: () => false,
     playerByClientID: vi.fn(overrides.playerByClientID ?? (() => myPlayer)),
     euclideanDistSquared: () => overrides.boatDistSquared ?? 0,
   };

@@ -1,6 +1,7 @@
 import { LitElement, PropertyValues, html } from "lit";
 import { customElement, property, query, state } from "lit/decorators.js";
 import { documentStylesSheet } from "./SharedStyles";
+import { menuIcon } from "../ui/MenuIcon";
 
 export type OModalTab = { key: string; label: string };
 
@@ -189,7 +190,7 @@ export class OModal extends LitElement {
                 class="absolute top-5 right-5 z-10 text-white cursor-pointer"
                 @click=${() => this.close()}
               >
-                ✕
+                ${menuIcon("x", "size-4")}
               </div>`}
           ${!this.hideHeader && this.title
             ? html`<div

@@ -210,7 +210,7 @@ export function matchmakingSite(): string | undefined {
 }
 
 export function serverListUrl(site: string): string {
-  // LandWar has no cluster API. The game server lists itself.
+  // Kleopolis has no cluster API. The game server lists itself.
   return `/api/cluster.json?site=${encodeURIComponent(site)}`;
 }
 

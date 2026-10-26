@@ -6,7 +6,12 @@ acme_email = "you@example.com"
 # Google OAuth client (APIs & Services > Credentials). Redirect URI:
 # https://landwar.example/api/auth/google/callback
 google_client_id     = "1234567890-abc.apps.googleusercontent.com"
-google_client_secret = "GOCSPX-..."
+# Keep google_client_secret out of this file: export it as
+# TF_VAR_google_client_secret (for example from the OS keychain).
+# Optional. Discord OAuth application, redirect URI:
+# https://landwar.example/api/auth/discord/callback
+# discord_client_id     = "123456789012345678"
+# discord_client_secret = "..."
 
 # Cheapest: an external Postgres such as Neon (free tier).
 database              = "external"

@@ -16,7 +16,13 @@ import {
   SESSION_COOKIE,
   SESSION_TTL_MS,
 } from "./config";
-import { finishGoogleLogin, startGoogleLogin } from "./google";
+import { finishDiscordLogin, startDiscordLogin } from "./discord";
+import {
+  finishGoogleLogin,
+  type OAuthLoginStart,
+  type ProviderProfile,
+  startGoogleLogin,
+} from "./google";
 import { signJoinToken } from "./joinToken";
 import {
   createSession,
@@ -24,7 +30,7 @@ import {
   userForSession,
   type UserRow,
 } from "./sessions";
-import { upsertGoogleUser } from "./users";
+import { type AuthProvider, findUserById, upsertProviderUser } from "./users";
 
 const log = logger.child({ comp: "auth" });
 
@@ -82,6 +88,9 @@ export function publicUser(user: UserRow) {
     displayName: user.displayName,
     email: user.email,
     avatarUrl: user.avatarUrl,
+    // The sign-in methods on the account.
+    google: user.googleSub !== null,
+    discord: user.discordId !== null,
   };
 }
 
@@ -98,57 +107,8 @@ export function registerAuthRoutes(app: Express): void {
   });
   app.use("/api/auth", limiter);
 
-  app.get("/api/auth/google", (req, res) => {
-    let start: ReturnType<typeof startGoogleLogin>;
-    try {
-      start = startGoogleLogin();
-    } catch (error) {
-      log.error("Google sign-in is not configured", { error: String(error) });
-      res.status(503).json({ error: "google_not_configured" });
-      return;
-    }
-    const maxAge = OAUTH_COOKIE_TTL_MS;
-    res.cookie(OAUTH_STATE_COOKIE, start.state, cookieOptions(maxAge));
-    res.cookie(
-      OAUTH_VERIFIER_COOKIE,
-      start.codeVerifier,
-      cookieOptions(maxAge),
-    );
-    res.cookie(
-      OAUTH_RETURN_COOKIE,
-      safeReturnPath(req.query.return),
-      cookieOptions(maxAge),
-    );
-    res.redirect(302, start.url.toString());
-  });
-
-  app.get("/api/auth/google/callback", async (req, res) => {
-    const clearOauth = () => {
-      res.clearCookie(OAUTH_STATE_COOKIE, { path: "/" });
-      res.clearCookie(OAUTH_VERIFIER_COOKIE, { path: "/" });
-      res.clearCookie(OAUTH_RETURN_COOKIE, { path: "/" });
-    };
-    const state = readCookie(req, OAUTH_STATE_COOKIE);
-    const verifier = readCookie(req, OAUTH_VERIFIER_COOKIE);
-    const code = typeof req.query.code === "string" ? req.query.code : "";
-    const returned = typeof req.query.state === "string" ? req.query.state : "";
-    const returnPath = safeReturnPath(readCookie(req, OAUTH_RETURN_COOKIE));
-    clearOauth();
-    if (!state || !verifier || !code || returned !== state) {
-      res.redirect(302, "/?auth=failed");
-      return;
-    }
-    try {
-      const profile = await finishGoogleLogin(code, verifier);
-      const user = await upsertGoogleUser(db().db, profile);
-      const session = await createSession(db().db, user.id);
-      res.cookie(SESSION_COOKIE, session.token, cookieOptions(SESSION_TTL_MS));
-      res.redirect(302, returnPath);
-    } catch (error) {
-      log.error("Google sign-in failed", { error: String(error) });
-      res.redirect(302, "/?auth=failed");
-    }
-  });
+  registerProviderRoutes(app, "google", startGoogleLogin, finishGoogleLogin);
+  registerProviderRoutes(app, "discord", startDiscordLogin, finishDiscordLogin);
 
   app.post("/api/auth/logout", requireSameOrigin, async (req, res) => {
     const token = readCookie(req, SESSION_COOKIE);
@@ -190,9 +150,12 @@ export function registerAuthRoutes(app: Express): void {
     const user = sessionToken
       ? await userForSession(db().db, sessionToken)
       : null;
+    const guestId = parsed.data.guestId;
+    const guestIdFree =
+      user === null && guestId !== undefined && (await isFreeGuestId(guestId));
     const claims = user
       ? { sub: user.id, kind: "user" as const }
-      : { sub: parsed.data.guestId ?? randomUUID(), kind: "guest" as const };
+      : { sub: guestIdFree ? guestId : randomUUID(), kind: "guest" as const };
     const issued = await signJoinToken(claims);
     res.setHeader("Cache-Control", "no-store");
     res.json({
@@ -201,5 +164,99 @@ export function registerAuthRoutes(app: Express): void {
       kind: claims.kind,
       id: claims.sub,
     });
+  });
+}
+
+// Account ids are not secret (profiles show them), so a guest may not claim
+// one: rejoin and stats match on the id alone. If the database cannot answer,
+// the guest gets a new id rather than no token.
+async function isFreeGuestId(guestId: string): Promise<boolean> {
+  try {
+    return (await findUserById(db().db, guestId)) === null;
+  } catch (error) {
+    log.warn("guest id check failed", { error: String(error) });
+    return false;
+  }
+}
+
+// GET /api/auth/<provider> sends the browser to the provider, and its callback
+// signs the player in. A player who is already signed in links the provider to
+// their account instead, and lands on the account page with the result.
+function registerProviderRoutes(
+  app: Express,
+  provider: AuthProvider,
+  start: () => OAuthLoginStart,
+  finish: (code: string, codeVerifier: string) => Promise<ProviderProfile>,
+): void {
+  app.get(`/api/auth/${provider}`, (req, res) => {
+    let login: OAuthLoginStart;
+    try {
+      login = start();
+    } catch (error) {
+      log.error(`${provider} sign-in is not configured`, {
+        error: String(error),
+      });
+      res.status(503).json({ error: `${provider}_not_configured` });
+      return;
+    }
+    const maxAge = OAUTH_COOKIE_TTL_MS;
+    res.cookie(OAUTH_STATE_COOKIE, login.state, cookieOptions(maxAge));
+    res.cookie(
+      OAUTH_VERIFIER_COOKIE,
+      login.codeVerifier,
+      cookieOptions(maxAge),
+    );
+    res.cookie(
+      OAUTH_RETURN_COOKIE,
+      safeReturnPath(req.query.return),
+      cookieOptions(maxAge),
+    );
+    res.redirect(302, login.url.toString());
+  });
+
+  app.get(`/api/auth/${provider}/callback`, async (req, res) => {
+    const clearOauth = () => {
+      res.clearCookie(OAUTH_STATE_COOKIE, { path: "/" });
+      res.clearCookie(OAUTH_VERIFIER_COOKIE, { path: "/" });
+      res.clearCookie(OAUTH_RETURN_COOKIE, { path: "/" });
+    };
+    const state = readCookie(req, OAUTH_STATE_COOKIE);
+    const verifier = readCookie(req, OAUTH_VERIFIER_COOKIE);
+    const code = typeof req.query.code === "string" ? req.query.code : "";
+    const returned = typeof req.query.state === "string" ? req.query.state : "";
+    const returnPath = safeReturnPath(readCookie(req, OAUTH_RETURN_COOKIE));
+    clearOauth();
+    if (!state || !verifier || !code || returned !== state) {
+      res.redirect(302, "/?auth=failed");
+      return;
+    }
+    const sessionToken = readCookie(req, SESSION_COOKIE);
+    const signedIn = sessionToken
+      ? await userForSession(db().db, sessionToken)
+      : null;
+    try {
+      const profile = await finish(code, verifier);
+      const result = await upsertProviderUser(
+        db().db,
+        provider,
+        profile,
+        signedIn?.id ?? null,
+      );
+      if (signedIn !== null) {
+        const link = result.type === "ok" ? provider : "already_linked";
+        res.redirect(302, `/#modal=account&link=${link}`);
+        return;
+      }
+      if (result.type !== "ok") throw new Error("no account to sign in to");
+      const session = await createSession(db().db, result.user.id);
+      res.cookie(SESSION_COOKIE, session.token, cookieOptions(SESSION_TTL_MS));
+      res.redirect(302, returnPath);
+    } catch (error) {
+      log.error(`${provider} sign-in failed`, { error: String(error) });
+      res.redirect(
+        302,
+        signedIn !== null ? "/#modal=account&link=error" : "/?auth=failed",
+      );
+    }
   });
 }

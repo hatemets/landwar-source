@@ -8,6 +8,7 @@ import {
   homeHref,
   translateText,
 } from "../../../client/Utils";
+import { track } from "../../Analytics";
 import { Controller } from "../../Controller";
 import { PlaySoundEffectEvent } from "../../sound/Sounds";
 import { SendWinnerEvent } from "../../Transport";
@@ -19,6 +20,8 @@ export class WinModal extends LitElement implements Controller {
   public eventBus: EventBus;
 
   private hasShownDeathModal = false;
+  // Death and then the win screen both show this modal; count one end.
+  private endTracked = false;
 
   @state()
   isVisible = false;
@@ -157,6 +160,14 @@ export class WinModal extends LitElement implements Controller {
   show() {
     this.isRankedGame =
       this.game.config().gameConfig().rankedType !== undefined;
+    if (!this.endTracked) {
+      this.endTracked = true;
+      track("match_ended", {
+        result: this.art ?? (this.isWin ? "win" : "none"),
+        ranked: this.isRankedGame,
+        game_type: this.game.config().gameConfig().gameType,
+      });
+    }
     this.isVisible = true;
     this.requestUpdate();
   }
@@ -173,6 +184,7 @@ export class WinModal extends LitElement implements Controller {
 
   private _handleRequeue() {
     this.hide();
+    track("rematch_started", { ranked: true });
     // Requeue for the same mode; Main owns the mechanism (currently a
     // reload with the requeue param, which reopens the queue after the
     // page teardown).

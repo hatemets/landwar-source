@@ -66,20 +66,9 @@ function updateInstance(
   nav: NavAccountElements,
   userMeResponse: UserMeResponse | false,
 ) {
-  const { trigger, avatar: avatarEl, personIcon: personIconEl } = nav;
+  const { avatar: avatarEl, personIcon: personIconEl } = nav;
   const emailBadgeEl = nav.emailBadge;
   const signInTextEl = nav.signInText;
-
-  // The border only belongs on triggers that opt in (the desktop pill); the
-  // mobile icon has no pill outline.
-  const setBordered = (bordered: boolean) => {
-    if (!trigger.hasAttribute("data-account-border")) return;
-    if (bordered) {
-      trigger.classList.add("border", "border-white/20");
-    } else {
-      trigger.classList.remove("border", "border-white/20");
-    }
-  };
 
   // Unique token for this update call
   const navToken = Symbol();
@@ -93,7 +82,6 @@ function updateInstance(
     personIconEl?.classList.remove("hidden");
     emailBadgeEl?.classList.add("hidden");
     signInTextEl?.classList.add("hidden");
-    setBordered(true);
   };
 
   const showAvatar = (src: string, alt?: string) => {
@@ -119,7 +107,6 @@ function updateInstance(
     personIconEl?.classList.add("hidden");
     emailBadgeEl?.classList.add("hidden");
     signInTextEl?.classList.add("hidden");
-    setBordered(false);
   };
 
   const showSignIn = () => {
@@ -127,8 +114,6 @@ function updateInstance(
     personIconEl?.classList.remove("hidden");
     emailBadgeEl?.classList.add("hidden");
     signInTextEl?.classList.remove("hidden");
-    // Restore border when showing signin state
-    setBordered(true);
   };
 
   const showEmailLoggedIn = () => {
@@ -136,7 +121,6 @@ function updateInstance(
     personIconEl?.classList.remove("hidden");
     emailBadgeEl?.classList.remove("hidden");
     signInTextEl?.classList.add("hidden");
-    setBordered(true);
   };
 
   const discord =

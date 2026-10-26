@@ -523,6 +523,11 @@ export class GameMapImpl implements GameMap {
     return h >>> 0;
   }
 
+  /** Tiles whose terrain differs from the map file (water nukes). */
+  terrainEditedTiles(): Iterable<TileRef> {
+    return this.pristineTerrain?.keys() ?? [];
+  }
+
   /**
    * Terrain as a diff against the map file, plus fallout and defense bits.
    * Owner bits are not stored: every player's ordered tile list already says

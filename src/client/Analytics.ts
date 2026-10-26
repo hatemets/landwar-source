@@ -28,8 +28,30 @@ export function initAnalytics(): void {
         cookieless_mode: "always",
         person_profiles: "never",
         capture_pageview: "history_change",
+        // Uncaught errors, as the plan's client_error event.
+        capture_exceptions: true,
       });
       return ph;
     })
     .catch(() => null);
+}
+
+/**
+ * The funnel events the business plan measures (MARKET-STRATEGY.md section
+ * 9.1). Properties hold only game facts: no names, ids or chat.
+ */
+export type AnalyticsEvent =
+  | "play_clicked"
+  | "invite_opened"
+  | "match_ready"
+  | "first_valid_action"
+  | "match_ended"
+  | "rematch_started";
+
+/** Sends one event. A no-op off production and before initAnalytics. */
+export function track(
+  event: AnalyticsEvent,
+  props?: Record<string, string | number | boolean>,
+): void {
+  void posthog?.then((ph) => ph?.capture(event, props));
 }

@@ -120,7 +120,9 @@ describe("createRandomName (deterministic)", () => {
     const name2 = createRandomName("Alice", PlayerType.Human);
     expect(name1).toBe(name2);
     expect(name1).toBeTruthy();
-    expect(name1).toContain("👤");
+    // "<prefix> <suffix>", with no decoration in front.
+    expect(name1).toMatch(/^[\p{L}\p{N}]/u);
+    expect(name1!.split(" ").length).toBeGreaterThanOrEqual(2);
   });
 
   test("different names produce different random names (usually)", () => {

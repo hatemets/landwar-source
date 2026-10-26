@@ -1,11 +1,32 @@
 # Cloud SQL, only when var.database = "cloudsql". The VM reaches it through
-# the Cloud SQL Auth Proxy container (infra/vm/compose.yaml), so the instance
-# needs no authorized networks.
+# the Cloud SQL Auth Proxy container (infra/vm/compose.yaml) over the VPC, so
+# the instance has a private IP only.
 
 resource "random_password" "db" {
   count   = local.use_cloud ? 1 : 0
   length  = 32
   special = false
+}
+
+data "google_compute_network" "default" {
+  name = "default"
+}
+
+resource "google_compute_global_address" "sql_peering" {
+  count         = local.use_cloud ? 1 : 0
+  name          = "${local.name}-sql-peering"
+  purpose       = "VPC_PEERING"
+  address_type  = "INTERNAL"
+  prefix_length = 20
+  network       = data.google_compute_network.default.id
+  depends_on    = [google_project_service.apis]
+}
+
+resource "google_service_networking_connection" "sql" {
+  count                   = local.use_cloud ? 1 : 0
+  network                 = data.google_compute_network.default.id
+  service                 = "servicenetworking.googleapis.com"
+  reserved_peering_ranges = [google_compute_global_address.sql_peering[0].name]
 }
 
 resource "google_sql_database_instance" "main" {
@@ -25,8 +46,9 @@ resource "google_sql_database_instance" "main" {
     disk_autoresize   = true
 
     ip_configuration {
-      ipv4_enabled = true
-      ssl_mode     = "ENCRYPTED_ONLY"
+      ipv4_enabled    = false
+      private_network = data.google_compute_network.default.id
+      ssl_mode        = "ENCRYPTED_ONLY"
     }
 
     backup_configuration {
@@ -44,7 +66,7 @@ resource "google_sql_database_instance" "main" {
     }
   }
 
-  depends_on = [google_project_service.apis]
+  depends_on = [google_service_networking_connection.sql]
 }
 
 resource "google_sql_database" "main" {

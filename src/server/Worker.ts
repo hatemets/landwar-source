@@ -1,6 +1,6 @@
 import { ID, isValidGameID } from "@openfront/engine-api/Schemas";
 import { CloseCode, CloseReason } from "@openfront/shared/CloseCodes";
-import { generateID, replacer } from "@openfront/shared/SharedUtil";
+import { generateID } from "@openfront/shared/SharedUtil";
 import {
   ClientMessage,
   ClientPlatformSchema,
@@ -65,7 +65,8 @@ export async function startWorker() {
   const __dirname = path.dirname(__filename);
 
   const app = express();
-  app.use(express.json({ limit: "5mb" }));
+  // No route here takes a game record any more; game configs are small.
+  app.use(express.json({ limit: "256kb" }));
   const server = http.createServer(app);
   const wss = new WebSocketServer({
     noServer: true,
@@ -419,9 +420,8 @@ export async function startWorker() {
           // Ignore ping
           return;
         } else if (clientMsg.type !== "join" && clientMsg.type !== "rejoin") {
-          log.warn(
-            `Invalid message before join: ${JSON.stringify(clientMsg, replacer)}`,
-          );
+          // Only the type: the body is unauthenticated and up to maxPayload.
+          log.warn(`Invalid message before join: ${clientMsg.type}`);
           return;
         }
 
@@ -509,7 +509,7 @@ export async function startWorker() {
         // used.
         const censored = censorPlayer(clientMsg.username, null);
         const username = censored.username;
-        // LandWar has no clans, so a player never wears a tag.
+        // Kleopolis has no clans, so a player never wears a tag.
         const clanTag = null;
 
         // Reconnect an existing client, for example after a page refresh.
@@ -537,7 +537,7 @@ export async function startWorker() {
           publicId = user.publicId;
         }
 
-        // Clan tags and cosmetics came from the closed catalog. LandWar does
+        // Clan tags and cosmetics came from the closed catalog. Kleopolis does
         // not honour them yet, so the client gets none.
         // A guest may join only a public lobby. A private lobby needs an account.
         if (!isAccount) {

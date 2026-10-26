@@ -3,9 +3,10 @@ import { customElement, property, state } from "lit/decorators.js";
 import type { ColumnId } from "../../StatsConstants";
 import { translateText } from "../../Utils";
 import type { ColumnDef } from "./lib/StatsColumns";
+import { menuIcon } from "../../components/ui/MenuIcon";
 
 /**
- * ⚙️ button + checkbox popover for choosing which stat columns a panel
+ * Settings button + checkbox popover for choosing which stat columns a panel
  * shows. Emits `columns-changed` (CustomEvent<ColumnId[]>) with the new
  * selection in registry order; the host persists and re-renders.
  */
@@ -133,13 +134,14 @@ export class ColumnPicker extends LitElement {
   render() {
     return html`
       <button
-        class="px-1 leading-none text-xs lg:text-sm rounded-md transition-colors text-white bg-gray-800 hover:bg-gray-700"
+        class="inline-flex items-center justify-center p-1 leading-none rounded-md transition-colors text-white bg-gray-800 hover:bg-gray-700"
         title=${translateText("leaderboard.configure_columns")}
+        aria-label=${translateText("leaderboard.configure_columns")}
         aria-expanded=${this.open}
         aria-haspopup="menu"
         @click=${() => (this.open = !this.open)}
       >
-        ⚙️
+        ${menuIcon("settings", "size-3.5 lg:size-4")}
       </button>
     `;
   }

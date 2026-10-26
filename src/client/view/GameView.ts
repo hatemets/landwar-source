@@ -222,6 +222,11 @@ export class GameView implements GameLike {
     return this.motion.plannedUnitIds();
   }
 
+  /** True on a restored game's first tick, which carries the whole state. */
+  public isFullStateTick(): boolean {
+    return this.lastUpdate?.fullState === true;
+  }
+
   public isCatchingUp(): boolean {
     return (this.lastUpdate?.pendingTurns ?? 0) > 1;
   }

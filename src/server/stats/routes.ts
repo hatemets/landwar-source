@@ -8,7 +8,7 @@ import {
 import { SESSION_COOKIE } from "../auth/config";
 import { readCookie } from "../auth/routes";
 import { userForSession } from "../auth/sessions";
-import { users } from "@landwar/db/schema";
+import { users } from "@kleopolis/db/schema";
 import { eq } from "drizzle-orm";
 import { db } from "../db";
 import { FFA_LADDER, loadGameRecord } from "../GameStore";

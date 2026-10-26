@@ -107,6 +107,8 @@ export const VIEW_DATA_ROUTING: Record<
   packedNukeImpacts: "events",
   tickExecutionDuration: "dropped",
   pendingTurns: "dropped",
+  // Only a game restored from a snapshot sets it; replays never are.
+  fullState: "dropped",
 };
 
 export interface NormalizedFrame {

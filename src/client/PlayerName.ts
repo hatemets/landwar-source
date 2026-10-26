@@ -23,7 +23,7 @@ export interface PlayerNameInputs {
 export interface ResolvedPlayerName {
   name: string;
   source: PlayerNameSource;
-  /** Always false: LandWar has no verified account names. */
+  /** Always false: Kleopolis has no verified account names. */
   verified: boolean;
 }
 
@@ -78,7 +78,7 @@ export function fallbackPlayerName(): ResolvedPlayerName {
   return { name: genAnonUsername(), source: "generated", verified: false };
 }
 
-// LandWar guest callsigns use a descriptor, an animal, and a two-digit suffix.
+// Kleopolis guest callsigns use a descriptor, an animal, and a two-digit suffix.
 // Rejection sampling keeps every combination equally likely.
 const CALLSIGN_PREFIXES = [
   "Iron",

@@ -8,6 +8,7 @@ import { showInGameConfirm } from "../../InGameModal";
 import { SendKickPlayerIntentEvent } from "../../LobbyEvents";
 import { translateText } from "../../Utils";
 import { PlayerView } from "../../view";
+import { menuIcon } from "../../components/ui/MenuIcon";
 const kickIcon = assetUrl("images/ExitIconWhite.svg");
 const shieldIcon = assetUrl("images/ShieldIconWhite.svg");
 
@@ -136,7 +137,7 @@ export class PlayerModerationModal extends LitElement {
                 aria-label=${translateText("common.close")}
                 title=${translateText("common.close")}
               >
-                ✕
+                ${menuIcon("x", "size-4")}
               </button>
             </div>
 

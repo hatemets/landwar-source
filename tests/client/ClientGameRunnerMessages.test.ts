@@ -151,6 +151,7 @@ function makeStartedRunner(
     inSpawnPhase: () => false,
     myPlayer: () => null,
     update: vi.fn(),
+    gameOver: () => false,
   };
   const soundManager = { playBackgroundMusic: vi.fn(), dispose: vi.fn() };
   const userSettings = { goToPlayer: () => false };

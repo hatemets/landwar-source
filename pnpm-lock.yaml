@@ -8,7 +8,7 @@ importers:
 
   .:
     dependencies:
-      '@landwar/db':
+      '@kleopolis/db':
         specifier: workspace:*
         version: link:packages/db
       '@openfront/engine':

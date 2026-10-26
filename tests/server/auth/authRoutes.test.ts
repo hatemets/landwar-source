@@ -27,7 +27,10 @@ afterAll(async () => {
 });
 
 describe("auth routes without a database", () => {
-  it("issues a guest token to the same origin and keeps the guest id", async () => {
+  // Keeping the guest id needs the database to check it is no account's id;
+  // googleLogin.db.test.ts covers that. Without one, the guest gets a new id,
+  // so this test does not check which id it is.
+  it("issues a guest token to the same origin", async () => {
     const res = await fetch(`${base}/api/auth/token`, {
       method: "POST",
       headers: { "content-type": "application/json", origin: ORIGIN },
@@ -40,9 +43,8 @@ describe("auth routes without a database", () => {
       id: string;
     };
     expect(body.kind).toBe("guest");
-    expect(body.id).toBe(GUEST_ID);
     const verified = await verifyJoinToken(body.token);
-    expect(verified.type === "success" && verified.claims.sub).toBe(GUEST_ID);
+    expect(verified.type === "success" && verified.claims.sub).toBe(body.id);
   });
 
   it("refuses a token request from another origin", async () => {

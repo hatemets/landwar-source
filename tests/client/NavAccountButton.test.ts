@@ -13,7 +13,7 @@ vi.mock("../../src/client/Utils", () => ({
 // icon. One update call must drive both.
 function mountNav() {
   document.body.innerHTML = `
-    <button id="nav-account-button" data-account-trigger data-account-border>
+    <button id="nav-account-button" data-account-trigger>
       <span id="nav-account-loading-spinner" data-account-spinner></span>
       <img id="nav-account-avatar" data-account-avatar class="hidden" />
       <svg id="nav-account-person-icon" data-account-person-icon class="hidden"></svg>
@@ -160,13 +160,5 @@ describe("updateAccountNavButton", () => {
     );
     expect(hidden(nav.mobile.spinner)).toBe(true);
     expect(hidden(nav.spinner)).toBe(true);
-  });
-
-  it("only borders triggers that opt in", () => {
-    updateAccountNavButton(false);
-    // The desktop pill keeps its outline in the signed-out state; the mobile
-    // icon has no pill, so it must never gain one.
-    expect(nav.button.classList.contains("border")).toBe(true);
-    expect(nav.mobile.button.classList.contains("border")).toBe(false);
   });
 });

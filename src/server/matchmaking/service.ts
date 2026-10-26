@@ -1,4 +1,4 @@
-import { playerRatings } from "@landwar/db/schema";
+import { playerRatings } from "@kleopolis/db/schema";
 import { and, eq } from "drizzle-orm";
 import type { IncomingMessage, Server } from "http";
 import type { Duplex } from "stream";

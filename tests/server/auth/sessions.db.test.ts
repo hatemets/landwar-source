@@ -1,6 +1,6 @@
-import { createDb, type DbHandle } from "@landwar/db/client";
-import { runMigrations } from "@landwar/db/migrate";
-import { users } from "@landwar/db/schema";
+import { createDb, type DbHandle } from "@kleopolis/db/client";
+import { runMigrations } from "@kleopolis/db/migrate";
+import { users } from "@kleopolis/db/schema";
 import { randomUUID } from "crypto";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -9,7 +9,7 @@ import {
   deleteSession,
   userForSession,
 } from "../../../src/server/auth/sessions";
-import { upsertGoogleUser } from "../../../src/server/auth/users";
+import { googleUser } from "../../util/TestUsers";
 
 // Runs only when TEST_DATABASE_URL is set. The test database is migrated first.
 const url = process.env.TEST_DATABASE_URL;
@@ -29,7 +29,7 @@ describe.skipIf(!url)("sessions (database)", () => {
   });
 
   it("creates, resolves, and deletes a session", async () => {
-    const user = await upsertGoogleUser(handle.db, {
+    const user = await googleUser(handle.db, {
       sub: googleSub,
       email: "db-test@example.com",
       name: "DB Test",
@@ -44,7 +44,7 @@ describe.skipIf(!url)("sessions (database)", () => {
   });
 
   it("refuses an expired session and removes it", async () => {
-    const user = await upsertGoogleUser(handle.db, {
+    const user = await googleUser(handle.db, {
       sub: googleSub,
       email: "db-test@example.com",
       name: "DB Test",
@@ -59,14 +59,14 @@ describe.skipIf(!url)("sessions (database)", () => {
     expect(await userForSession(handle.db, session.token, past)).toBeNull();
   });
 
-  it("keeps the public id when the same Google account signs in again", async () => {
-    const first = await upsertGoogleUser(handle.db, {
+  it("keeps the public id and name when the same Google account signs in again", async () => {
+    const first = await googleUser(handle.db, {
       sub: googleSub,
       email: "db-test@example.com",
       name: "First",
       picture: null,
     });
-    const second = await upsertGoogleUser(handle.db, {
+    const second = await googleUser(handle.db, {
       sub: googleSub,
       email: "db-test@example.com",
       name: "Second",
@@ -74,6 +74,6 @@ describe.skipIf(!url)("sessions (database)", () => {
     });
     expect(second.id).toBe(first.id);
     expect(second.publicId).toBe(first.publicId);
-    expect(second.displayName).toBe("Second");
+    expect(second.displayName).toBe(first.displayName);
   });
 });

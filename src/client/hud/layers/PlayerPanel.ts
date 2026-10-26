@@ -42,6 +42,7 @@ import { EmojiTable } from "./EmojiTable";
 import "./PlayerModerationModal";
 import "./PlayerReportModal";
 import "./SendResourceModal";
+import { menuIcon } from "../../components/ui/MenuIcon";
 const allianceIcon = assetUrl("images/AllianceIconWhite.svg");
 const chatIcon = assetUrl("images/ChatIconWhite.svg");
 const donateGoldIcon = assetUrl("images/DonateGoldIconWhite.svg");
@@ -407,20 +408,20 @@ export class PlayerPanel extends LitElement implements Controller {
         return {
           labelKey: "player_type.nation",
           classes: "bg-indigo-500/15 text-indigo-200",
-          icon: "🏛️",
+          icon: "landmark" as const,
         };
       case PlayerType.Bot:
         return {
           labelKey: "player_type.bot",
           classes: "bg-purple-500/15 text-purple-200",
-          icon: "⚔️",
+          icon: "swords" as const,
         };
       case PlayerType.Human:
       default:
         return {
           labelKey: "player_type.player",
           classes: "bg-gray-800 text-gray-300",
-          icon: "👤",
+          icon: "user" as const,
         };
     }
   }
@@ -603,7 +604,7 @@ export class PlayerPanel extends LitElement implements Controller {
               aria-label=${translateText(chip.labelKey)}
               title=${translateText(chip.labelKey)}
             >
-              <span aria-hidden="true" class="leading-none">${chip.icon}</span>
+              ${menuIcon(chip.icon, "size-3.5")}
               <span>${translateText(chip.labelKey)}</span>
             </span>`
           : html``}
@@ -620,7 +621,7 @@ export class PlayerPanel extends LitElement implements Controller {
           class="inline-flex items-center gap-1.5 rounded-md bg-gray-800 px-3 py-2 shrink-0
                     text-white w-35"
         >
-          <span class="mr-0.5">💰</span>
+          ${menuIcon("coins", "size-4 mr-0.5 text-yellow-400")}
           <span translate="no" class="tabular-nums w-[5ch] font-medium">
             ${renderNumber(other.gold() || 0)}
           </span>
@@ -633,7 +634,7 @@ export class PlayerPanel extends LitElement implements Controller {
           class="inline-flex items-center gap-1.5 rounded-md bg-gray-800 px-3 py-2
                     text-white w-35 shrink-0"
         >
-          <span class="mr-0.5">🛡️</span>
+          ${menuIcon("shield", "size-4 mr-0.5 text-blue-400")}
           <span translate="no" class="tabular-nums w-[5ch] font-medium">
             ${renderTroops(other.troops() || 0)}
           </span>
@@ -662,7 +663,7 @@ export class PlayerPanel extends LitElement implements Controller {
               : translateText("player_panel.arc_down")}
           </span>
         </div>
-        <span class="text-lg" aria-hidden="true">🔀</span>
+        ${menuIcon("shuffle", "size-5")}
       </button>
     `;
   }
@@ -674,7 +675,7 @@ export class PlayerPanel extends LitElement implements Controller {
         <div
           class="flex items-center gap-2 text-sm font-medium text-gray-100 leading-snug"
         >
-          <span aria-hidden="true">⚠️</span>
+          ${menuIcon("triangle-alert", "size-4 text-amber-400")}
           <span>${translateText("player_panel.betrayals")}</span>
         </div>
         <div class="text-right text-sm font-medium tabular-nums text-gray-200">
@@ -687,7 +688,7 @@ export class PlayerPanel extends LitElement implements Controller {
         <div
           class="flex items-center gap-2 text-sm font-medium text-gray-100 leading-snug"
         >
-          <span aria-hidden="true">⚓</span>
+          ${menuIcon("anchor", "size-4 text-blue-400")}
           <span>${translateText("player_panel.trading")}</span>
         </div>
         <div class="flex items-center justify-end gap-2 text-sm font-medium">
@@ -1006,7 +1007,7 @@ export class PlayerPanel extends LitElement implements Controller {
                       aria-label=${translateText("common.close") || "Close"}
                       title=${translateText("common.close") || "Close"}
                     >
-                      ✕
+                      ${menuIcon("x", "size-4")}
                     </button>
                   </div>
 

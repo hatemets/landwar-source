@@ -12,7 +12,7 @@ import { GameEnv } from "@openfront/shared/configuration/Env";
 import { ClientEnv } from "src/client/ClientEnv";
 import { renderNavVersion } from "src/client/GameVersion";
 import { getUserMe } from "./Api";
-import { initAnalytics } from "./Analytics";
+import { initAnalytics, track } from "./Analytics";
 import { userAuth } from "./Auth";
 
 import type { JoinLobbyResult } from "./ClientGameRunner";
@@ -825,6 +825,7 @@ class Client {
         console.log(`reopening host lobby ${lobbyId}`);
         return;
       }
+      track("invite_opened");
       // ?spectate is the watch-only form of the same lobby link, so a cast or
       // an archive can hand out a URL that never takes a player slot.
       const spectate = new URLSearchParams(window.location.search).has(

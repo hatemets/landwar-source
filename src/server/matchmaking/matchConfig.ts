@@ -7,23 +7,15 @@ import {
   RankedType,
 } from "@openfront/engine-api/game/GameTypes";
 import type { GameConfig } from "@openfront/engine-api/Schemas";
+import {
+  RANKED_1V1_MAPS,
+  RANKED_TIME_LIMIT_MINUTES,
+} from "@openfront/shared/RankedMaps";
 import type { Match, QueueMode } from "./matcher";
 
-// Maps that suit a ranked game: small enough to finish, with room for two
-// players to grow without a runaway start.
-const MAPS: Record<QueueMode, GameMapType[]> = {
-  "1v1": [
-    GameMapType.Pangaea,
-    GameMapType.Onion,
-    GameMapType.Halkidiki,
-    GameMapType.Lemnos,
-    GameMapType.Korea,
-    GameMapType.Iceland,
-  ],
+const MAPS: Record<QueueMode, readonly GameMapType[]> = {
+  "1v1": RANKED_1V1_MAPS,
 };
-
-// A ranked game that nobody wins by land ends on the clock.
-export const RANKED_TIME_LIMIT_MINUTES = 30;
 
 // Seconds the matched players get to connect before the game is cancelled.
 export const MATCH_JOIN_DEADLINE_SECONDS = 45;

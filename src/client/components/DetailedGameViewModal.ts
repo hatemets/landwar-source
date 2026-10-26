@@ -47,8 +47,8 @@ import {
 import { modalHeader } from "./ui/ModalHeader";
 import { styledSelect } from "./ui/StyledSelect";
 
-/** The three scheduled buckets, in the order their panes are laid out. */
-const SCHEDULED_PANES = ["ffa", "team", "special"] as const;
+/** The scheduled buckets, in the order their panes are laid out. */
+const SCHEDULED_PANES = ["ffa", "team", "special", "goldrush"] as const;
 
 /**
  * Slots a pane always renders, matching QUEUED_LOBBIES_PER_TYPE on the master.
@@ -298,7 +298,9 @@ export class DetailedGameViewModal extends BaseModal {
           : tab === ALL_TAB
             ? html`
                 <!-- One pane per scheduled bucket, cards stacked within it. -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+                <div
+                  class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 items-start"
+                >
                   ${SCHEDULED_PANES.map((type) =>
                     this.renderPane(
                       translateText(`detailed_view.pane_${type}`),

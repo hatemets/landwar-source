@@ -11,7 +11,6 @@ import {
   TeamCountConfig,
 } from "@openfront/engine-api/Schemas";
 import { DoomsdayClockSpeed } from "@openfront/engine-lib/game/DoomsdayClock";
-import { GameEnv } from "@openfront/shared/configuration/Env";
 import { EventBus } from "@openfront/shared/EventBus";
 import { ClientInfo, LobbyInfoEvent } from "@openfront/shared/WireSchemas";
 import { html, nothing } from "lit";
@@ -24,12 +23,7 @@ import {
   showToast,
   translateText,
 } from "../client/Utils";
-import {
-  createLobby,
-  getUserMe,
-  LobbyCreationError,
-  setLobbyListed,
-} from "./Api";
+import { createLobby, LobbyCreationError, setLobbyListed } from "./Api";
 import { signedOutNotice } from "./components/ui/SignedOutNotice";
 import { statusNotice } from "./components/ui/StatusNotice";
 import "./components/baseComponents/Modal";
@@ -116,12 +110,7 @@ export class HostLobbyModal extends BaseModal {
   @state() private lobbyCreatorClientID: string = "";
   @state() private lobbyStartAt: number | null = null;
   @state() private serverTimeOffset: number = 0;
-  // Whether this user may actually make the lobby public (the API's
-  // canCreatePublicLobbies entitlement, or anyone in dev). The toggle itself
-  // is always shown.
-  @state() private canListPublicly: boolean = false;
   @state() private publiclyListed: boolean = false;
-  @state() private showSubscriptionRequired: boolean = false;
   @state() private showListLobbyDialog: boolean = false;
   // Server timestamp when the listed lobby auto-starts (from lobby info).
   @state() private autoStartAt: number | null = null;
@@ -258,10 +247,9 @@ export class HostLobbyModal extends BaseModal {
     });
   }
 
-  // Private/Public segmented toggle in the header. Shown to everyone;
-  // non-subscribers get a subscription-required dialog instead of a listing
-  // request (the server re-checks the subscription regardless). Listing is
-  // one-way (the server rejects unlisting), so the Private segment goes away
+  // Private/Public segmented toggle in the header. Any host may list: making
+  // a lobby already needs an account, and the server checks it again. Listing
+  // is one-way (the server rejects unlisting), so the Private segment goes away
   // once the lobby is listed.
   private renderVisibilityToggle() {
     const segment = (labelKey: string, isPublic: boolean) => html`
@@ -316,10 +304,6 @@ export class HostLobbyModal extends BaseModal {
       isPublic === this.publiclyListed ||
       !this.lobbyId
     ) {
-      return;
-    }
-    if (isPublic && !this.canListPublicly) {
-      this.showSubscriptionRequired = true;
       return;
     }
     if (isPublic) {
@@ -724,23 +708,6 @@ export class HostLobbyModal extends BaseModal {
               }}
             ></list-lobby-dialog>`
           : ""}
-        ${this.showSubscriptionRequired
-          ? html`<confirm-dialog
-              .heading=${translateText(
-                "host_modal.subscription_required_title",
-              )}
-              .message=${translateText("host_modal.subscription_required_body")}
-              variant="warning"
-              .showClose=${true}
-              .buttons=${"confirmOnly"}
-              .confirmText=${translateText("host_modal.view_subscriptions")}
-              @cancel=${() => (this.showSubscriptionRequired = false)}
-              @confirm=${() => {
-                this.showSubscriptionRequired = false;
-                window.location.href = "/#modal=store&tab=subscriptions";
-              }}
-            ></confirm-dialog>`
-          : ""}
       </div>
     `;
   }
@@ -754,13 +721,6 @@ export class HostLobbyModal extends BaseModal {
     // can re-arm it and disconnect the host mid game-start.
     this.leaveLobbyOnClose = true;
     this.startLobbyUpdates();
-    void getUserMe().then((userMe) => {
-      // Dev skips the entitlement gate (matching the server) so the
-      // listing flow is testable locally.
-      this.canListPublicly =
-        ClientEnv.env() === GameEnv.Dev ||
-        (userMe !== false && userMe.player.canCreatePublicLobbies);
-    });
 
     // Attach mode: the server already minted this successor lobby with us as
     // creator (win-screen "New lobby" flow), so bind to the existing id instead
@@ -950,7 +910,6 @@ export class HostLobbyModal extends BaseModal {
     this.hostCheatStartingGold = false;
     this.hostCheatStartingGoldValue = undefined;
     this.publiclyListed = false;
-    this.showSubscriptionRequired = false;
     this.showListLobbyDialog = false;
     this.autoStartAt = null;
   }
@@ -1445,8 +1404,8 @@ export class HostLobbyModal extends BaseModal {
     this.putGameConfig();
   };
 
-  // Server-authoritative: it re-verifies the subscription and enforces the
-  // listing limits, so a failed request reverts the toggle.
+  // Server-authoritative: it checks the account and enforces the listing
+  // limits, so a failed request reverts the toggle.
   private async handlePublicListingToggle(
     checked: boolean,
     options?: ListLobbyOptions,
@@ -1473,9 +1432,7 @@ export class HostLobbyModal extends BaseModal {
 
   private showListingError(serverError?: string) {
     let key = "private_lobby.listing_failed";
-    if (serverError === "subscription_required") {
-      key = "private_lobby.listing_requires_subscription";
-    } else if (serverError === "listing_limit_reached") {
+    if (serverError === "listing_limit_reached") {
       key = "private_lobby.listing_limit_reached";
     } else if (serverError === "listing_whitelist_enabled") {
       key = "private_lobby.listing_whitelist_enabled";

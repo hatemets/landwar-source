@@ -2,10 +2,13 @@ import { PlayerStatsTree, UserMeResponse } from "@openfront/shared/ApiSchemas";
 import { assetUrl } from "@openfront/shared/AssetUrls";
 import { html, TemplateResult } from "lit";
 import { customElement, state } from "lit/decorators.js";
+import { unsafeSVG } from "lit/directives/unsafe-svg.js";
+import eyeOffIcon from "lucide-static/icons/eye-off.svg?raw";
+import eyeIcon from "lucide-static/icons/eye.svg?raw";
 import { ClientEnv } from "src/client/ClientEnv";
 import { hasLinkedIdentity } from "./AccountIdentity";
 import { fetchPlayerById, getUserMe } from "./Api";
-import { linkGoogle } from "./Auth";
+import { linkDiscord, linkGoogle } from "./Auth";
 import "./components/baseComponents/stats/PlayerGameHistoryView";
 import type { PlayerGameHistoryCache } from "./components/baseComponents/stats/PlayerGameHistoryView";
 import "./components/baseComponents/stats/PlayerStatsTable";
@@ -16,13 +19,17 @@ import "./components/CurrencyDisplay";
 import "./components/Difficulties";
 import "./components/FriendsList";
 import { googleLinkButton } from "./components/ui/GoogleLinkButton";
+import { menuIcon } from "./components/ui/MenuIcon";
 import { modalHeader } from "./components/ui/ModalHeader";
 import "./GameStatsModal";
 import { showInGameAlert } from "./InGameModal";
 import { consumeLinkResult } from "./LinkResult";
 import "./PlayerProfileModal";
 import { playerProfileUrl } from "./utilities/PlayerProfileUrl";
+import { UserSettings } from "./UserSettings";
 import { currentPagePath, translateText } from "./Utils";
+
+const EMAIL_MASK = "•".repeat(10);
 
 @customElement("account-modal")
 export class AccountModal extends BaseModal {
@@ -37,6 +44,7 @@ export class AccountModal extends BaseModal {
   // while it reads /users/@me. Picked once that lands.
   private requestedTab: string | null = null;
   private userMeResponse: UserMeResponse | null = null;
+  private userSettings = new UserSettings();
   private statsTree: PlayerStatsTree | null = null;
   // Preserves the Games tab's accumulated list + cursor across tab switches.
   private gameHistoryCache: PlayerGameHistoryCache | null = null;
@@ -168,6 +176,7 @@ export class AccountModal extends BaseModal {
   private renderAccountTab(): TemplateResult {
     return html`
       <div class="flex flex-col gap-6">
+        ${this.renderPlayerName()}
         <div class="bg-white/5 rounded-xl border border-white/10 p-6">
           <div class="flex flex-col items-center gap-4">
             <div
@@ -190,7 +199,10 @@ export class AccountModal extends BaseModal {
         ? html`<player-stats-tree-view
             .statsTree=${this.statsTree}
           ></player-stats-tree-view>`
-        : this.renderEmptyState("📊", translateText("account_modal.no_stats"))}
+        : this.renderEmptyState(
+            menuIcon("chart-column", "size-10"),
+            translateText("account_modal.no_stats"),
+          )}
     `;
   }
 
@@ -198,7 +210,7 @@ export class AccountModal extends BaseModal {
     const publicId = this.userMeResponse?.player?.publicId ?? "";
     if (!publicId) {
       return this.renderEmptyState(
-        "🎮",
+        menuIcon("gamepad-2", "size-10"),
         translateText("account_modal.no_games"),
       );
     }
@@ -219,12 +231,15 @@ export class AccountModal extends BaseModal {
     `;
   }
 
-  private renderEmptyState(icon: string, message: string): TemplateResult {
+  private renderEmptyState(
+    icon: TemplateResult,
+    message: string,
+  ): TemplateResult {
     return html`
       <div
         class="bg-white/5 rounded-xl border border-white/10 p-12 flex flex-col items-center justify-center text-center"
       >
-        <div class="text-4xl mb-3">${icon}</div>
+        <div class="mb-3 text-white/40">${icon}</div>
         <p class="text-white/60 text-sm">${message}</p>
       </div>
     `;
@@ -242,18 +257,90 @@ export class AccountModal extends BaseModal {
     `;
   }
 
+  // The name other players see, with the way to change it. A Google sign-in
+  // seeds it with the real name.
+  private renderPlayerName(): TemplateResult {
+    const username = this.userMeResponse?.player?.username;
+    if (!username) return html``;
+    return html`
+      <div
+        class="bg-white/5 rounded-xl border border-white/10 p-6 flex items-center justify-between gap-4 flex-wrap"
+      >
+        <div class="flex flex-col gap-1 min-w-0">
+          <div
+            class="text-xs text-white/40 uppercase tracking-widest font-bold"
+          >
+            ${translateText("account_modal.player_name")}
+          </div>
+          <div
+            class="text-white text-lg font-medium truncate"
+            data-account-username
+          >
+            ${username}
+          </div>
+        </div>
+        <button
+          type="button"
+          class="shrink-0 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition-colors"
+          @click=${() => {
+            window.location.hash = "modal=change-username";
+          }}
+        >
+          ${translateText("nav_account_menu.change_username")}
+        </button>
+      </div>
+    `;
+  }
+
+  private toggleEmailVisible = () => {
+    this.userSettings.setAccountEmailVisible(
+      !this.userSettings.accountEmailVisible(),
+    );
+    this.requestUpdate();
+  };
+
+  // The email as shown: masked unless the player chose to reveal it.
+  private shownEmail(email: string): string {
+    return this.userSettings.accountEmailVisible() ? email : EMAIL_MASK;
+  }
+
+  private renderEmailToggle(): TemplateResult {
+    const visible = this.userSettings.accountEmailVisible();
+    const label = translateText(
+      visible ? "account_modal.hide_email" : "account_modal.show_email",
+    );
+    return html`
+      <button
+        type="button"
+        class="p-1.5 rounded-md text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+        title=${label}
+        aria-label=${label}
+        aria-pressed=${visible ? "true" : "false"}
+        @click=${this.toggleEmailVisible}
+      >
+        <span class="lw-icon w-4 h-4" aria-hidden="true"
+          >${unsafeSVG(visible ? eyeOffIcon : eyeIcon)}</span
+        >
+      </button>
+    `;
+  }
+
   private renderLoggedInAs(): TemplateResult {
     const me = this.userMeResponse?.user;
     const accountName = me?.google?.email ?? me?.email;
     if (!accountName) return html``;
     return html`
       <div class="flex flex-col items-center gap-3 w-full">
-        <div class="text-white text-lg font-medium">
-          ${translateText("account_modal.linked_account", {
-            account_name: accountName,
-          })}
+        <div class="flex items-center gap-2 text-white text-lg font-medium">
+          <span data-account-email
+            >${translateText("account_modal.linked_account", {
+              account_name: this.shownEmail(accountName),
+            })}</span
+          >
+          ${this.renderEmailToggle()}
         </div>
         ${this.renderCurrency()} ${this.renderGoogleLink()}
+        ${this.renderDiscordLink()}
       </div>
     `;
   }
@@ -265,7 +352,7 @@ export class AccountModal extends BaseModal {
     if (google) {
       const label = google.email
         ? translateText("account_modal.linked_to_google_email", {
-            email: google.email,
+            email: this.shownEmail(google.email),
           })
         : translateText("account_modal.linked_to_google");
       return html`
@@ -279,9 +366,40 @@ export class AccountModal extends BaseModal {
         </div>
       `;
     }
-    // Lets the user attach Google to their existing account (we never
-    // auto-merge by email).
+    // Lets the user attach Google to their existing account. The server also
+    // joins a sign-in whose verified email matches the account.
     return googleLinkButton(this.handleLinkGoogle, "account_modal.link_google");
+  }
+
+  // The same for Discord: a confirmation line, or the button to link it.
+  private renderDiscordLink(): TemplateResult {
+    if (this.userMeResponse?.user?.discord) {
+      return html`
+        <div class="flex items-center gap-2 text-white/70 text-sm">
+          <img
+            src=${assetUrl("images/DiscordLogo.svg")}
+            alt=${translateText("account_modal.discord_alt")}
+            class="w-4 h-4"
+          />
+          <span>${translateText("account_modal.linked_to_discord")}</span>
+        </div>
+      `;
+    }
+    return html`
+      <button
+        @click=${this.handleLinkDiscord}
+        class="w-full px-6 py-3 text-white bg-[#5865F2] hover:bg-[#4752C4] rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5865F2] transition-colors duration-200 flex items-center justify-center gap-3 shadow-lg"
+      >
+        <img
+          src=${assetUrl("images/DiscordLogo.svg")}
+          alt=${translateText("account_modal.discord_alt")}
+          class="w-5 h-5"
+        />
+        <span class="font-bold tracking-wide"
+          >${translateText("account_modal.link_discord")}</span
+        >
+      </button>
+    `;
   }
 
   private async viewGame(gameId: string): Promise<void> {
@@ -353,6 +471,13 @@ export class AccountModal extends BaseModal {
     const started = await linkGoogle();
     if (!started) {
       await showInGameAlert(translateText("account_modal.link_google_failed"));
+    }
+  };
+
+  private handleLinkDiscord = async (): Promise<void> => {
+    const started = await linkDiscord();
+    if (!started) {
+      await showInGameAlert(translateText("account_modal.link_discord_failed"));
     }
   };
 

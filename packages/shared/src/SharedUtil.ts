@@ -178,7 +178,7 @@ export function createRandomName(
     const prefixIndex = hash % prefixes.length;
     const suffixIndex = Math.floor(hash / prefixes.length) % suffixes.length;
 
-    randomName = `👤 ${prefixes[prefixIndex]} ${suffixes[suffixIndex]}`;
+    randomName = `${prefixes[prefixIndex]} ${suffixes[suffixIndex]}`;
   }
   return randomName;
 }

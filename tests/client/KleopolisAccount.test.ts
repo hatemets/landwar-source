@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   fetchAccountProfile,
   toUserMeCandidate,
-} from "../../src/client/LandWarAccount";
+} from "../../src/client/KleopolisAccount";
 
 const account = {
   id: "0b0f6d52-2d2e-4a43-8d3d-6f6a5c1f2a01",
@@ -11,6 +11,8 @@ const account = {
   displayName: "Tester",
   email: "t@example.com",
   avatarUrl: null,
+  google: true,
+  discord: false,
 };
 
 describe("toUserMeCandidate", () => {
@@ -34,6 +36,20 @@ describe("toUserMeCandidate", () => {
     const parsed = UserMeResponseSchema.parse(toUserMeCandidate(account));
     expect(parsed.player.flares).toEqual([]);
     expect(parsed.player.currency).toBeUndefined();
+  });
+});
+
+describe("sign-in methods", () => {
+  it("names only the providers the account has", () => {
+    const discordOnly = UserMeResponseSchema.parse(
+      toUserMeCandidate({ ...account, google: false, discord: true }),
+    );
+    expect(discordOnly.user.google).toBeUndefined();
+    expect(discordOnly.user.discord?.username).toBe("Tester");
+
+    const googleOnly = UserMeResponseSchema.parse(toUserMeCandidate(account));
+    expect(googleOnly.user.google).toEqual({ email: "t@example.com" });
+    expect(googleOnly.user.discord).toBeUndefined();
   });
 });
 

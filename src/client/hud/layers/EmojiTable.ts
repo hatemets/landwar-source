@@ -23,6 +23,7 @@ import { SendEmojiIntentEvent } from "../../Transport";
 import { UserSettings } from "../../UserSettings";
 import { translateText } from "../../Utils";
 import { GameView, PlayerView } from "../../view";
+import { menuIcon } from "../../components/ui/MenuIcon";
 
 /** Opens the emoji table aimed at a specific player. */
 export class ShowPlayerEmojiMenuEvent implements GameEvent {
@@ -124,9 +125,11 @@ export class EmojiTable extends LitElement {
           <button
             class="absolute -top-3 -right-3 w-7 h-7 flex items-center justify-center
                     bg-gray-800 hover:bg-gray-700 text-white rounded-md transition-colors z-10004"
+            aria-label=${translateText("common.close")}
+            title=${translateText("common.close")}
             @click=${this.hideTable}
           >
-            ✕
+            ${menuIcon("x", "size-4")}
           </button>
 
           <div

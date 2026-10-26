@@ -1,12 +1,12 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="resources/images/LandWarLogoDark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="resources/images/LandWarLogo.svg">
-    <img src="resources/images/LandWarLogo.svg" alt="LandWar logo" width="300">
+    <source media="(prefers-color-scheme: dark)" srcset="resources/images/CleoLogo.svg">
+    <source media="(prefers-color-scheme: light)" srcset="resources/images/CleoLogo.svg">
+    <img src="resources/images/CleoLogo.svg" alt="Kleopolis logo" width="300">
   </picture>
 </p>
 
-LandWar is a real-time strategy game about territory, nations, and alliances. This repository builds on the OpenFrontIO codebase. See [CREDITS](CREDITS.md) for upstream attribution.
+Kleopolis is a real-time strategy game about territory, nations, and alliances. This repository builds on the OpenFrontIO codebase. See [CREDITS](CREDITS.md) for upstream attribution.
 
 ![CI](https://github.com/hatemets/landwar/actions/workflows/ci.yml/badge.svg)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)

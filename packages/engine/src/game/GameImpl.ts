@@ -34,6 +34,7 @@ import {
 } from "@openfront/engine-api/Schemas";
 import { ATTACK_INDEX_SENT } from "@openfront/engine-api/StatsSchemas";
 import { renderNumber } from "@openfront/engine-lib/Format";
+import { GameMapImpl } from "@openfront/engine-lib/game/GameMapImpl";
 import {
   MotionPlanRecord,
   packMotionPlans,
@@ -50,7 +51,9 @@ import {
   VersionedSchema,
   zInt,
   zPlayerRef,
+  zNum,
   zRef,
+  zTiles,
 } from "@openfront/engine-lib/snapshot/SnapshotType";
 import { simpleHash } from "@openfront/engine-lib/Util";
 import { z } from "zod";
@@ -87,6 +90,7 @@ import {
 } from "./Game";
 import { PlayerImpl } from "./PlayerImpl";
 import { RailNetwork } from "./RailNetwork";
+import { Railroad } from "./Railroad";
 import {
   createRailNetwork,
   RailNetworkImpl,
@@ -145,6 +149,11 @@ export class GameImpl implements Game {
   private attackTroopsQuads: number[] = [];
   private motionPlanRecords: MotionPlanRecord[] = [];
   private planDrivenUnitIds = new Set<number>();
+  /**
+   * The latest motion plan of each plan-driven unit (trains by their engine),
+   * kept so a restored game can resend it in its full-state update.
+   */
+  private activeMotionPlans = new Map<number, MotionPlanRecord>();
   private unitGrid: UnitGrid<Unit>;
   private _unitMap = new Map<number, Unit>();
 
@@ -538,6 +547,50 @@ export class GameImpl implements Game {
     return this._ticks;
   }
 
+  /**
+   * Adds the whole visible state to this tick's updates, for a host whose
+   * view starts empty (a game restored from a snapshot). Players need
+   * nothing here: their first update after a restore is already full.
+   */
+  addFullStateUpdates(): void {
+    const map = this._map as GameMapImpl;
+    const editedTerrain = new Set(map.terrainEditedTiles());
+    for (let tile = 0; tile < map.width() * map.height(); tile++) {
+      if (map.tileState(tile) !== 0 || editedTerrain.has(tile)) {
+        this.recordTileUpdate(tile);
+      }
+    }
+    for (const unit of this._unitMap.values()) {
+      this.addUpdate(unit.toUpdate());
+    }
+    for (const plan of this.activeMotionPlans.values()) {
+      this.motionPlanRecords.push(plan);
+    }
+    const railroads = new Set<Railroad>();
+    for (const station of this._railNetwork.stationManager().getAll()) {
+      for (const railroad of station.getRailroads()) railroads.add(railroad);
+    }
+    for (const railroad of railroads) {
+      this.addUpdate({
+        type: GameUpdateType.RailroadConstructionEvent,
+        id: railroad.id,
+        tiles: railroad.tiles,
+      });
+    }
+    for (const request of this.allianceRequests) {
+      this.addUpdate(request.toUpdate());
+    }
+    if (this.startTick !== null) {
+      this.addUpdate({
+        type: GameUpdateType.SpawnPhaseEnd,
+        startTick: this.startTick,
+      });
+    }
+    if (this._isPaused) {
+      this.addUpdate({ type: GameUpdateType.GamePaused, paused: true });
+    }
+  }
+
   executeNextTick(): GameUpdates {
     this.updates = createGameUpdatesMap();
     this.tileUpdatePairs.length = 0;
@@ -637,12 +690,22 @@ export class GameImpl implements Game {
     switch (record.kind) {
       case "grid":
         this.planDrivenUnitIds.add(record.unitId);
+        // A copy: executions may keep changing the arrays they pass in.
+        this.activeMotionPlans.set(record.unitId, {
+          ...record,
+          path: Uint32Array.from(record.path),
+        });
         break;
       case "train":
         this.planDrivenUnitIds.add(record.engineUnitId);
         for (const unitId of record.carUnitIds) {
           this.planDrivenUnitIds.add(unitId);
         }
+        this.activeMotionPlans.set(record.engineUnitId, {
+          ...record,
+          carUnitIds: Uint32Array.from(record.carUnitIds),
+          path: Uint32Array.from(record.path),
+        });
         break;
     }
     this.motionPlanRecords.push(record);
@@ -1196,6 +1259,7 @@ export class GameImpl implements Game {
     this.unitGrid.removeUnit(u);
     this._unitMap.delete(u.id());
     this.planDrivenUnitIds.delete(u.id());
+    this.activeMotionPlans.delete(u.id());
     if (u.hasTrainStation()) {
       this._railNetwork.removeStation(u);
     }
@@ -1466,6 +1530,7 @@ export class GameImpl implements Game {
       nextAllianceID: this.nextAllianceID,
       units: [...this._unitMap.values()].map((u) => w.unit(u)),
       planDrivenUnitIds: [...this.planDrivenUnitIds],
+      motionPlans: [...this.activeMotionPlans.values()] as MotionPlanState[],
       unitGrid: this.unitGrid.snapshot((u) => w.unit(u)),
       playerTeams: [...this.playerTeams],
       botTeam: this.botTeam,
@@ -1522,6 +1587,12 @@ export class GameImpl implements Game {
       }),
     );
     this.planDrivenUnitIds = new Set(s.planDrivenUnitIds);
+    this.activeMotionPlans = new Map(
+      s.motionPlans.map((p) => [
+        p.kind === "grid" ? p.unitId : p.engineUnitId,
+        { ...p },
+      ]),
+    );
     this.unitGrid.restoreSnapshot(s.unitGrid, (i) => r.unit(i));
     this.playerTeams = [...s.playerTeams];
     this.botTeam = s.botTeam;
@@ -1637,9 +1708,35 @@ export class GameImpl implements Game {
   }
 }
 
+const MotionPlanStateSchema = z.discriminatedUnion("kind", [
+  z.object({
+    kind: z.literal("grid"),
+    unitId: zInt(),
+    planId: zInt(),
+    startTick: zInt(),
+    ticksPerStep: zInt(),
+    path: zTiles(),
+  }),
+  z.object({
+    kind: z.literal("train"),
+    engineUnitId: zInt(),
+    carUnitIds: zTiles(),
+    planId: zInt(),
+    startTick: zInt(),
+    speed: zNum(),
+    spacing: zNum(),
+    path: zTiles(),
+  }),
+]);
+type MotionPlanState = z.infer<typeof MotionPlanStateSchema>;
+
 export const GameSnapshot = snapshotType({
   name: "Game",
-  version: 1,
+  version: 2,
+  migrations: {
+    // v2 keeps each unit's latest motion plan; v1 games resend none.
+    1: (d) => ({ ...d, motionPlans: [] }),
+  },
   schema: z.object({
     ticks: zInt(),
     startTick: zInt().nullable(),
@@ -1654,6 +1751,7 @@ export const GameSnapshot = snapshotType({
     nextAllianceID: zInt(),
     units: z.array(zRef()),
     planDrivenUnitIds: z.array(zInt()),
+    motionPlans: z.array(MotionPlanStateSchema),
     unitGrid: z.array(z.array(z.tuple([UnitTypeSchema, z.array(zRef())]))),
     playerTeams: z.array(z.string()),
     botTeam: z.string(),

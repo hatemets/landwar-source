@@ -73,6 +73,8 @@ export class SoundEffectController implements Controller {
   tick(): void {
     const updates = this.game.updatesSinceLastTick();
     if (!updates) return;
+    // A restored game's first tick resends every unit; nothing happened.
+    if (this.game.isFullStateTick()) return;
 
     this.pruneTrainStations();
 

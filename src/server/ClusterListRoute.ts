@@ -2,7 +2,7 @@ import { isCommitLike } from "@openfront/shared/ServerList";
 import type { Express } from "express";
 import { ServerEnv } from "./ServerEnv";
 
-// The server list the client reads before it allows multiplayer. LandWar has
+// The server list the client reads before it allows multiplayer. Kleopolis has
 // one deployment and no cluster API, so this server lists itself. A build
 // without a commit sha (dev) lists nothing; the client then uses its own
 // values and still counts the server as reachable.

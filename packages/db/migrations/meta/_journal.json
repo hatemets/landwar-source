@@ -64,6 +64,13 @@
       "when": 1792424543504,
       "tag": "0008_drop_clans",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793022285032,
+      "tag": "0009_discord_login",
+      "breakpoints": true
     }
   ]
 }

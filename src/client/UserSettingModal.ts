@@ -1,5 +1,5 @@
 import type { MapLayer } from "@openfront/engine-api/game/MapFiles";
-import { html, nothing } from "lit";
+import { html, nothing, render } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { formatKeyForDisplay, translateText } from "../client/Utils";
 import "./components/baseComponents/setting/SettingKeybind";
@@ -28,6 +28,7 @@ import {
   USER_SETTINGS_CHANGED_EVENT,
   UserSettings,
 } from "./UserSettings";
+import { menuIcon } from "./components/ui/MenuIcon";
 
 /** Mixer channels in the order the Audio tab shows them. */
 const AUDIO_TAB_ORDER: readonly AudioCategory[] = [
@@ -323,12 +324,17 @@ export class UserSettingModal extends BaseModal {
   };
 
   private triggerEasterEgg() {
-    console.log("🪺 Setting~ unlocked by EVAN combo!");
+    console.log("Setting~ unlocked by EVAN combo!");
     this.showEasterEggSettings = true;
     const popup = document.createElement("div");
     popup.className =
-      "fixed top-10 left-1/2 p-4 px-6 bg-black/80 text-white text-xl rounded-xl animate-fadePop z-[9999]";
-    popup.textContent = "🎉 You found a secret setting!";
+      "fixed top-10 left-1/2 flex items-center gap-3 p-4 px-6 bg-black/80 text-white text-xl rounded-xl animate-fadePop z-[9999]";
+    render(
+      html`${menuIcon("sparkle", "size-6 text-yellow-300")}<span
+          >You found a secret setting!</span
+        >`,
+      popup,
+    );
     document.body.appendChild(popup);
 
     setTimeout(() => {
@@ -339,23 +345,20 @@ export class UserSettingModal extends BaseModal {
   private toggleEmojis() {
     this.userSettings.toggleEmojis();
 
-    console.log("🤡 Emojis:", this.userSettings.emojis() ? "ON" : "OFF");
+    console.log("Emojis:", this.userSettings.emojis() ? "ON" : "OFF");
   }
 
   private toggleAlertFrame() {
     this.userSettings.toggleAlertFrame();
 
-    console.log(
-      "🚨 Alert frame:",
-      this.userSettings.alertFrame() ? "ON" : "OFF",
-    );
+    console.log("Alert frame:", this.userSettings.alertFrame() ? "ON" : "OFF");
   }
 
   private toggleCursorCostLabel() {
     this.userSettings.toggleCursorCostLabel();
 
     console.log(
-      "💰 Cursor build cost:",
+      "Cursor build cost:",
       this.userSettings.cursorCostLabel() ? "ON" : "OFF",
     );
   }
@@ -364,7 +367,7 @@ export class UserSettingModal extends BaseModal {
     this.userSettings.toggleSnapBuildPreview();
 
     console.log(
-      "🧲 Snap build preview:",
+      "Snap build preview:",
       this.userSettings.snapBuildPreview() ? "ON" : "OFF",
     );
   }
@@ -373,7 +376,7 @@ export class UserSettingModal extends BaseModal {
     this.userSettings.toggleRandomName();
 
     console.log(
-      "🙈 Anonymous Names:",
+      "Anonymous Names:",
       this.userSettings.anonymousNames() ? "ON" : "OFF",
     );
   }
@@ -381,7 +384,7 @@ export class UserSettingModal extends BaseModal {
   private toggleLobbyIdVisibility() {
     this.userSettings.toggleLobbyIdVisibility();
     console.log(
-      "👁️ Hidden Lobby IDs:",
+      "Hidden Lobby IDs:",
       !this.userSettings.lobbyIdVisibility() ? "ON" : "OFF",
     );
   }
@@ -422,7 +425,7 @@ export class UserSettingModal extends BaseModal {
   private toggleLeftClickOpensMenu() {
     this.userSettings.toggleLeftClickOpenMenu();
     console.log(
-      "🖱️ Left Click Opens Menu:",
+      "Left Click Opens Menu:",
       this.userSettings.leftClickOpensMenu() ? "ON" : "OFF",
     );
 
@@ -469,10 +472,7 @@ export class UserSettingModal extends BaseModal {
   private toggleGoToPlayer() {
     this.userSettings.toggleGoToPlayer();
 
-    console.log(
-      "🔍 Go to player:",
-      this.userSettings.goToPlayer() ? "ON" : "OFF",
-    );
+    console.log("Go to player:", this.userSettings.goToPlayer() ? "ON" : "OFF");
   }
 
   private toggleHalloweenTheme() {
@@ -1343,7 +1343,7 @@ export class UserSettingModal extends BaseModal {
           );
         }}
       ></setting-slider>
-      <!-- 🎨 Graphics preset -->
+      <!-- Graphics preset -->
       <div class="flex flex-col w-full px-3 py-2 gap-3">
         <div class="flex flex-col min-w-0">
           <div class="text-white font-medium text-sm">
@@ -1356,11 +1356,11 @@ export class UserSettingModal extends BaseModal {
         <graphics-preset-selector></graphics-preset-selector>
       </div>
 
-      <!-- 💾 Save / share the whole configuration. Top level, not inside
+      <!-- Save / share the whole configuration. Top level, not inside
            Advanced: a player who never expands the fold should still find it. -->
       <graphics-preset-tools></graphics-preset-tools>
 
-      <!-- 😊 Emojis -->
+      <!-- Emojis -->
       <setting-toggle
         label="${translateText("user_setting.emojis_label")}"
         description="${translateText("user_setting.emojis_desc")}"
@@ -1369,7 +1369,7 @@ export class UserSettingModal extends BaseModal {
         @change=${this.toggleEmojis}
       ></setting-toggle>
 
-      <!-- 📱 Performance Overlay -->
+      <!-- Performance Overlay -->
       <setting-toggle
         label="${translateText("user_setting.performance_overlay_label")}"
         description="${translateText("user_setting.performance_overlay_desc")}"
@@ -1378,7 +1378,7 @@ export class UserSettingModal extends BaseModal {
         @change=${this.togglePerformanceOverlay}
       ></setting-toggle>
 
-      <!-- 🔧 Advanced -->
+      <!-- Advanced -->
       <setting-toggle
         label="${translateText("graphics_setting.advanced_label")}"
         description="${translateText("graphics_setting.advanced_desc")}"
@@ -1395,7 +1395,7 @@ export class UserSettingModal extends BaseModal {
 
   private renderGameplaySettings() {
     return html`
-      <!-- 🚨 Alert frame -->
+      <!-- Alert frame -->
       <setting-toggle
         label="${translateText("user_setting.alert_frame_label")}"
         description="${translateText("user_setting.alert_frame_desc")}"
@@ -1404,7 +1404,7 @@ export class UserSettingModal extends BaseModal {
         @change=${this.toggleAlertFrame}
       ></setting-toggle>
 
-      <!-- 💰 Cursor Price Pill -->
+      <!-- Cursor Price Pill -->
       <setting-toggle
         label="${translateText("user_setting.cursor_cost_label_label")}"
         description="${translateText("user_setting.cursor_cost_label_desc")}"
@@ -1413,7 +1413,7 @@ export class UserSettingModal extends BaseModal {
         @change=${this.toggleCursorCostLabel}
       ></setting-toggle>
 
-      <!-- 🧲 Snap Build Preview -->
+      <!-- Snap Build Preview -->
       <setting-toggle
         label="${translateText("user_setting.snap_build_preview_label")}"
         description="${translateText("user_setting.snap_build_preview_desc")}"
@@ -1422,7 +1422,7 @@ export class UserSettingModal extends BaseModal {
         @change=${this.toggleSnapBuildPreview}
       ></setting-toggle>
 
-      <!-- 🖱️ Left Click Menu -->
+      <!-- Left Click Menu -->
       <setting-toggle
         label="${translateText("user_setting.left_click_label")}"
         description="${translateText("user_setting.left_click_desc")}"
@@ -1431,7 +1431,7 @@ export class UserSettingModal extends BaseModal {
         @change=${this.toggleLeftClickOpensMenu}
       ></setting-toggle>
 
-      <!-- 🙈 Anonymous Names -->
+      <!-- Anonymous Names -->
       <setting-toggle
         label="${translateText("user_setting.anonymous_names_label")}"
         description="${translateText("user_setting.anonymous_names_desc")}"
@@ -1440,7 +1440,7 @@ export class UserSettingModal extends BaseModal {
         @change=${this.toggleAnonymousNames}
       ></setting-toggle>
 
-      <!-- 👁️ Hidden Lobby IDs -->
+      <!-- Hidden Lobby IDs -->
       <setting-toggle
         label="${translateText("user_setting.lobby_id_visibility_label")}"
         description="${translateText("user_setting.lobby_id_visibility_desc")}"
@@ -1449,7 +1449,7 @@ export class UserSettingModal extends BaseModal {
         @change=${this.toggleLobbyIdVisibility}
       ></setting-toggle>
 
-      <!-- 🔔 Lobby start alerts -->
+      <!-- Lobby start alerts -->
       <setting-toggle
         label="${translateText("user_setting.lobby_start_alerts_label")}"
         description="${translateText("user_setting.lobby_start_alerts_desc")}"
@@ -1458,7 +1458,7 @@ export class UserSettingModal extends BaseModal {
         @change=${this.toggleLobbyStartAlerts}
       ></setting-toggle>
 
-      <!-- 🎬 New replay viewer (opt-in while it's rolled out) -->
+      <!-- New replay viewer (opt-in while it's rolled out) -->
       <setting-toggle
         label="${translateText("user_setting.replay_viewer_label")}"
         description="${translateText("user_setting.replay_viewer_desc")}"
@@ -1467,7 +1467,7 @@ export class UserSettingModal extends BaseModal {
         @change=${this.toggleReplayViewer}
       ></setting-toggle>
 
-      <!-- 🔍 Go to player -->
+      <!-- Go to player -->
       <setting-toggle
         label="${translateText("user_setting.go_to_player_label")}"
         description="${translateText("user_setting.go_to_player_desc")}"
@@ -1506,7 +1506,7 @@ export class UserSettingModal extends BaseModal {
         @change=${this.toggleAttackingTroopsOverlay}
       ></setting-toggle>
 
-      <!-- ⚔️ Attack Ratio -->
+      <!-- Attack Ratio -->
       <setting-slider
         label="${translateText("user_setting.attack_ratio_label")}"
         description="${translateText("user_setting.attack_ratio_desc")}"
@@ -1517,7 +1517,7 @@ export class UserSettingModal extends BaseModal {
         @change=${this.sliderAttackRatio}
       ></setting-slider>
 
-      <!-- ⚔️ Attack Ratio Increment -->
+      <!-- Attack Ratio Increment -->
       <setting-select
         label=${translateText("user_setting.attack_ratio_increment_label")}
         description=${translateText("user_setting.attack_ratio_increment_desc")}

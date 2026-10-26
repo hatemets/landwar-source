@@ -11,6 +11,7 @@ import {
 } from "./CosmeticPresentation";
 import "./CosmeticPreview";
 import "./CosmeticPreviewBubble";
+import { menuIcon } from "./ui/MenuIcon";
 
 const COSMETIC_CARD_STYLE_ID = "cosmetic-card-styles";
 if (!document.getElementById(COSMETIC_CARD_STYLE_ID)) {
@@ -390,8 +391,10 @@ export class CosmeticCard extends LitElement {
         ${isEquipped
           ? html`<span
               data-cosmetic-equipped="true"
-              class="absolute bottom-1 left-1 z-[4] rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-white shadow-lg shadow-emerald-950/60 ring-1 ring-emerald-200/70"
-              >✓ ${translateText("inventory.equipped")}</span
+              class="absolute bottom-1 left-1 z-[4] rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-white shadow-lg shadow-emerald-950/60 ring-1 ring-emerald-200/70 inline-flex items-center gap-1"
+              >${menuIcon("check", "size-3")}${translateText(
+                "inventory.equipped",
+              )}</span
             >`
           : nothing}
       </div>
@@ -421,25 +424,25 @@ export class CosmeticCard extends LitElement {
               data-cosmetic-sparkle="0"
               aria-hidden="true"
               style="top: 4px; left: 4px"
-              >✦</span
+              >${menuIcon("sparkle", "size-2.5")}</span
             >
             <span
               data-cosmetic-sparkle="1"
               aria-hidden="true"
               style="top: 4px; right: 4px"
-              >✦</span
+              >${menuIcon("sparkle", "size-2.5")}</span
             >
             <span
               data-cosmetic-sparkle="2"
               aria-hidden="true"
               style="bottom: 4px; left: 4px"
-              >✦</span
+              >${menuIcon("sparkle", "size-2.5")}</span
             >
             <span
               data-cosmetic-sparkle="3"
               aria-hidden="true"
               style="bottom: 4px; right: 4px"
-              >✦</span
+              >${menuIcon("sparkle", "size-2.5")}</span
             >`
         : nothing}
       ${name}

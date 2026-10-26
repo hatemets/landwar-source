@@ -8,6 +8,9 @@ const AccountSchema = z.object({
   displayName: z.string(),
   email: z.string(),
   avatarUrl: z.string().nullable(),
+  // The sign-in methods on the account. An older server knew only Google.
+  google: z.boolean().default(true),
+  discord: z.boolean().default(false),
 });
 
 const RatingSchema = z.object({ elo: z.number() });
@@ -33,8 +36,8 @@ type MyAccountExtras = Pick<
 
 export type Account = z.infer<typeof AccountSchema>;
 
-// Maps the LandWar account onto the profile shape the game UI reads. Fields
-// LandWar does not have yet take their empty value: no subscription, no
+// Maps the Kleopolis account onto the profile shape the game UI reads. Fields
+// Kleopolis does not have yet take their empty value: no subscription, no
 // cosmetics, no rewards.
 // Left unparsed on purpose: fetchAccountProfile validates it with the schema.
 export function toUserMeCandidate(
@@ -44,7 +47,20 @@ export function toUserMeCandidate(
   return {
     user: {
       email: account.email,
-      google: { email: account.email },
+      ...(account.google ? { google: { email: account.email } } : {}),
+      // Kleopolis keeps no Discord avatar hash, so the nav shows the person
+      // icon, as for Google.
+      ...(account.discord
+        ? {
+            discord: {
+              id: "",
+              avatar: null,
+              username: account.displayName,
+              global_name: null,
+              discriminator: "0",
+            },
+          }
+        : {}),
     },
     player: {
       publicId: account.publicId,

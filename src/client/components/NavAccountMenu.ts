@@ -30,8 +30,8 @@ type MenuItem = {
 };
 
 /**
- * The nav profile control: the account avatar/sign-in trigger plus, once signed
- * in, a chevron that opens the account menu (username, log out). Game settings are a top-level nav item, not a menu
+ * The nav profile control: the account avatar/sign-in trigger that, once signed
+ * in, opens the account menu (username, log out). Game settings are a top-level nav item, not a menu
  * entry.
  *
  * The trigger keeps `nav-menu-item[data-page="page-account"]`, so the signed-out
@@ -329,7 +329,12 @@ export class NavAccountMenu extends LitElement {
                 ? "text-red-400 hover:bg-red-500/10"
                 : "text-white/80 hover:bg-white/10 hover:text-white"}"
             >
-              <span class="w-4 h-4 shrink-0">${item.icon}</span>
+              <!-- Lucide SVGs carry width/height="24", so size them to the box
+                   or they overflow it and push the labels out of line. -->
+              <span
+                class="flex w-4 h-4 shrink-0 [&_.lw-icon]:flex [&_.lw-icon]:size-full [&_svg]:size-full"
+                >${item.icon}</span
+              >
               <span class="min-w-0 break-words"
                 >${translateText(item.labelKey)}</span
               >
@@ -340,18 +345,11 @@ export class NavAccountMenu extends LitElement {
     `;
   }
 
-  private renderChevron(): TemplateResult {
-    return menuIcon("chevron-down", this.menuOpen ? "rotate-180" : "");
-  }
-
   // Avatar / spinner / person icon, shared by both triggers.
   // `ids` is populated for the desktop instance only — NavAccountButton and
   // PortalAccountButton drive that one by id — while the data-account-*
   // hooks are what both instances are updated through.
-  private renderIdentityIcons(opts: {
-    ids: boolean;
-    iconClass: string;
-  }): TemplateResult {
+  private renderIdentityIcons(opts: { ids: boolean }): TemplateResult {
     const id = (name: string) => (opts.ids ? name : undefined);
     return html`
       <img
@@ -371,8 +369,11 @@ export class NavAccountMenu extends LitElement {
       <span
         id=${ifDefined(id("nav-account-person-icon"))}
         data-account-person-icon
-        class="hidden ${opts.iconClass}"
-        >${menuIcon("user-round")}</span
+        class="hidden"
+        ><span
+          class="flex items-center justify-center w-8 h-8 rounded-full bg-zinc-300 text-zinc-600 [&_.lw-icon]:flex [&_svg]:size-5"
+          >${menuIcon("user-round")}</span
+        ></span
       >
     `;
   }
@@ -384,11 +385,10 @@ export class NavAccountMenu extends LitElement {
       <button
         id="nav-account-button"
         data-account-trigger
-        data-account-border
         aria-haspopup="menu"
         aria-expanded=${this.menuOpen ? "true" : "false"}
         @click=${this.handleTriggerClick}
-        class="nav-menu-item relative h-10 rounded-full flex items-center justify-center gap-2 px-3 bg-transparent border border-white/20 text-white/80 hover:text-white cursor-pointer transition-colors [&.active]:text-white"
+        class="nav-menu-item relative h-10 rounded-full flex items-center justify-center gap-2 bg-transparent text-white/80 hover:text-white cursor-pointer transition-colors [&.active]:text-white"
         data-page="page-account"
         aria-label=${translateText("main.account")}
         data-i18n-title="main.account"
@@ -396,10 +396,7 @@ export class NavAccountMenu extends LitElement {
         <!-- The avatar and icons inside are driven imperatively by
              NavAccountButton and must not be re-created. -->
         <span data-account-identity class="relative flex items-center gap-2">
-          ${this.renderIdentityIcons({
-            ids: true,
-            iconClass: "w-5 h-5",
-          })}
+          ${this.renderIdentityIcons({ ids: true })}
         </span>
         <span
           id="nav-account-signin-text"
@@ -408,7 +405,6 @@ export class NavAccountMenu extends LitElement {
           data-i18n="main.sign_in"
         >
         </span>
-        ${this.renderChevron()}
       </button>
     `;
   }
@@ -421,22 +417,18 @@ export class NavAccountMenu extends LitElement {
         aria-haspopup="menu"
         aria-expanded=${this.menuOpen ? "true" : "false"}
         @click=${this.handleTriggerClick}
-        class="nav-menu-item h-10 flex items-center justify-center gap-1 pl-1 pr-1.5 rounded-full text-white/90 cursor-pointer transition-colors"
+        class="nav-menu-item h-10 flex items-center justify-center rounded-full text-white/90 cursor-pointer transition-colors"
         data-page="page-account"
         aria-label=${translateText("main.account")}
         data-i18n-title="main.account"
       >
         <span class="relative flex items-center justify-center w-8 h-8">
-          ${this.renderIdentityIcons({
-            ids: false,
-            iconClass: "w-7 h-7",
-          })}
+          ${this.renderIdentityIcons({ ids: false })}
         </span>
         <!-- The sign-in label is desktop-only; on the top bar the icon alone is
              the affordance, so keep the element (the shared updater toggles it)
              but never show text. -->
         <span data-account-signin-text class="hidden"></span>
-        ${this.renderChevron()}
       </button>
     `;
   }

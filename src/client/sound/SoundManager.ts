@@ -12,7 +12,7 @@ import {
 
 const AMBIENCE_FADE_MS = 500;
 
-// Off until a licensed background track is added. See docs/LANDWAR-CHANGES.md.
+// Off until a licensed background track is added. See docs/KLEOPOLIS-CHANGES.md.
 const BACKGROUND_MUSIC_ENABLED = false;
 
 /**
@@ -60,7 +60,7 @@ export class SoundManager {
    * covers the home page.
    */
   private buildBackgroundMusic(): void {
-    // No background track ships with LandWar. The OpenFront track is restricted.
+    // No background track ships with Kleopolis. The OpenFront track is restricted.
     if (!BACKGROUND_MUSIC_ENABLED) return;
     this.safely("initialize background music", () => {
       const music = new Howl({

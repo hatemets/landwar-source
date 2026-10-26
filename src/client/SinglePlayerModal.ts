@@ -7,11 +7,15 @@ import {
   maps,
   UnitType,
 } from "@openfront/engine-api/game/GameTypes";
-import { TeamCountConfig } from "@openfront/engine-api/Schemas";
+import { GameConfig, TeamCountConfig } from "@openfront/engine-api/Schemas";
 import { DoomsdayClockSpeed } from "@openfront/engine-lib/game/DoomsdayClock";
 import { UserMeResponse } from "@openfront/shared/ApiSchemas";
 import { assetUrl } from "@openfront/shared/AssetUrls";
 import { generateID } from "@openfront/shared/SharedUtil";
+import {
+  RANKED_1V1_MAPS,
+  RANKED_TIME_LIMIT_MINUTES,
+} from "@openfront/shared/RankedMaps";
 import { PlayerCosmetics } from "@openfront/shared/WireSchemas";
 import { html, TemplateResult } from "lit";
 import { customElement, state } from "lit/decorators.js";
@@ -998,6 +1002,88 @@ export class SinglePlayerModal extends BaseModal {
       finalMaxTimerValue = Math.max(1, Math.min(120, this.maxTimerValue));
     }
 
+    await this.launch(this.buildConfig(finalMaxTimerValue));
+  }
+
+  /**
+   * A 1v1 against one hard nation on a ranked map, unranked. The ranked
+   * queue offers it to a player who has waited a while with no opponent.
+   */
+  public async startPractice(): Promise<void> {
+    if (this.starting) return;
+    const map =
+      RANKED_1V1_MAPS[Math.floor(Math.random() * RANKED_1V1_MAPS.length)]!;
+    await this.launch({
+      gameMap: map,
+      gameMapSize: GameMapSize.Compact,
+      gameType: GameType.Singleplayer,
+      gameMode: GameMode.FFA,
+      difficulty: Difficulty.Hard,
+      maxTimerValue: RANKED_TIME_LIMIT_MINUTES,
+      bots: 0,
+      nations: 1,
+      infiniteGold: false,
+      infiniteTroops: false,
+      instantBuild: false,
+      randomSpawn: false,
+      donateGold: false,
+      donateTroops: false,
+      disabledUnits: [],
+    });
+  }
+
+  private buildConfig(maxTimerValue: number | undefined): GameConfig {
+    return {
+      gameMap: this.selectedMap,
+      gameMapSize: this.compactMap ? GameMapSize.Compact : GameMapSize.Normal,
+      gameType: GameType.Singleplayer,
+      gameMode: this.gameMode,
+      playerTeams: this.teamCount,
+      difficulty: this.selectedDifficulty,
+      maxTimerValue,
+      bots: this.bots,
+      infiniteGold: this.infiniteGold,
+      donateGold: this.gameMode === GameMode.Team,
+      donateTroops: this.gameMode === GameMode.Team,
+      infiniteTroops: this.infiniteTroops,
+      instantBuild: this.instantBuild,
+      randomSpawn: this.randomSpawn,
+      disabledUnits: this.disabledUnits.filter((unit): unit is UnitType =>
+        Object.values(UnitType).includes(unit),
+      ),
+      nations: sliderToNationsConfig(this.nations, this.defaultNationCount),
+      ...(this.goldMultiplier && this.goldMultiplierValue
+        ? { goldMultiplier: this.goldMultiplierValue }
+        : {}),
+      ...(this.startingGold && this.startingGoldValue !== undefined
+        ? {
+            startingGold: Math.round(this.startingGoldValue * 1_000_000),
+          }
+        : {}),
+      ...(this.customAlliances
+        ? { customAllianceDuration: this.customAllianceMinutes ?? 0 }
+        : {}),
+      ...(this.waterNukes ? { waterNukes: true } : {}),
+      ...(this.doomsdayClock
+        ? {
+            doomsdayClock: {
+              enabled: true,
+              speed: this.doomsdayClockSpeed,
+            },
+          }
+        : {}),
+      ...(this.overtime
+        ? {
+            overtime: {
+              enabled: true,
+              startMinutes: this.overtimeStartMinutes ?? 30,
+            },
+          }
+        : {}),
+    };
+  }
+
+  private async launch(config: GameConfig): Promise<void> {
     // Everything past this point awaits something, some of it network-bound.
     // Hold the button in its busy state until join-lobby is away so the wait
     // reads as loading rather than as a dead click.
@@ -1015,7 +1101,7 @@ export class SinglePlayerModal extends BaseModal {
     overlay?.show();
     try {
       console.log(
-        `Starting single player game with map: ${GameMapType[this.selectedMap as keyof typeof GameMapType]}`,
+        `Starting single player game with map: ${GameMapType[config.gameMap as keyof typeof GameMapType]}`,
       );
       const clientID = generateID();
       const gameID = generateID();
@@ -1058,62 +1144,7 @@ export class SinglePlayerModal extends BaseModal {
                   cosmetics,
                 },
               ],
-              config: {
-                gameMap: this.selectedMap,
-                gameMapSize: this.compactMap
-                  ? GameMapSize.Compact
-                  : GameMapSize.Normal,
-                gameType: GameType.Singleplayer,
-                gameMode: this.gameMode,
-                playerTeams: this.teamCount,
-                difficulty: this.selectedDifficulty,
-                maxTimerValue: finalMaxTimerValue,
-                bots: this.bots,
-                infiniteGold: this.infiniteGold,
-                donateGold: this.gameMode === GameMode.Team,
-                donateTroops: this.gameMode === GameMode.Team,
-                infiniteTroops: this.infiniteTroops,
-                instantBuild: this.instantBuild,
-                randomSpawn: this.randomSpawn,
-                disabledUnits: this.disabledUnits.filter(
-                  (unit): unit is UnitType =>
-                    Object.values(UnitType).includes(unit),
-                ),
-                nations: sliderToNationsConfig(
-                  this.nations,
-                  this.defaultNationCount,
-                ),
-                ...(this.goldMultiplier && this.goldMultiplierValue
-                  ? { goldMultiplier: this.goldMultiplierValue }
-                  : {}),
-                ...(this.startingGold && this.startingGoldValue !== undefined
-                  ? {
-                      startingGold: Math.round(
-                        this.startingGoldValue * 1_000_000,
-                      ),
-                    }
-                  : {}),
-                ...(this.customAlliances
-                  ? { customAllianceDuration: this.customAllianceMinutes ?? 0 }
-                  : {}),
-                ...(this.waterNukes ? { waterNukes: true } : {}),
-                ...(this.doomsdayClock
-                  ? {
-                      doomsdayClock: {
-                        enabled: true,
-                        speed: this.doomsdayClockSpeed,
-                      },
-                    }
-                  : {}),
-                ...(this.overtime
-                  ? {
-                      overtime: {
-                        enabled: true,
-                        startMinutes: this.overtimeStartMinutes ?? 30,
-                      },
-                    }
-                  : {}),
-              },
+              config,
               lobbyCreatedAt: Date.now(), // ms; server should be authoritative in MP
             },
             source: "singleplayer",
@@ -1126,7 +1157,8 @@ export class SinglePlayerModal extends BaseModal {
       // canPlay() refusal hides it. Disowning it keeps the close below (and
       // any later onClose) from taking it down mid game-load.
       this.overlayAttempt = 0;
-      this.close();
+      // A practice start comes from the ranked queue with this modal shut.
+      if (this.isModalOpen) this.close();
     } finally {
       // Only if this attempt is still the live one: a retired attempt
       // settling later must not clear the busy state of the one that

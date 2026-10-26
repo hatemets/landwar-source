@@ -378,6 +378,7 @@ export class LobbyCoordinatorClient {
           ffa: [],
           team: [],
           special: [],
+          goldrush: [],
           hosted: [],
         };
         for (const type of PublicGameTypeSchema.options) {
