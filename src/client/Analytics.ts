@@ -1,5 +1,3 @@
-import type { UserMeResponse } from "@openfront/shared/ApiSchemas";
-
 // A PostHog project key is public: it only lets a client send events.
 const POSTHOG_KEY = "phc_tgxLwmspJa8qACxGnT9wDSvmoZi88RjrWyVkUTJZW4a4";
 const POSTHOG_HOST = "https://eu.i.posthog.com";
@@ -21,22 +19,17 @@ export function initAnalytics(): void {
   }
   posthog = import("posthog-js")
     .then(({ default: ph }) => {
+      // Cookieless: PostHog stores nothing on the device and counts visitors
+      // with a daily-rotating hash on its servers. With no cookies and no
+      // per-player id, the EU ePrivacy rules need no consent banner. The
+      // PostHog project must have cookieless mode on, or it drops the events.
       ph.init(POSTHOG_KEY, {
         api_host: POSTHOG_HOST,
-        person_profiles: "identified_only",
+        cookieless_mode: "always",
+        person_profiles: "never",
         capture_pageview: "history_change",
       });
       return ph;
     })
     .catch(() => null);
-
-  // Tie events to the player's public id, never to an email or a name.
-  document.addEventListener("userMeResponse", (e) => {
-    const me = (e as CustomEvent<UserMeResponse | false>).detail;
-    void posthog?.then((ph) => {
-      if (ph === null) return;
-      if (me === false) ph.reset();
-      else ph.identify(me.player.publicId);
-    });
-  });
 }
