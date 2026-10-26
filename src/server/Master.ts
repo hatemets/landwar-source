@@ -36,6 +36,7 @@ import { renderAppShell } from "./RenderHtml";
 import { registerServedConfigRoutes } from "./ServedConfigRoutes";
 import { ServerEnv } from "./ServerEnv";
 import { registerShopRoutes } from "./shop/routes";
+import { registerSitemapRoutes } from "./SitemapRoute";
 import { applyStaticAssetCacheControl } from "./StaticAssetCache";
 import { registerStatsRoutes } from "./stats/routes";
 
@@ -58,6 +59,7 @@ registerClusterListRoute(app);
 registerFriendsRoutes(app);
 registerServedConfigRoutes(app);
 registerShopRoutes(app);
+registerSitemapRoutes(app);
 
 // Serve the shared app shell for the root document.
 app.use(async (req, res, next) => {

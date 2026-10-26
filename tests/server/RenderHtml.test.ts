@@ -80,6 +80,20 @@ describe("RenderHtml", () => {
     expect(rendered).toContain('"numWorkers":1');
   });
 
+  test("renders an absolute og:image on the public origin", async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "render-html-"));
+    const htmlPath = path.join(tempDir, "index.html");
+    await fs.writeFile(htmlPath, "<%- gameplayScreenshotUrl %>", "utf8");
+    vi.stubEnv("PUBLIC_ORIGIN", "https://kleopolis.io");
+    vi.stubEnv("CDN_BASE", "");
+
+    const rendered = await renderHtmlContent(htmlPath);
+
+    expect(rendered).toMatch(
+      /^https:\/\/kleopolis\.io\/.*GameplayScreenshot.*\.png$/,
+    );
+  });
+
   test("sets shared-cache headers for the app shell", () => {
     const headers = new Map<string, string>();
     const response = {

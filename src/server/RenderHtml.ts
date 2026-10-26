@@ -2,6 +2,7 @@ import { buildAssetUrl } from "@openfront/shared/AssetPaths";
 import ejs from "ejs";
 import type { Response } from "express";
 import fs from "fs/promises";
+import { publicOrigin } from "./auth/config";
 import { setNoStoreHeaders } from "./NoStoreHeaders";
 import { getRuntimeAssetManifest } from "./RuntimeAssetManifest";
 import { ServerEnv } from "./ServerEnv";
@@ -96,11 +97,12 @@ export async function renderHtmlContent(
       assetManifest,
       cdnBase,
     ),
-    gameplayScreenshotUrl: buildAssetUrl(
-      "images/GameplayScreenshot.png",
-      assetManifest,
-      cdnBase,
-    ),
+    // og:image must be absolute: link-preview crawlers do not resolve a
+    // relative URL against the page. With no CDN the asset is same-origin.
+    gameplayScreenshotUrl: new URL(
+      buildAssetUrl("images/GameplayScreenshot.png", assetManifest, cdnBase),
+      publicOrigin(),
+    ).href,
     backgroundImageUrl: buildAssetUrl(
       "images/background.webp",
       assetManifest,
