@@ -27,7 +27,7 @@
     "map_default": "Peta Default"
   },
   "main": {
-    "title": "Cleo (ALPHA)",
+    "title": "Kleopolis (ALPHA)",
     "login_discord": "Masuk dengan Discord",
     "sign_in": "Masuk",
     "discord_avatar_alt": "Avatar profil Discord",
@@ -59,7 +59,7 @@
     "copied_to_clipboard": "Informasinya sudah disalin ke clipboard! Silakan bagikan di Discord kami jika Anda membutuhkan bantuan.",
     "os": "OS",
     "device_pixel_ratio": "Rasio Piksel Perangkat",
-    "chromium_tip": "Cleo berjalan paling baik pada browser berbasis Chromium.",
+    "chromium_tip": "Kleopolis berjalan paling baik pada browser berbasis Chromium.",
     "hardware_acceleration_tip": "Pastikan akselerasi perangkat keras diaktifkan di pengaturan browser Anda untuk performa optimal.",
     "renderer": "Renderer",
     "max_texture_size": "Maks Ukuran Tekstur",
@@ -620,7 +620,7 @@
     "not_enough_money": "Uang tidak cukup"
   },
   "win_modal": {
-    "support_openfront": "Dukung Cleo!",
+    "support_openfront": "Dukung Kleopolis!",
     "territory_pattern": "Beli skin wilayah untuk bebas iklan!",
     "died": "Anda meninggal",
     "your_team": "Tim Anda menang!",

@@ -32,7 +32,7 @@
     "desktop_login_discord": "Folytatás a Discorddal a böngészőben",
     "desktop_login_google": "Folytatás Google-lel a böngészőben",
     "desktop_login_needs_update": "A bejelentkezéshez az asztali alkalmazás újabb verziójára van szükség. Indítsd újra a Steamet a frissítéshez, majd próbáld meg újra.",
-    "desktop_sign_in_desc": "A bejelentkezéssel megnyílik az Cleo weboldala a böngésződben. Jelentkezz be ott, hagyd jóvá a Steam-fiókod összekapcsolását, és a játék automatikusan érzékelni fogja.",
+    "desktop_sign_in_desc": "A bejelentkezéssel megnyílik az Kleopolis weboldala a böngésződben. Jelentkezz be ott, hagyd jóvá a Steam-fiókod összekapcsolását, és a játék automatikusan érzékelni fogja.",
     "email_placeholder": "Add meg az email címed",
     "enter_email_address": "Kérjük, adjon meg egy e-mail címet",
     "failed_to_send_recovery_email": "Nem sikerült elküldeni a helyreállítási e-mailt",
@@ -50,7 +50,7 @@
     "link_google_already_linked": "Ez a Google-fiók már egy másik fiókhoz van kapcsolva.",
     "link_google_error": "Nem sikerült összekapcsolni a Google-fiókodat. Győződj meg róla, hogy be vagy jelentkezve, és próbáld újra.",
     "link_google_failed": "Nem sikerült elindítani az összekapcsolást. Próbáld újra.",
-    "link_google_on_web": "Kapcsold össze a Google-fiókodat az Cleo weboldalán",
+    "link_google_on_web": "Kapcsold össze a Google-fiókodat az Kleopolis weboldalán",
     "link_google_success": "Google-fiók összekapcsolva.",
     "link_steam": "Steam fiók összekapcsolása",
     "link_steam_error": "Nem sikerült összekapcsolni a Steam-fiókodat. Győződj meg róla, hogy be vagy jelentkezve, és próbáld újra.",
@@ -64,13 +64,13 @@
     "login_deleted": "Ez a fiók törölve lett.",
     "login_email_exists": "Már rendelkezel fiókkal ezzel az e-mail-címmel. Jelentkezz be, majd kapcsold össze ezt a fiókot a beállításokban.",
     "login_error": "Nem sikerült ellenőrizni a bejelentkezést. Kérjük, próbáld meg újra.",
-    "login_no_account": "Még egyetlen Cleo-fiókhoz sincs hozzákapcsolva ez a Steam-fiók. Jelentkezz be a meglévő fiókodba, és társítsd a Steamet a beállításokban, vagy indítsd el a játékot a Steamből.",
+    "login_no_account": "Még egyetlen Kleopolis-fiókhoz sincs hozzákapcsolva ez a Steam-fiók. Jelentkezz be a meglévő fiókodba, és társítsd a Steamet a beállításokban, vagy indítsd el a játékot a Steamből.",
     "manage_subscription": "Kezelés",
     "manage_subscription_on_steam": "Steamen keresztül számlázva. A Kezelés gombra kattintva megnyílik a Steam-előfizetések oldala.",
     "manage_subscription_on_steam_ending": "Lemondva — {date}-ig érvényes. A \"Kezelés\" a Steam-előfizetések oldalára visz.",
     "manage_subscription_on_steam_ending_no_date": "Lemondva — Az előfizetés a kifizetett időszak végéig érvényes marad. A \"Kezelés\" a Steam-előfizetések oldalára visz.",
     "manage_subscription_on_steam_no_tier_change": "A számlázás a Steamen keresztül történik. A \"Kezelés\" a Steam-előfizetések oldalára visz. Szintváltáshoz mondd le a jelenlegi előfizetést, és a hónap végeztével iratkozz fel az új szintre.",
-    "manage_subscription_on_web": "Kezeld vagy módosítsd számlázási adataidat az Cleo weboldalán.",
+    "manage_subscription_on_web": "Kezeld vagy módosítsd számlázási adataidat az Kleopolis weboldalán.",
     "marketing_desc": "Időszakos hírek, események és játékfrissítések. Bármikor leiratkozhatsz.",
     "marketing_no_email": "A frissítésekre való feliratkozáshoz társíts egy e-mail címet a fiókodhoz.",
     "marketing_no_email_steam": "A Steam nem osztja meg velünk az e-mail-címedet, így nincs hová küldenünk a frissítéseket.",
@@ -577,8 +577,8 @@
     "spectating": "Néző"
   },
   "desktop_session": {
-    "generic": "Nem sikerült bejelentkezni az Cleo-fiókodba.",
-    "network": "Az Cleo nem érhető el. Ellenőrizze a kapcsolatot.",
+    "generic": "Nem sikerült bejelentkezni az Kleopolis-fiókodba.",
+    "network": "Az Kleopolis nem érhető el. Ellenőrizze a kapcsolatot.",
     "retry": "Újra",
     "retrying": "Bejelentkezés…",
     "steam_backend": "A Steam problémába akadt a bejelentkezésnél. Próbáld meg újra rövidesen.",
@@ -903,7 +903,7 @@
     "preset_colorblind_desc": "Színtévesztő-barát terület- és határszínek",
     "preset_custom": "Egyedi",
     "preset_default": "Alapértelmezett",
-    "preset_default_desc": "A szokásos Cleo-megjelenés",
+    "preset_default_desc": "A szokásos Kleopolis-megjelenés",
     "preset_delete_confirm": "Törli a(z) \"{name}\" előbeállítást?",
     "preset_evans_pick": "Evan választása",
     "preset_evans_pick_desc": "Azok a beállítások, amelyekkel Evan ténylegesen játszik",
@@ -1025,14 +1025,14 @@
     "got_it": "Értem",
     "how": "Hogy",
     "later": "Később",
-    "modal_desc": "A böngésződ nem támogatja a teljes képernyős nézetet, de hozzáadhatod az Cleoot a kezdőképernyődhöz egy magával ragadóbb élményért:",
+    "modal_desc": "A böngésződ nem támogatja a teljes képernyős nézetet, de hozzáadhatod az Kleopolisot a kezdőképernyődhöz egy magával ragadóbb élményért:",
     "modal_title": "Teljes képernyő iOS-en",
     "never": "Soha",
     "step_add_to_home_label": "Hozzáadás a kezdőképernyőhöz",
     "step_open": "Megnyitás a kezdőképernyőről - teljes képernyős nézetet indít címsor nélkül",
     "step_scroll_and_tap": "Görgessen le, és kattintson",
     "step_share": "Koppintson a Megosztás gombra a böngészőjében",
-    "text": "Teljes képernyős nézethez add hozzá az Cleo-ot a kezdőképernyődhöz"
+    "text": "Teljes képernyős nézethez add hozzá az Kleopolis-ot a kezdőképernyődhöz"
   },
   "kick_reason": {
     "admin": "Az adminisztrátor kirúgta",
@@ -1124,7 +1124,7 @@
     "solo": "Egyéni",
     "store": "Bolt",
     "terms_of_service": "Felhasználási feltételek",
-    "title": "Cleo (ALPHA)",
+    "title": "Kleopolis (ALPHA)",
     "troubleshooting": "Hibaelhárítás",
     "tutorial": "Ismertető",
     "user_avatar_alt": "{username} profilképe",
@@ -1295,7 +1295,7 @@
     "dismiss": "Elvetés",
     "error": "Nem sikerült menteni. Kérjük, próbáld újra.",
     "no": "Nem, köszönöm",
-    "title": "Követed az Cleoot?",
+    "title": "Követed az Kleopolisot?",
     "yes": "Igen, kérlek"
   },
   "matchmaking_modal": {
@@ -1580,9 +1580,9 @@
     "waiting_for_players": "Várakozás játékosokra"
   },
   "purchase_nudge": {
-    "body": "Úgy tűnik, élvezed az Cleo játékot! Kérjük, fontold meg a támogatásunkat egy vásárlással — bármilyen vásárlás révén örökre megszabadulhatsz a hirdetésektől.",
+    "body": "Úgy tűnik, élvezed az Kleopolis játékot! Kérjük, fontold meg a támogatásunkat egy vásárlással — bármilyen vásárlás révén örökre megszabadulhatsz a hirdetésektől.",
     "close": "Bezár",
-    "title": "Tetszik az Cleo?",
+    "title": "Tetszik az Kleopolis?",
     "visit_store": "Áruház felkeresése"
   },
   "radial_menu": {
@@ -1645,7 +1645,7 @@
     "reason_expired": "Ez a hivatkozás lejárt. Kérjük, próbáld meg újra a Steamről.",
     "reason_rate_limited": "Túl sok próbálkozás. Kérjük, várjon {seconds, plural, =0 {egy pillanatot} one {# másodpercet} other {# másodpercet}}, majd próbálja újra.",
     "reason_steam_has_progress": "Ehhez a Steam-fiókhoz már tartozik saját előrehaladás, így nem vonható össze.",
-    "reason_steam_linked_elsewhere": "Ez a Steam-fiók már össze van kapcsolva egy másik Cleo-fiókkal.",
+    "reason_steam_linked_elsewhere": "Ez a Steam-fiók már össze van kapcsolva egy másik Kleopolis-fiókkal.",
     "success": "Steam-fiókod most már össze van kapcsolva.",
     "title": "Steam fiók összekapcsolása"
   },
@@ -1655,9 +1655,9 @@
   },
   "steam_wishlist": {
     "cta": "Kívánságlistázd most",
-    "on_steam": "Cleo a Steamen",
+    "on_steam": "Kleopolis a Steamen",
     "release": "2026 harmadik negyedévétől elérhető",
-    "title": "Add hozzá az Cleoot a kívánságlistádhoz Steamen!"
+    "title": "Add hozzá az Kleopolisot a kívánságlistádhoz Steamen!"
   },
   "store": {
     "already_owned": "Már a birtokodban van ez a tárgy. Nem történt terhelés.",
@@ -1731,7 +1731,7 @@
     "subscription_purchase_success": "Előfizetés aktiválva!",
     "subscriptions": "Előfizetések",
     "switch_button": "Váltás",
-    "tier_change_steam_needs_desktop": "Az előfizetésed számlázása a Steamen keresztül történik. Módosítsd a Steamen található Cleo alkalmazásban, vagy kezeld a Steam-fiókod beállításaiban.",
+    "tier_change_steam_needs_desktop": "Az előfizetésed számlázása a Steamen keresztül történik. Módosítsd a Steamen található Kleopolis alkalmazásban, vagy kezeld a Steam-fiókod beállításaiban.",
     "tier_change_unavailable_steam": "Ha szintet szeretnél váltani a Steamen, mondd le az előfizetésedet a Steam-fiókbeállításokban, majd fizess elő az új szintre a jelenlegi hónap lejárta után.",
     "title": "Bolt",
     "tribe_boost_button": "Kiemelés",
@@ -1808,7 +1808,7 @@
     "browser": "Böngésző",
     "canvas_2d_no_gpu": "Canvas 2D (GPU nélkül)",
     "charging": "Töltés",
-    "chromium_tip": "Az Cleo Chromium alapú böngészőkön fut a legjobban.",
+    "chromium_tip": "Az Kleopolis Chromium alapú böngészőkön fut a legjobban.",
     "copied_to_clipboard": "Információ másolva a vágólapra! Nyugodtan oszd meg Discordon, ha segítségre van szükséged.",
     "device_pixel_ratio": "Eszköz pixelaránya",
     "environment": "Környezet",
@@ -1899,8 +1899,8 @@
     "warship": "Hadihajó"
   },
   "update_available": {
-    "desktop": "Elérhető az Cleo új verziója. A letöltés a háttérben zajlik; ha elkészült, frissítsd az oldalt a frissítési sáv segítségével.",
-    "message": "Elérhető az Cleo új verziója. Az oldal a frissítés érdekében most újratöltődik."
+    "desktop": "Elérhető az Kleopolis új verziója. A letöltés a háttérben zajlik; ha elkészült, frissítsd az oldalt a frissítési sáv segítségével.",
+    "message": "Elérhető az Kleopolis új verziója. Az oldal a frissítés érdekében most újratöltődik."
   },
   "user_setting": {
     "alert_frame_desc": "Kapcsolja be a riasztási keretet. Ha engedélyezve van, a keret akkor jelenik meg, ha elárulnak vagy megtámadnak a szárazföldön.",
@@ -2058,7 +2058,7 @@
     "zoom_in_desc": "Térkép nagyítása",
     "zoom_out": "Kicsinyítés",
     "zoom_out_desc": "Térkép kicsinyítése",
-    "quit_desc": "Zárja be az Cleoot, és térjen vissza az asztalra.",
+    "quit_desc": "Zárja be az Kleopolisot, és térjen vissza az asztalra.",
     "quit_label": "Kilépés a játékból"
   },
   "username": {
@@ -2109,7 +2109,7 @@
     "other_won": "{player} nyert!",
     "requeue": "Új játék",
     "spectate": "Megfigyel",
-    "support_openfront": "Támogasd az Cleoot!",
+    "support_openfront": "Támogasd az Kleopolisot!",
     "territory_pattern": "Vásárolj egy territoriális mintát, hogy reklámmentes legyél!",
     "you_won": "Nyertél!",
     "your_team": "A csapatod nyert!",

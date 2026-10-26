@@ -9,7 +9,7 @@
     "close": "Sulje"
   },
   "main": {
-    "title": "Cleo (ALPHA)",
+    "title": "Kleopolis (ALPHA)",
     "join_discord": "Liity Discordiin!",
     "login_discord": "Kirjaudu sisään Discordilla",
     "checking_login": "Tarkistetaan sisäänkirjautumista...",
@@ -371,8 +371,8 @@
     "not_enough_money": "Ei tarpeeksi rahaa"
   },
   "win_modal": {
-    "support_openfront": "Tue Cleoia!",
-    "territory_pattern": "Osta aluekuvio tukeaksesi Cleoia!",
+    "support_openfront": "Tue Kleopolisia!",
+    "territory_pattern": "Osta aluekuvio tukeaksesi Kleopolisia!",
     "died": "Sinä kuolit",
     "your_team": "Joukkueesi voitti!",
     "other_team": "{team} joukkue on voittanut!",
@@ -528,8 +528,8 @@
       "cursor": "Kursori",
       "hand": "Käsi",
       "radiation": "Säteily",
-      "openfront_qr": "Cleo:n QR-koodi",
-      "openfront": "Cleo",
+      "openfront_qr": "Kleopolis:n QR-koodi",
+      "openfront": "Kleopolis",
       "t_rex": "T-Rex",
       "embelem": "Tunnus",
       "contributor": "Avustaja",

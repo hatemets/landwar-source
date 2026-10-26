@@ -9,7 +9,7 @@
     "close": "Zapri"
   },
   "main": {
-    "title": "Cleo (Alfa)",
+    "title": "Kleopolis (Alfa)",
     "join_discord": "Pridruži se našemu Discord serverju!",
     "login_discord": "Prijava z Discord računom",
     "checking_login": "Preverjanje prijave...",
@@ -376,8 +376,8 @@
     "not_enough_money": "Ni dovolj denarja"
   },
   "win_modal": {
-    "support_openfront": "Podprite Cleo!",
-    "territory_pattern": "Kupite vzorec teritorija, da podprete Cleo!",
+    "support_openfront": "Podprite Kleopolis!",
+    "territory_pattern": "Kupite vzorec teritorija, da podprete Kleopolis!",
     "died": "Umrl si",
     "your_team": "Vaša ekipa je zmagala!",
     "other_team": "Ekipa {team} je zmagala!",
@@ -534,8 +534,8 @@
       "cursor": "Kazalnik",
       "hand": "Roka",
       "radiation": "Radiacija",
-      "openfront_qr": "Cleo QR koda",
-      "openfront": "Cleo",
+      "openfront_qr": "Kleopolis QR koda",
+      "openfront": "Kleopolis",
       "t_rex": "T-Rex",
       "embelem": "Grb",
       "contributor": "Podpornik",

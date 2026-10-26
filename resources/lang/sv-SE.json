@@ -9,7 +9,7 @@
     "close": "Stäng"
   },
   "main": {
-    "title": "Cleo (ALPHA)",
+    "title": "Kleopolis (ALPHA)",
     "join_discord": "Gå med i Discord!",
     "login_discord": "Logga in med Discord",
     "checking_login": "Kontrollerar inloggning...",
@@ -480,8 +480,8 @@
       "cursor": "Muspekare",
       "hand": "Hand",
       "radiation": "Radioaktivitet",
-      "openfront_qr": "Cleo QR kod",
-      "openfront": "Cleo",
+      "openfront_qr": "Kleopolis QR kod",
+      "openfront": "Kleopolis",
       "t_rex": "T-Rex",
       "embelem": "Emblem",
       "grogu_head": "Grogu Huvud",

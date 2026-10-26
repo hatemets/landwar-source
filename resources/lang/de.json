@@ -32,7 +32,7 @@
     "desktop_login_discord": "Mit Discord in deinem Browser fortfahren",
     "desktop_login_google": "Mit Google im Browser fortfahren",
     "desktop_login_needs_update": "Die Anmeldung benötigt eine neuere Version der Desktop-App. Starte Steam neu, um zu aktualisieren, dann versuche es erneut.",
-    "desktop_sign_in_desc": "Die Anmeldung öffnet die Cleo‑Website in deinem Browser. Melde dich dort an, bestätige die Verknüpfung mit deinem Steam‑Account, und das Spiel übernimmt sie automatisch.",
+    "desktop_sign_in_desc": "Die Anmeldung öffnet die Kleopolis‑Website in deinem Browser. Melde dich dort an, bestätige die Verknüpfung mit deinem Steam‑Account, und das Spiel übernimmt sie automatisch.",
     "email_placeholder": "E-Mail-Adresse eingeben",
     "enter_email_address": "Bitte gib deine E-Mail-Adresse ein",
     "failed_to_send_recovery_email": "Senden der Wiederherstellungs E-Mail ist fehlgeschlagen",
@@ -46,7 +46,7 @@
     "google_alt": "Google",
     "identity_token_copied": "Kopiert",
     "identity_token_copy": "Kopieren",
-    "identity_token_desc": "Weise einer Stats‑Seite nach, welcher Cleo‑Account deiner ist. Wähle eine Seite, generiere ein Token und füge es dort ein.",
+    "identity_token_desc": "Weise einer Stats‑Seite nach, welcher Kleopolis‑Account deiner ist. Wähle eine Seite, generiere ein Token und füge es dort ein.",
     "identity_token_failed": "Es konnte kein Token generiert werden. Bitte versuche es erneut.",
     "identity_token_generate": "Token erzeugen",
     "identity_token_logged_out": "Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.",
@@ -60,7 +60,7 @@
     "link_google_already_linked": "Dieses Google-Konto ist bereits mit einem anderen Spieler verknüpft.",
     "link_google_error": "Dein Google-Konto konnte nicht verknüpft werden. Bitte stelle sicher, dass du angemeldet bist und versuche es erneut.",
     "link_google_failed": "Google-Link konnte nicht gestartet werden. Bitte versuche es erneut.",
-    "link_google_on_web": "Google auf der Cleo-Website verknüpfen",
+    "link_google_on_web": "Google auf der Kleopolis-Website verknüpfen",
     "link_google_success": "Google-Konto wurde verknüpft.",
     "link_steam": "Steam Konto verknüpfen",
     "link_steam_error": "Konnte deinen Steam‑Account nicht verknüpfen. Bitte stelle sicher, dass du angemeldet bist und versuche es erneut.",
@@ -74,13 +74,13 @@
     "login_deleted": "Dieses Konto wurde bereits gelöscht.",
     "login_email_exists": "Du hast bereits ein Konto mit dieser E-Mail-Adresse. Melde dich dort an und verknüpfe dieses Konto anschließend in den Einstellungen.",
     "login_error": "Wir konnten diese Anmeldung nicht verifizieren. Bitte versuche es erneut.",
-    "login_no_account": "Noch kein Cleo‑Account verwendet diesen Steam‑Account. Melde dich mit deinem bestehenden Account an und verknüpfe Steam in den Einstellungen, oder starte das Spiel über Steam.",
+    "login_no_account": "Noch kein Kleopolis‑Account verwendet diesen Steam‑Account. Melde dich mit deinem bestehenden Account an und verknüpfe Steam in den Einstellungen, oder starte das Spiel über Steam.",
     "manage_subscription": "Verwalten",
     "manage_subscription_on_steam": "Über Steam abgerechnet. ‚Verwalten öffnet deine Steam‑Abonnementseite.",
     "manage_subscription_on_steam_ending": "Gekündigt — aktiv bis {date}. ‚Verwalten‘ öffnet deine Steam‑Abonnementseite.",
     "manage_subscription_on_steam_ending_no_date": "Gekündigt — bleibt bis zum Ende des bezahlten Zeitraums aktiv. ‚Verwalten‘ öffnet die Steam‑Seite für deine Abonnements.",
     "manage_subscription_on_steam_no_tier_change": "Über Steam abgerechnet. Verwalten öffnet die Steam‑Seite für deine Abonnements. Zum Wechseln der Stufe musst du kündigen und nach Ablauf des aktuellen Monats die neue Stufe abonnieren.",
-    "manage_subscription_on_web": "Die Abrechnung kannst du auf der Cleo‑Website verwalten oder ändern.",
+    "manage_subscription_on_web": "Die Abrechnung kannst du auf der Kleopolis‑Website verwalten oder ändern.",
     "marketing_desc": "Gelegentliche Nachrichten, Events und Spielaktualisierungen. Abmelden jederzeit möglich.",
     "marketing_no_email": "Verknüpfe eine E-Mail mit deinem Konto, um Updates zu abonnieren.",
     "marketing_no_email_steam": "Steam teilt uns deine E‑Mail‑Adresse nicht mit, daher haben wir keine Möglichkeit, dir Updates zu schicken.",
@@ -489,7 +489,7 @@
   "common": {
     "available": "Verfügbar",
     "back": "Zurück",
-    "backend_unreachable": "Die Cleo‑Server sind nicht erreichbar. Überprüfe deine Verbindung und versuche es erneut.",
+    "backend_unreachable": "Die Kleopolis‑Server sind nicht erreichbar. Überprüfe deine Verbindung und versuche es erneut.",
     "cancel": "Abbrechen",
     "cap_label": "Kapazität",
     "cap_tooltip": "Verbleibende Kapazität des Empfängers",
@@ -595,11 +595,11 @@
     "back_to_game": "Zurück zum Spiel",
     "browser_fallback": "Dein Browser konnte nicht automatisch geöffnet werden — nutze den Link oben.",
     "cancel": "Abbrechen",
-    "code_destination_generic": "Gebe diesen Code auf der Cleo-Website ein, um dein Konto zu verknüpfen:",
+    "code_destination_generic": "Gebe diesen Code auf der Kleopolis-Website ein, um dein Konto zu verknüpfen:",
     "code_destination_site": "Geben Sie diesen Code bei {site} ein, um dein Konto zu verlinken:",
     "continue_to_game": "Weiter zum Spiel",
     "expired": "Dieser Code ist abgelaufen. Starte neu, um einen neuen zu bekommen.",
-    "heading": "Willkommen bei Cleo",
+    "heading": "Willkommen bei Kleopolis",
     "link_existing": "Bestehendes Konto verknüpfen",
     "linking_failed_reason": "Verknüpfung fehlgeschlagen: {reason}",
     "linking_failed_unknown": "Die Verknüpfung ist aus einem unbekannten Grund fehlgeschlagen.",
@@ -609,16 +609,16 @@
     "retry": "Wiederholen",
     "starting_link": "Starte Konto Verknüpfung…",
     "ticket_unavailable": "Die Konto‑Verknüpfung konnte gerade nicht gestartet werden. Du kannst es erneut versuchen oder direkt ins Spiel weitergehen.",
-    "title": "Cleo-Konto einrichten"
+    "title": "Kleopolis-Konto einrichten"
   },
   "desktop_presence": {
     "in_game": "Im Spiel",
     "spectating": "Zuschauen"
   },
   "desktop_session": {
-    "generic": "Anmeldung zu deinem Cleo-Konto fehlgeschlagen",
-    "needs_account": "Richte deinen Cleo-Account ein, um online zu spielen",
-    "network": "Konnte Cleo nicht erreichen. Überprüfe deine Verbindung.",
+    "generic": "Anmeldung zu deinem Kleopolis-Konto fehlgeschlagen",
+    "needs_account": "Richte deinen Kleopolis-Account ein, um online zu spielen",
+    "network": "Konnte Kleopolis nicht erreichen. Überprüfe deine Verbindung.",
     "retry": "Wiederholen",
     "retrying": "Einloggen…",
     "steam_backend": "Steam hat Probleme dich anzumelden. Versuche es in Kürze erneut.",
@@ -628,7 +628,7 @@
   },
   "desktop_status": {
     "go_online": "Online gehen",
-    "offline": "Offline: Die Cleo Server können nicht erreicht werden",
+    "offline": "Offline: Die Kleopolis Server können nicht erreicht werden",
     "retry": "Wiederholen",
     "retrying": "Erneut versuchen…"
   },
@@ -641,12 +641,12 @@
     "retry": "wiederholen"
   },
   "desktop_webgl_gate": {
-    "intro": "Cleo konnte deine Grafikkarte nicht verwenden, daher kann das Spiel nicht laufen. Dies ist in der Regel vorübergehend. Um es zu beheben:",
-    "quit": "Cleo beenden",
+    "intro": "Kleopolis konnte deine Grafikkarte nicht verwenden, daher kann das Spiel nicht laufen. Dies ist in der Regel vorübergehend. Um es zu beheben:",
+    "quit": "Kleopolis beenden",
     "step_drivers": "Wenn es trotzdem passiert, aktualisiere deinen Grafiktreiber von NVIDIA, AMD oder Intel.",
-    "step_quit": "Cleo beenden.",
+    "step_quit": "Kleopolis beenden.",
     "step_restart_computer": "Wenn dies weiterhin geschieht, starte deinen Computer neu.",
-    "step_restart_steam": "Steam neu starten und dann Cleo erneut starten.",
+    "step_restart_steam": "Steam neu starten und dann Kleopolis erneut starten.",
     "title": "Grafikbeschleunigung nicht verfügbar"
   },
   "detailed_view": {
@@ -1009,7 +1009,7 @@
     "preset_colorblind_desc": "Farbenblindfreundliche Flächen und Randfarben verwenden",
     "preset_custom": "Benutzerdefiniert",
     "preset_default": "Standard",
-    "preset_default_desc": "Der Standard Cleo-Look",
+    "preset_default_desc": "Der Standard Kleopolis-Look",
     "preset_delete_confirm": "Voreingestellten \"{name} \"löschen?",
     "preset_evans_pick": "Evan's Auswahl",
     "preset_evans_pick_desc": "Die Einstellungen, welche Evan tatsächlich nutzt",
@@ -1148,14 +1148,14 @@
     "got_it": "Verstanden",
     "how": "Wie",
     "later": "Später",
-    "modal_desc": "Ihr Browser unterstützt keinen Vollbild, aber Sie können Cleo zu Ihrem Startbildschirm hinzufügen, um ein intensives Erlebnis zu erleben:",
+    "modal_desc": "Ihr Browser unterstützt keinen Vollbild, aber Sie können Kleopolis zu Ihrem Startbildschirm hinzufügen, um ein intensives Erlebnis zu erleben:",
     "modal_title": "Vollbild auf iOS",
     "never": "Niemals",
     "step_add_to_home_label": "Zum Startbildschirm hinzufügen",
     "step_open": "Direkt vom Home‑Screen öffnen — läuft im Vollbild ohne Adressleiste",
     "step_scroll_and_tap": "Herunterscrollen und tippen",
     "step_share": "Klicke die „Teilen” Taste in deinem Browser",
-    "text": "Für Vollbild Cleo zum Startbildschirm hinzufügen"
+    "text": "Für Vollbild Kleopolis zum Startbildschirm hinzufügen"
   },
   "kick_reason": {
     "admin": "Von einem Admin gekickt",
@@ -1248,7 +1248,7 @@
     "solo": "Solo",
     "store": "Shop",
     "terms_of_service": "Nutzungsbedingungen",
-    "title": "Cleo (ALPHA)",
+    "title": "Kleopolis (ALPHA)",
     "troubleshooting": "Fehlerbehebung",
     "tutorial": "Tutorial",
     "user_avatar_alt": "{username}'s Avatar",
@@ -1430,7 +1430,7 @@
     "dismiss": "Schließen",
     "error": "Speichern fehlgeschlagen. Bitte erneut versuchen.",
     "no": "Nein danke",
-    "title": "Mit Cleo weitermachen?",
+    "title": "Mit Kleopolis weitermachen?",
     "yes": "Ja bitte"
   },
   "matchmaking_modal": {
@@ -1459,7 +1459,7 @@
     "ranked_pairing_note": "Im Team Modus werden Clanmitglieder und Freunde in das Team gesteckt wenn möglich. Freunde werden als erstes gepaart, danach Clanmitglieder. Wenn eure ELO-Ratings zu weit voneinander entfernt sind, werdet ihr in unterschiedliche Teams gesteckt, damit das ganze Spiel fair bleibt.",
     "ranked_title": "Rangliste",
     "retry_lobbies": "Wiederholen",
-    "servers_unreachable": "Keine Verbindung zu den Cleo-Servern möglich",
+    "servers_unreachable": "Keine Verbindung zu den Kleopolis-Servern möglich",
     "teams_count": "{teamCount} Teams",
     "teams_of": "{teamCount} Teams von {playersPerTeam}",
     "teams_title": "Teams",
@@ -1727,9 +1727,9 @@
     "players_per_team": "von {num}"
   },
   "purchase_nudge": {
-    "body": "Es scheint, als würde dir Cleo Spaß machen! Bitte überlege, uns zu helfen, indem du einen Einkauf tätigst — jeder Einkauf entfernt alle Werbung für dich, für immer.",
+    "body": "Es scheint, als würde dir Kleopolis Spaß machen! Bitte überlege, uns zu helfen, indem du einen Einkauf tätigst — jeder Einkauf entfernt alle Werbung für dich, für immer.",
     "close": "Schließen",
-    "title": "Gefällt dir Cleo?",
+    "title": "Gefällt dir Kleopolis?",
     "visit_store": "Zum Shop"
   },
   "radial_menu": {
@@ -1760,10 +1760,10 @@
     "processing_fetching": "Lade den Spieleintrag",
     "processing_simulating": "Wiederholen des Spiels: {percent}%",
     "timeline": "Zeitleiste wiederholen",
-    "unavailable_desync": "Dieses Spiel wiederholt sich nicht korrekt auf dieser Version von Cleo.",
+    "unavailable_desync": "Dieses Spiel wiederholt sich nicht korrekt auf dieser Version von Kleopolis.",
     "unavailable_failed": "Verarbeitung dieses Spiels fehlgeschlagen.",
     "unavailable_not_found": "Dieses Spiel konnte nicht gefunden werden.",
-    "unavailable_other_build": "Dieses Spiel wurde auf einer anderen Version von Cleo gespielt.",
+    "unavailable_other_build": "Dieses Spiel wurde auf einer anderen Version von Kleopolis gespielt.",
     "unavailable_unreachable": "Das Spiel konnte nicht heruntergeladen werden. Überprüfe deine Verbindung und versuche es erneut.",
     "watch_classic": "Beobachte stattdessen das alte Replay"
   },
@@ -1805,7 +1805,7 @@
     "launched": "Öffne diese Lobby in der Steam App. Wenn nichts passiert, stelle sicher, dass Steam läuft.",
     "open_in_steam": "In Steam öffnen",
     "play_in_browser": "Im Browser spielen",
-    "prompt": "Du hast Cleo auf Steam. Wo möchtest du dieser Lobby beitreten?",
+    "prompt": "Du hast Kleopolis auf Steam. Wo möchtest du dieser Lobby beitreten?",
     "remember": "Meine Auswahl merken",
     "title": "Lobby beitreten",
     "try_again": "Erneut versuchen"
@@ -1823,7 +1823,7 @@
     "conflict_games": "{games, plural, =0 {Keine Spiele gespielt} one {# Spiel gespielt} other {# Spiele gespielt}}",
     "conflict_games_capped": "{games}+ gespielte Spiele",
     "conflict_keep": "Du erhältst {username}, und deine Steam-Käufe bewegen sich mit dem Link.",
-    "conflict_prompt": "Steam {persona} ist bereits an ein separates Cleo-Konto angehängt.",
+    "conflict_prompt": "Steam {persona} ist bereits an ein separates Kleopolis-Konto angehängt.",
     "conflict_prompt_no_persona": "Dein Account ist bereits mit einem anderen Steam Account verbunden.",
     "conflict_warning": "Dies kann nicht rückgängig gemacht werden.",
     "invalid_code": "Das sieht nicht aus wie ein gültiger Code. Überprüfe ihn und probier es erneut.",
@@ -1831,8 +1831,8 @@
     "load_error": "Konnte deine Kontodaten nicht laden. Bitte versuche es von Steam erneut.",
     "load_error_code": "Konnte deine Kontodaten nicht laden. Bitte versuche es von Steam erneut.",
     "reason_account_already_has_steam": "Dein Account ist bereits mit einem anderen Steam Account verbunden.",
-    "reason_discard_blocked": "Das Cleo-Konto dieses Steam-Kontos kann nicht automatisch entfernt werden. Bitte kontaktieren Sie den Support und wir kümmern uns darum.",
-    "reason_discard_blocked_paid": "Der Cleo‑Account dieses Steam‑Accounts enthält Käufe, daher können wir ihn nicht automatisch löschen. Bitte kontaktiere den Support, und wir kümmern uns darum.",
+    "reason_discard_blocked": "Das Kleopolis-Konto dieses Steam-Kontos kann nicht automatisch entfernt werden. Bitte kontaktieren Sie den Support und wir kümmern uns darum.",
+    "reason_discard_blocked_paid": "Der Kleopolis‑Account dieses Steam‑Accounts enthält Käufe, daher können wir ihn nicht automatisch löschen. Bitte kontaktiere den Support, und wir kümmern uns darum.",
     "reason_discard_deferred": "Ein Kauf auf diesem Konto läuft noch. Bitte versuche es in ein paar Minuten erneut.",
     "reason_discard_not_linked": "Die Verknüpfung wurde nicht abgeschlossen. Bitte starte sie erneut.",
     "reason_expired": "Dieser Link ist abgelaufen. Bitte versuche es erneut von Steam.",
@@ -1849,7 +1849,7 @@
   },
   "steam_wishlist": {
     "buy_cta": "Auf Steam kaufen",
-    "buy_on_steam": "Cleo auf Steam kaufen"
+    "buy_on_steam": "Kleopolis auf Steam kaufen"
   },
   "store": {
     "already_owned": "Du besitzt diesen Gegenstand bereits. Es wurde nichts berechnet.",
@@ -1925,11 +1925,11 @@
     "subscribe_heading": "Abonnement starten",
     "subscribed": "Abonniert",
     "subscription_past_due": "Deine letzte Abonnementzahlung ist fehlgeschlagen, daher ist dein Abo pausiert. Aktualisiere deine Zahlungsmethode, um es wiederherzustellen. Abonniere nicht erneut, sonst könnte dir doppelt berechnet werden.",
-    "subscription_past_due_desktop": "Deine letzte Abonnementzahlung ist fehlgeschlagen, daher ist dein Abo pausiert. Aktualisiere deine Zahlungsmethode auf der Cleo‑Website, um es wiederherzustellen. Abonniere nicht erneut, sonst könnte dir doppelt berechnet werden.",
+    "subscription_past_due_desktop": "Deine letzte Abonnementzahlung ist fehlgeschlagen, daher ist dein Abo pausiert. Aktualisiere deine Zahlungsmethode auf der Kleopolis‑Website, um es wiederherzustellen. Abonniere nicht erneut, sonst könnte dir doppelt berechnet werden.",
     "subscription_purchase_success": "Abonnement aktiviert!",
     "subscriptions": "Abonnements",
     "switch_button": "Wechseln",
-    "tier_change_steam_needs_desktop": "Dein Abonnement wird über Steam abgerechnet. Ändere es in der Cleo‑App auf Steam oder verwalte es in den Einstellungen deines Steam‑Kontos.",
+    "tier_change_steam_needs_desktop": "Dein Abonnement wird über Steam abgerechnet. Ändere es in der Kleopolis‑App auf Steam oder verwalte es in den Einstellungen deines Steam‑Kontos.",
     "tier_change_unavailable_steam": "Um auf Steam das Tier zu wechseln, kündige dein Abonnement in den Einstellungen deines Steam‑Kontos und abonniere das neue Tier, nachdem dein aktueller Monat endet.",
     "title": "Shop",
     "tribe_boost_button": "Boost",
@@ -2006,7 +2006,7 @@
     "browser": "Browser",
     "canvas_2d_no_gpu": "2D-Leinwand (keine GPU)",
     "charging": "Wird geladen",
-    "chromium_tip": "Cleo läuft am besten auf Chromium-basierten Browsern.",
+    "chromium_tip": "Kleopolis läuft am besten auf Chromium-basierten Browsern.",
     "copied_to_clipboard": "Informationen in die Zwischenablage kopiert! Du kannst sie auf unserem Discord teilen, wenn du Hilfe brauchst.",
     "device_pixel_ratio": "Pixelverhältnis des Geräts",
     "environment": "Umgebung",
@@ -2097,8 +2097,8 @@
     "warship": "Kriegsschiff"
   },
   "update_available": {
-    "desktop": "Eine neue Version von Cleo ist verfügbar. Sie wird im Hintergrund heruntergeladen; lade über die Update‑Leiste neu, sobald sie bereit ist.",
-    "message": "Eine neue Version von Cleo ist verfügbar. Die Seite wird nun aktualisiert."
+    "desktop": "Eine neue Version von Kleopolis ist verfügbar. Sie wird im Hintergrund heruntergeladen; lade über die Update‑Leiste neu, sobald sie bereit ist.",
+    "message": "Eine neue Version von Kleopolis ist verfügbar. Die Seite wird nun aktualisiert."
   },
   "user_setting": {
     "alert_frame_desc": "Aktiviere oder deaktiviere den Alarmrahmen. Wenn aktiviert, wird der Rahmen angezeigt, wenn du verraten wirst oder einen Landangriff erleidest.",
@@ -2330,7 +2330,7 @@
     "other_won": "{player} hat gewonnen!",
     "requeue": "Spiel nochmal",
     "spectate": "Zuschauen",
-    "support_openfront": "Unterstütze Cleo!",
+    "support_openfront": "Unterstütze Kleopolis!",
     "territory_pattern": "Kaufe ein Gebietsmuster, um werbefrei zu spielen!",
     "you_won": "Du hast gewonnen!",
     "your_team": "Dein Team hat gewonnen!",

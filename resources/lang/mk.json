@@ -9,7 +9,7 @@
     "close": "Затвори"
   },
   "main": {
-    "title": "Cleo (АЛФА)",
+    "title": "Kleopolis (АЛФА)",
     "join_discord": "Приклучи се на Discord!",
     "login_discord": "Најави се со Discord",
     "checking_login": "Проверка на најава...",
@@ -371,8 +371,8 @@
     "not_enough_money": "Нема доволно пари"
   },
   "win_modal": {
-    "support_openfront": "Поддржи го Cleo!",
-    "territory_pattern": "Купи шаблон за територија за да го поддржиш Cleo!",
+    "support_openfront": "Поддржи го Kleopolis!",
+    "territory_pattern": "Купи шаблон за територија за да го поддржиш Kleopolis!",
     "died": "Умре",
     "your_team": "Твојот тим победи!",
     "other_team": "Тимот {team} победи!",
@@ -528,8 +528,8 @@
       "cursor": "Курсор",
       "hand": "Рака",
       "radiation": "Зрачење",
-      "openfront_qr": "Cleo QR код",
-      "openfront": "Cleo",
+      "openfront_qr": "Kleopolis QR код",
+      "openfront": "Kleopolis",
       "t_rex": "Т-Рекс",
       "embelem": "Амблем",
       "contributor": "Придонесувач",

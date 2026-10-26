@@ -29,7 +29,7 @@
     "map_default": "地图默认值"
   },
   "main": {
-    "title": "Cleo (内测版)",
+    "title": "Kleopolis (内测版)",
     "login_discord": "用 Discord 登录",
     "sign_in": "登录",
     "discord_avatar_alt": "Discord 头像",
@@ -61,7 +61,7 @@
     "copied_to_clipboard": "信息已复制到剪贴板！如果你需要帮助，可以随时在我们的Discord上分享它。",
     "os": "操作系统",
     "device_pixel_ratio": "设备像素比",
-    "chromium_tip": "Cleo 在基于 Chromium 的浏览器上运行最佳。",
+    "chromium_tip": "Kleopolis 在基于 Chromium 的浏览器上运行最佳。",
     "hardware_acceleration_tip": "确保在您的浏览器设置中启用硬件加速以实现最佳性能。",
     "renderer": "渲染器",
     "max_texture_size": "最大纹理尺寸",
@@ -674,7 +674,7 @@
     "not_enough_money": "金钱不足"
   },
   "win_modal": {
-    "support_openfront": "支持 Cleo！",
+    "support_openfront": "支持 Kleopolis！",
     "territory_pattern": "购买皮肤即可去除广告！",
     "died": "你已经死了",
     "your_team": "你的队伍获胜了！",
@@ -980,12 +980,12 @@
     "must_login": "您必须登录才能玩排位赛。"
   },
   "ios_banner": {
-    "text": "将 Cleo 添加到主屏幕，获得全屏体验",
+    "text": "将 Kleopolis 添加到主屏幕，获得全屏体验",
     "how": "如何操作",
     "later": "稍后",
     "never": "从不",
     "modal_title": "在 iOS 上全屏使用",
-    "modal_desc": "您的浏览器不支持全屏，但您可以将 Cleo 添加到您的主屏幕以获得沉浸体验：",
+    "modal_desc": "您的浏览器不支持全屏，但您可以将 Kleopolis 添加到您的主屏幕以获得沉浸体验：",
     "step_share": "点击浏览器中的“分享”按钮",
     "step_scroll_and_tap": "向下滚动并点击",
     "step_add_to_home_label": "添加到主屏幕",

@@ -126,7 +126,7 @@ abstract class AuthPage extends LitElement {
         <div class="auth-page__inner">
           <div class="menu-brand auth-page__brand">
             <img src=${assetUrl("images/CleoLogo.svg")} alt="" />
-            <span class="menu-brand__name">cleo</span>
+            <span class="menu-brand__name">kleopolis</span>
           </div>
 
           <div class="auth-page__heading">

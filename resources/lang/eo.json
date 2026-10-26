@@ -595,14 +595,14 @@
     "got_it": "Mi komprenis",
     "how": "Kiel",
     "later": "Poste",
-    "modal_desc": "Via retnavigilo ne kapablas plenekranan reĝimon, sed vi povas aldoni Cleo al via komenca ekrano por pli entira sperto:",
+    "modal_desc": "Via retnavigilo ne kapablas plenekranan reĝimon, sed vi povas aldoni Kleopolis al via komenca ekrano por pli entira sperto:",
     "modal_title": "Plenekrana sur iOS",
     "never": "Neniam",
     "step_add_to_home_label": "Aldoni al komenca ekrano",
     "step_open": "Malfermi de via komenca ekrano — ekas plenekrane sen la adresa linio",
     "step_scroll_and_tap": "Rulumu suben kaj klaku",
     "step_share": "Alklaku la kunhavigan butonon de via retnavigilo",
-    "text": "Por plenekrana reĝimo, aldonu Cleo al via komenca ekrano"
+    "text": "Por plenekrana reĝimo, aldonu Kleopolis al via komenca ekrano"
   },
   "kick_reason": {
     "admin": "Forpelita de administranto",
@@ -666,7 +666,7 @@
     "solo": "Unu ludanto",
     "store": "Butiko",
     "terms_of_service": "Uzokondiĉoj",
-    "title": "Cleo (ALFA)",
+    "title": "Kleopolis (ALFA)",
     "troubleshooting": "Problemsolvado",
     "user_avatar_alt": "Profilbildo de %{username}",
     "wiki": "Vikio"
@@ -1079,7 +1079,7 @@
     "browser": "Retnavigilo",
     "canvas_2d_no_gpu": "2D kanvaso (ne grafika karto)",
     "charging": "Ŝarganta",
-    "chromium_tip": "Cleo plej bone funkcias per retnavigiloj bazitaj sur Chromium.",
+    "chromium_tip": "Kleopolis plej bone funkcias per retnavigiloj bazitaj sur Chromium.",
     "copied_to_clipboard": "Informoj kopiitaj al tondujo! Libere sendu ilin en nian Diskordan servilon se vi bezonas helpon.",
     "device_pixel_ratio": "Aparata rilatumo de rastrumeroj",
     "environment": "Medio",
@@ -1265,7 +1265,7 @@
     "other_won": "{player} venkis!",
     "requeue": "Reludi",
     "spectate": "Spekti",
-    "support_openfront": "Subtenu Cleo!",
+    "support_openfront": "Subtenu Kleopolis!",
     "territory_pattern": "Aĉetu teritorian haŭton por ludi sen reklamoj!",
     "wishlist": "Dezirlistu ĉe Steam!",
     "you_won": "Vi venkis!",

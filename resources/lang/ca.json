@@ -26,7 +26,7 @@
     "enabled": "Activat"
   },
   "main": {
-    "title": "Cleo (ALFA)",
+    "title": "Kleopolis (ALFA)",
     "login_discord": "Inicia sessió amb Discord",
     "sign_in": "Iniciar sessió",
     "discord_avatar_alt": "Foto de perfil Discord",
@@ -59,7 +59,7 @@
     "copied_to_clipboard": "Informació copiada en el porta-retalls! Sigues lliure de compartir-la en el nostre Discord si necessites ajuda.",
     "os": "OS",
     "device_pixel_ratio": "Ràtio de píxels del dispositiu",
-    "chromium_tip": "Cleo funciona millor en navegadors Chromium.",
+    "chromium_tip": "Kleopolis funciona millor en navegadors Chromium.",
     "hardware_acceleration_tip": "Assegura't que l'acceleració de maquinari estigui habilitada a la configuració del teu navegador per a un rendiment òptim.",
     "renderer": "Rendidor",
     "max_texture_size": "Mida màxima de la textura",
@@ -587,7 +587,7 @@
     "not_enough_money": "No tens prou diners"
   },
   "win_modal": {
-    "support_openfront": "Dona suport a Cleo!",
+    "support_openfront": "Dona suport a Kleopolis!",
     "territory_pattern": "Compra un Aspecte de Territori per eliminar els anuncis!",
     "died": "Has mort",
     "your_team": "El teu equip ha guanyat!",
@@ -774,7 +774,7 @@
     "trial_cooldown": "Només una prova per cada 24 hores. Torni a provar més tard.",
     "trial_login_required": "Cal iniciar sessió per provar una Aparença",
     "reward_countdown": "Premi en {seconds} segons...",
-    "steam_wishlist_prompt": "Dona suport a Cleo afegint-lo a la teva llista de desitjos de Steam",
+    "steam_wishlist_prompt": "Dona suport a Kleopolis afegint-lo a la teva llista de desitjos de Steam",
     "select_skin": "Tria l'Aparença",
     "selected": "seleccionat"
   },

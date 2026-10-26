@@ -23,7 +23,7 @@
     "click_to_copy": "Kopyalamak için tıkla"
   },
   "main": {
-    "title": "Cleo (ALFA)",
+    "title": "Kleopolis (ALFA)",
     "join_discord": "Discord",
     "login_discord": "Discord'la giriş yap",
     "sign_in": "Oturum Aç",
@@ -539,7 +539,7 @@
     "not_enough_money": "Yeterli para yok"
   },
   "win_modal": {
-    "support_openfront": "Cleo'u Destekle!",
+    "support_openfront": "Kleopolis'u Destekle!",
     "territory_pattern": "Bir toprak kaplaması alarak reklamlardan kurtul!",
     "died": "Öldün",
     "your_team": "Takımınız kazandı!",
@@ -551,7 +551,7 @@
     "keep": "Oynamaya Devam Et",
     "spectate": "İzle",
     "wishlist": "Steam'de İstek Listesine Ekle!",
-    "ofm_winter": "Cleo Masters Kış Turnuvası!",
+    "ofm_winter": "Kleopolis Masters Kış Turnuvası!",
     "ofm_winter_description": "Rekabetçi turnuvaya katıl ve en iyi oyunculara karşı mücadele et",
     "join_tournament": "Turnuvaya Katıl",
     "join_discord": "Discord Topluluğumuza Katıl!",

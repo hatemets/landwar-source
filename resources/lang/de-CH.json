@@ -27,7 +27,7 @@
     "map_default": "Kartestandard"
   },
   "main": {
-    "title": "Cleo (ALPHA)",
+    "title": "Kleopolis (ALPHA)",
     "login_discord": "Mäud di a mit Discord",
     "sign_in": "Amäude",
     "discord_avatar_alt": "Discord Profiubüud",
@@ -59,7 +59,7 @@
     "copied_to_clipboard": "Informatione i d Zwüscheablag kopiert! Du chasch se im Discord teile, wenn du Hüuf bruchsch.",
     "os": "Betriebssystem",
     "device_pixel_ratio": "Pixelverhäutniss vom Grät",
-    "chromium_tip": "Cleo louft am beschte uf Chromium-basierte Browser.",
+    "chromium_tip": "Kleopolis louft am beschte uf Chromium-basierte Browser.",
     "hardware_acceleration_tip": "Steu sicher, dass d Hardwarebeschleunigung in dine Browseristellige aktiviert ist, um e optimale Leistig z erziele.",
     "renderer": "Renderer",
     "max_texture_size": "Maximali Texturgrössi",
@@ -620,7 +620,7 @@
     "not_enough_money": "Nid gnue Gäud"
   },
   "win_modal": {
-    "support_openfront": "Ungerstütz Cleo!",
+    "support_openfront": "Ungerstütz Kleopolis!",
     "territory_pattern": "Chouf es Gebietsmuster, um werbefrei z spiele!",
     "died": "Du bisch gstorbe",
     "your_team": "Dis team het gwunne!",

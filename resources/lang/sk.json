@@ -9,7 +9,7 @@
     "close": "Zavrieť"
   },
   "main": {
-    "title": "Cleo (ALFA)",
+    "title": "Kleopolis (ALFA)",
     "join_discord": "Pridaj sa do Discordu!",
     "login_discord": "Prihlás sa cez Discord",
     "checking_login": "Kontrolujem prihlásenie...",
@@ -490,8 +490,8 @@
       "cursor": "Kurzor",
       "hand": "Ruka",
       "radiation": "Radiácia",
-      "openfront_qr": "QR kód Cleo",
-      "openfront": "Cleo",
+      "openfront_qr": "QR kód Kleopolis",
+      "openfront": "Kleopolis",
       "t_rex": "T-rex",
       "embelem": "Odznak",
       "contributor": "Prispievateľ",

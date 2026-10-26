@@ -42,7 +42,7 @@ export class SiteHeader extends LitElement {
           >
             <span class="menu-brand lg:ml-2">
               <img src=${assetUrl("images/CleoLogo.svg")} alt="" />
-              <span class="menu-brand__name">cleo</span>
+              <span class="menu-brand__name">kleopolis</span>
             </span>
           </a>
 

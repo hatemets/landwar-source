@@ -9,7 +9,7 @@
     "close": "Pechar"
   },
   "main": {
-    "title": "Cleo (ALFA)",
+    "title": "Kleopolis (ALFA)",
     "join_discord": "Únete ó Discord!",
     "login_discord": "Iniciar sesión con Discord",
     "checking_login": "Comprobando a sesión...",
@@ -490,8 +490,8 @@
       "cursor": "Cursor",
       "hand": "Man",
       "radiation": "Radiación",
-      "openfront_qr": "Código QR de Cleo",
-      "openfront": "Cleo",
+      "openfront_qr": "Código QR de Kleopolis",
+      "openfront": "Kleopolis",
       "t_rex": "Tiranosauro",
       "embelem": "Emblema",
       "contributor": "Contribuidor",

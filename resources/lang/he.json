@@ -9,7 +9,7 @@
     "close": "סגור"
   },
   "main": {
-    "title": "Cleo (ALPHA)",
+    "title": "Kleopolis (ALPHA)",
     "join_discord": "הצטרף לשרת הדיסקורד!",
     "login_discord": "התחבר עם דיסקורד",
     "checking_login": "בודק התחברות...",
@@ -444,8 +444,8 @@
       "cursor": "סמן",
       "hand": "יד",
       "radiation": "קרינה",
-      "openfront_qr": "קוד QR של Cleo",
-      "openfront": "Cleo",
+      "openfront_qr": "קוד QR של Kleopolis",
+      "openfront": "Kleopolis",
       "t_rex": "טי-רקס",
       "embelem": "סמל",
       "grogu_head": "ראש גרוגו",

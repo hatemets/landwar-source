@@ -18,11 +18,11 @@
     "login_deleted": "This account has been deleted.",
     "login_email_exists": "You already have an account with this email. Sign in to it, then link this account in settings.",
     "login_error": "We couldn't verify that sign-in. Please try again.",
-    "login_no_account": "No Cleo account uses this Steam account yet. Sign in with your existing account and link Steam from settings, or launch the game on Steam.",
+    "login_no_account": "No Kleopolis account uses this Steam account yet. Sign in with your existing account and link Steam from settings, or launch the game on Steam.",
     "no_games": "No games played yet.",
     "no_stats": "No stats available yet. Play some games to start tracking.",
     "sign_in_desc": "Sign in to save your stats and progress",
-    "sign_up_desc": "Create your Cleo account to save your progress and play with friends.",
+    "sign_up_desc": "Create your Kleopolis account to save your progress and play with friends.",
     "tab_account": "Account",
     "tab_friends": "Friends",
     "tab_games": "Games",
@@ -165,7 +165,7 @@
       "coastline": "Please let me get a coastline.",
       "fun": "This game is fun!",
       "go": "Let’s go!",
-      "join_discord": "You should join the Cleo Discord server!",
+      "join_discord": "You should join the Kleopolis Discord server!",
       "pr": "When will my PR finally get merged...?",
       "strategy": "Nice strategy!",
       "team_up": "Let’s team up against [P1]!"
@@ -245,7 +245,7 @@
   "common": {
     "available": "Available",
     "back": "Back",
-    "backend_unreachable": "Can't reach the Cleo servers. Check your connection and try again.",
+    "backend_unreachable": "Can't reach the Kleopolis servers. Check your connection and try again.",
     "cancel": "Cancel",
     "cap_label": "Cap",
     "cap_tooltip": "Recipient’s remaining capacity",
@@ -327,11 +327,11 @@
     "back_to_game": "Back to Game",
     "browser_fallback": "Couldn't open your browser automatically — use the link above.",
     "cancel": "Cancel",
-    "code_destination_generic": "Enter this code on the Cleo website to link your account:",
+    "code_destination_generic": "Enter this code on the Kleopolis website to link your account:",
     "code_destination_site": "Enter this code at {site} to link your account:",
     "continue_to_game": "Continue to Game",
     "expired": "This code has expired. Start over to get a new one.",
-    "heading": "Welcome to Cleo",
+    "heading": "Welcome to Kleopolis",
     "link_existing": "Link Existing Account",
     "linking_failed_reason": "Linking failed: {reason}",
     "linking_failed_unknown": "Linking failed for an unknown reason.",
@@ -341,7 +341,7 @@
     "retry": "Retry",
     "starting_link": "Starting account linking…",
     "ticket_unavailable": "Couldn't start account linking right now. You can try again, or continue to the game.",
-    "title": "Cleo - Account Setup"
+    "title": "Kleopolis - Account Setup"
   },
   "desktop_presence": {
     "in_game": "In game",
@@ -731,7 +731,7 @@
     "preset_colorblind_desc": "Colorblind-friendly territory and border colors",
     "preset_custom": "Custom",
     "preset_default": "Default",
-    "preset_default_desc": "The standard Cleo look",
+    "preset_default_desc": "The standard Kleopolis look",
     "preset_delete_confirm": "Delete preset \"{name}\"?",
     "preset_evans_pick": "Evan's Pick",
     "preset_evans_pick_desc": "The settings Evan actually plays with",
@@ -943,7 +943,7 @@
     "solo": "Solo",
     "source_code": "Source code (AGPL-3.0)",
     "store": "Store",
-    "title": "Cleo",
+    "title": "Kleopolis",
     "user_avatar_alt": "{username}'s avatar"
   },
   "map": {
@@ -1137,7 +1137,7 @@
     "ranked_trust_required_body_signed_out": "Ranked only accepts trusted accounts. To become trusted, sign in to your account, then play more games or make any purchase.",
     "ranked_trust_required_title": "Trusted accounts only",
     "retry_lobbies": "Retry",
-    "servers_unreachable": "Can't connect to the Cleo servers",
+    "servers_unreachable": "Can't connect to the Kleopolis servers",
     "teams_count": "{teamCount} teams",
     "teams_of": "{teamCount} teams of {playersPerTeam}",
     "teams_preset": "{preset} ({teams})",
@@ -1236,12 +1236,12 @@
     "loading": "Loading profile...",
     "not_found_body": "We couldn't find a player at this link. It may be mistyped, or the account may have been deleted.",
     "not_found_title": "Player not found",
-    "play": "Play Cleo",
+    "play": "Play Kleopolis",
     "share": "Share Profile",
     "share_copy_link": "Copy link",
     "share_discord": "Copy for Discord",
     "share_native": "Share",
-    "share_text": "Check out {name}'s profile on Cleo",
+    "share_text": "Check out {name}'s profile on Kleopolis",
     "share_x": "Share on X",
     "title": "Player Profile",
     "view": "View Profile",
@@ -1435,10 +1435,10 @@
     "processing_fetching": "Fetching the game record",
     "processing_simulating": "Replaying the game: {percent}%",
     "timeline": "Replay timeline",
-    "unavailable_desync": "This game doesn't replay correctly on this version of Cleo.",
+    "unavailable_desync": "This game doesn't replay correctly on this version of Kleopolis.",
     "unavailable_failed": "Processing this game failed.",
     "unavailable_not_found": "This game could not be found.",
-    "unavailable_other_build": "This game was played on another version of Cleo.",
+    "unavailable_other_build": "This game was played on another version of Kleopolis.",
     "unavailable_unreachable": "The game could not be downloaded. Check your connection and try again.",
     "unverified": "This game's record has no checks, so this replay couldn't be verified against the game that was played.",
     "watch_classic": "Watch the old replay instead"
@@ -1528,7 +1528,7 @@
     "warship": "Warship"
   },
   "update_available": {
-    "message": "A new version of Cleo is available. The page will now refresh to update."
+    "message": "A new version of Kleopolis is available. The page will now refresh to update."
   },
   "user_setting": {
     "alert_frame_desc": "Toggle the alert frame. When enabled, the frame will be displayed when you are betrayed or attacked over land.",

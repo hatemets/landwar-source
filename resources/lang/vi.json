@@ -32,7 +32,7 @@
     "desktop_login_discord": "Tiếp tục với Discord trong trình duyệt của bạn",
     "desktop_login_google": "Tiếp tục với Google trong trình duyệt của bạn",
     "desktop_login_needs_update": "Đăng nhập yêu cầu phiên bản mới hơn của ứng dụng trên máy tính. Khởi động lại Steam để cập nhật, sau đó thử lại.",
-    "desktop_sign_in_desc": "Đăng nhập sẽ mở website của Cleo trong trình duyệt của bạn. Hãy đăng nhập ở đó, xác nhận liên kết với tài khoản Steam của bạn, và trò chơi sẽ tự động nhận diện.",
+    "desktop_sign_in_desc": "Đăng nhập sẽ mở website của Kleopolis trong trình duyệt của bạn. Hãy đăng nhập ở đó, xác nhận liên kết với tài khoản Steam của bạn, và trò chơi sẽ tự động nhận diện.",
     "email_placeholder": "Nhập địa chỉ email của bạn",
     "enter_email_address": "Vui lòng nhập địa chỉ email",
     "failed_to_send_recovery_email": "Không thể gửi email khôi phục",
@@ -46,7 +46,7 @@
     "google_alt": "Google",
     "identity_token_copied": "Đã sao chép",
     "identity_token_copy": "Sao chép",
-    "identity_token_desc": "Chứng minh với một trang web thống kê rằng tài khoản Cleo nào là của bạn. Chọn trang web, tạo một mã token, rồi dán mã đó vào đó.",
+    "identity_token_desc": "Chứng minh với một trang web thống kê rằng tài khoản Kleopolis nào là của bạn. Chọn trang web, tạo một mã token, rồi dán mã đó vào đó.",
     "identity_token_failed": "Không thể tạo mã token. Vui lòng thử lại.",
     "identity_token_generate": "Tạo mã token",
     "identity_token_logged_out": "Phiên đăng nhập của bạn đã hết hạn. Vui lòng đăng nhập lại.",
@@ -60,7 +60,7 @@
     "link_google_already_linked": "Tài khoản Google đã liên kết với một người chơi khác.",
     "link_google_error": "Không thể liên kết với tài khoản Google của bạn. Vui lòng đảm bảo rằng bạn đã đăng nhập và thử lại.",
     "link_google_failed": "Không thể bắt đầu liên kết với Google. Vui lòng thử lại.",
-    "link_google_on_web": "Liên kết Tài khoản Google trên Cleo",
+    "link_google_on_web": "Liên kết Tài khoản Google trên Kleopolis",
     "link_google_success": "Tài khoản Google đã liên kết.",
     "link_steam": "Liên kết Tài khoản Steam",
     "link_steam_error": "Không thể liên kết với tài khoản Google của bạn. Vui lòng đảm bảo rằng bạn đã đăng nhập và thử lại.",
@@ -74,13 +74,13 @@
     "login_deleted": "Tài khoản này đã bị xóa.",
     "login_email_exists": "Bạn đã có tài khoản bằng email này. Hãy đăng nhập vào tài khoản đó, sau đó liên kết tài khoản này trong phần cài đặt.",
     "login_error": "Chúng tôi không thể xác minh việc đăng nhập đó. Vui lòng thử lại.",
-    "login_no_account": "Chưa có tài khoản Cleo nào sử dụng tài khoản Steam này. Hãy đăng nhập bằng tài khoản hiện có và liên kết với Steam trong phần cài đặt, hoặc khởi chạy game trên Steam.",
+    "login_no_account": "Chưa có tài khoản Kleopolis nào sử dụng tài khoản Steam này. Hãy đăng nhập bằng tài khoản hiện có và liên kết với Steam trong phần cài đặt, hoặc khởi chạy game trên Steam.",
     "manage_subscription": "Quản lý",
     "manage_subscription_on_steam": "Thanh toán qua Steam. Quản lý sẽ mở trang về các gói định kỳ trên Steam của bạn.",
     "manage_subscription_on_steam_ending": "Đã hủy — vẫn có hiệu lực đến {date}. Quản lý sẽ mở trang về các gói định kỳ trên Steam của bạn.",
     "manage_subscription_on_steam_ending_no_date": "Đã hủy — vẫn có hiệu lực đến hết kỳ hạn bạn đã thanh toán. Quản lý sẽ mở trang về các gói định kỳ trên Steam của bạn.",
     "manage_subscription_on_steam_no_tier_change": "Thanh toán qua Steam. Quản lý sẽ mở trang về các gói định kỳ trên Steam của bạn. Để chuyển sang cấp độ khác, hãy hủy gói hiện tại và đăng ký gói mới sau khi tháng hiện tại kết thúc.",
-    "manage_subscription_on_web": "Quản lý hoặc thay đổi thanh toán của bạn trên website của Cleo.",
+    "manage_subscription_on_web": "Quản lý hoặc thay đổi thanh toán của bạn trên website của Kleopolis.",
     "marketing_desc": "Nhận tin tức, thông tin về sự kiện và các cập nhật trò chơi khi có. Bạn có thể hủy đăng ký bất cứ lúc nào.",
     "marketing_no_email": "Liên kết tài khoản email với tài khoản của bạn để đăng ký nhận thông báo cập nhật.",
     "marketing_no_email_steam": "Steam không chia sẻ địa chỉ email của bạn với chúng tôi, nên không có gì để gửi thông báo cập nhật.",
@@ -489,7 +489,7 @@
   "common": {
     "available": "Sẵn sàng",
     "back": "Quay lại",
-    "backend_unreachable": "Không thể kết nối với máy chủ Cleo. Hãy kiểm tra kết nối của bạn và thử lại.",
+    "backend_unreachable": "Không thể kết nối với máy chủ Kleopolis. Hãy kiểm tra kết nối của bạn và thử lại.",
     "cancel": "Hủy",
     "cap_label": "Mũ",
     "cap_tooltip": "Số quân người nhận còn chứa được",
@@ -595,11 +595,11 @@
     "back_to_game": "Quay lại game",
     "browser_fallback": "Không thể tự động mở trình duyệt của bạn — hãy dùng link ở trên.",
     "cancel": "Huỷ",
-    "code_destination_generic": "Nhập mã này trên trang web Cleo để liên kết tài khoản của bạn:",
+    "code_destination_generic": "Nhập mã này trên trang web Kleopolis để liên kết tài khoản của bạn:",
     "code_destination_site": "Nhập mã này tại {site} để liên kết tài khoản của bạn:",
     "continue_to_game": "Tiếp tục game",
     "expired": "Mã này đã hết hạn. Hãy bắt đầu lại để nhận mã mới.",
-    "heading": "Chào mừng đến Cleo",
+    "heading": "Chào mừng đến Kleopolis",
     "link_existing": "Liên kết với tài khoản đang có",
     "linking_failed_reason": "Liên kết thất bại: {reason}",
     "linking_failed_unknown": "Liên kết thất bị vì một lí do chưa rõ.",
@@ -609,16 +609,16 @@
     "retry": "Thử lại",
     "starting_link": "Bắt đầu liên kết tài khoản…",
     "ticket_unavailable": "Không thể bắt đầu liên kết tài khoản vào bây giờ. Bạn có thể thử lại, hoặc tiếp tục vào game.",
-    "title": "Cleo - Thiết lập tài khoản"
+    "title": "Kleopolis - Thiết lập tài khoản"
   },
   "desktop_presence": {
     "in_game": "Đang chơi",
     "spectating": "Đang xem"
   },
   "desktop_session": {
-    "generic": "Không thể đăng nhập vào tài khoản Cleo của bạn",
-    "needs_account": "Thiết lập tài khoản Cleo của bạn để có thể chơi online",
-    "network": "Không thể kết nối với Cleo. Vui lòng kiểm tra kết nối của bạn.",
+    "generic": "Không thể đăng nhập vào tài khoản Kleopolis của bạn",
+    "needs_account": "Thiết lập tài khoản Kleopolis của bạn để có thể chơi online",
+    "network": "Không thể kết nối với Kleopolis. Vui lòng kiểm tra kết nối của bạn.",
     "retry": "Thử lại",
     "retrying": "Đang đăng nhập…",
     "steam_backend": "Steam đang gặp lỗi khi đăng nhập. Vui lòng thử lại.",
@@ -628,7 +628,7 @@
   },
   "desktop_status": {
     "go_online": "Chơi online",
-    "offline": "Offline: không thể kết nối với máy chủ Cleo",
+    "offline": "Offline: không thể kết nối với máy chủ Kleopolis",
     "retry": "Thử lại",
     "retrying": "Đang thử lại…"
   },
@@ -641,12 +641,12 @@
     "retry": "Thử lại"
   },
   "desktop_webgl_gate": {
-    "intro": "Cleo không thể sử dụng card đồ họa của bạn, nên game không thể chạy. Lỗi này thường chỉ tạm thời. Để khắc phục:",
-    "quit": "Thoát khỏi Cleo",
+    "intro": "Kleopolis không thể sử dụng card đồ họa của bạn, nên game không thể chạy. Lỗi này thường chỉ tạm thời. Để khắc phục:",
+    "quit": "Thoát khỏi Kleopolis",
     "step_drivers": "Nếu vẫn còn xảy ra, hãy cập nhật driver đồ họa từ NVIDIA, AMD hoặc Intel.",
-    "step_quit": "Thoát khỏi Cleo.",
+    "step_quit": "Thoát khỏi Kleopolis.",
     "step_restart_computer": "Nếu tình trạng này vẫn tiếp diễn, hãy khởi động lại máy tính của bạn.",
-    "step_restart_steam": "Khởi động lại Steam, sau đó mở lại Cleo.",
+    "step_restart_steam": "Khởi động lại Steam, sau đó mở lại Kleopolis.",
     "title": "Tăng tốc đồ họa không dùng được"
   },
   "detailed_view": {
@@ -1009,7 +1009,7 @@
     "preset_colorblind_desc": "Sử dụng màu lãnh thổ và đường biên thân thiện với người mù màu",
     "preset_custom": "Tuỳ chỉnh",
     "preset_default": "Mặc định",
-    "preset_default_desc": "Giao diện Cleo tiêu chuẩn",
+    "preset_default_desc": "Giao diện Kleopolis tiêu chuẩn",
     "preset_delete_confirm": "Xóa thiết lập \"{name}\"?",
     "preset_evans_pick": "Evan chọn",
     "preset_evans_pick_desc": "Cấu hình mà Evan thực sự dùng để chơi",
@@ -1148,14 +1148,14 @@
     "got_it": "Đã hiểu",
     "how": "Cách làm",
     "later": "Để sau",
-    "modal_desc": "Trình duyệt của bạn không hỗ trợ toàn màn hình, nhưng bạn có thể thêm Cleo vào Màn hình chính để có trải nghiệm chơi tốt hơn:",
+    "modal_desc": "Trình duyệt của bạn không hỗ trợ toàn màn hình, nhưng bạn có thể thêm Kleopolis vào Màn hình chính để có trải nghiệm chơi tốt hơn:",
     "modal_title": "Chế độ toàn màn hình trên iOS",
     "never": "Không bao giờ",
     "step_add_to_home_label": "Thêm vào Màn hình chính",
     "step_open": "Mở từ Màn hình chính — chạy ở chế độ toàn màn hình mà không có thanh địa chỉ",
     "step_scroll_and_tap": "Cuộn xuống và nhấn",
     "step_share": "Nhấn nút Chia sẻ trong trình duyệt của bạn",
-    "text": "Để sử dụng chế độ toàn màn hình, hãy thêm Cleo vào Màn hình chính"
+    "text": "Để sử dụng chế độ toàn màn hình, hãy thêm Kleopolis vào Màn hình chính"
   },
   "kick_reason": {
     "admin": "Đã bị quản trị viên đuổi",
@@ -1248,7 +1248,7 @@
     "solo": "Chơi đơn",
     "store": "Cửa hàng",
     "terms_of_service": "Điều Khoản Dịch Vụ",
-    "title": "Cleo (ALPHA)",
+    "title": "Kleopolis (ALPHA)",
     "troubleshooting": "Khắc phục sự cố",
     "tutorial": "Hướng dẫn",
     "user_avatar_alt": "Ảnh đại diện của {username}",
@@ -1430,7 +1430,7 @@
     "dismiss": "Bỏ qua",
     "error": "Không thể lưu. Vui lòng thử lại.",
     "no": "Không, cảm ơn",
-    "title": "Theo dõi Cleo?",
+    "title": "Theo dõi Kleopolis?",
     "yes": "Có, tôi muốn"
   },
   "matchmaking_modal": {
@@ -1459,7 +1459,7 @@
     "ranked_pairing_note": "Trong các chế độ đấu theo đội, các thành viên clan và bạn bè đang trong hàng chờ sẽ được xếp vào cùng một đội nếu có thể. Bạn bè sẽ được ưu tiên ghép trước, sau đó đến các thành viên clan. Nếu xếp hạng của bạn chênh lệch quá nhiều, các bạn sẽ được ghép vào các đội khác nhau để đảm bảo trận đấu công bằng.",
     "ranked_title": "Đấu xếp hạng",
     "retry_lobbies": "Thử lại",
-    "servers_unreachable": "Không thể kết nối với máy chủ Cleo",
+    "servers_unreachable": "Không thể kết nối với máy chủ Kleopolis",
     "teams_count": "{teamCount} đội",
     "teams_of": "{teamCount} đội – mỗi đội {playersPerTeam} người",
     "teams_title": "Đội",
@@ -1727,9 +1727,9 @@
     "players_per_team": "– mỗi đội {num} người"
   },
   "purchase_nudge": {
-    "body": "Có vẻ bạn thích chơi Cleo! Hãy cân nhắc ủng hộ chúng tôi bằng cách mua một vật phẩm — bất kỳ giao dịch nào cũng giúp bạn loại bỏ quảng cáo vĩnh viễn.",
+    "body": "Có vẻ bạn thích chơi Kleopolis! Hãy cân nhắc ủng hộ chúng tôi bằng cách mua một vật phẩm — bất kỳ giao dịch nào cũng giúp bạn loại bỏ quảng cáo vĩnh viễn.",
     "close": "Đóng",
-    "title": "Thích chơi Cleo?",
+    "title": "Thích chơi Kleopolis?",
     "visit_store": "Ghé qua cửa hàng"
   },
   "radial_menu": {
@@ -1760,10 +1760,10 @@
     "processing_fetching": "Đang tải bản ghi trận đấu",
     "processing_simulating": "Đang phát lại trận đấu: {percent}%",
     "timeline": "Dòng thời gian phát lại",
-    "unavailable_desync": "Trận đấu này không phát lại đúng trên phiên bản Cleo này.",
+    "unavailable_desync": "Trận đấu này không phát lại đúng trên phiên bản Kleopolis này.",
     "unavailable_failed": "Xử lý trận đấu này thất bại.",
     "unavailable_not_found": "Không tìm thấy trận đấu này.",
-    "unavailable_other_build": "Trận đấu này được chơi trên một phiên bản Cleo khác.",
+    "unavailable_other_build": "Trận đấu này được chơi trên một phiên bản Kleopolis khác.",
     "unavailable_unreachable": "Không thể tải trận đấu. Hãy kiểm tra kết nối của bạn và thử lại.",
     "watch_classic": "Xem bản phát lại cũ để thay thế"
   },
@@ -1805,7 +1805,7 @@
     "launched": "Đang mở phòng này trong Steam. Nếu không có gì xảy ra, hãy đảm bảo Steam đang chạy.",
     "open_in_steam": "Mở trong Steam",
     "play_in_browser": "Chơi trong trình duyệt",
-    "prompt": "Bạn đã có Cleo trên Steam. Bạn muốn tham gia phòng này trên nền tảng đâu?",
+    "prompt": "Bạn đã có Kleopolis trên Steam. Bạn muốn tham gia phòng này trên nền tảng đâu?",
     "remember": "Ghi nhớ lựa chọn của tôi",
     "title": "Tham gia phòng",
     "try_again": "Thử lại"
@@ -1823,23 +1823,23 @@
     "conflict_games": "{games, plural, =0 {Chưa chơi trận nào} one {# trận đã chơi} other {# trận đã chơi}}",
     "conflict_games_capped": "{games}+ trận đã chơi",
     "conflict_keep": "Bạn sẽ giữ {username}, và các giao dịch mua trên Steam sẽ được chuyển theo khi liên kết.",
-    "conflict_prompt": "Tài khoản Steam {persona} đã được gắn vào một tài khoản Cleo khác.",
-    "conflict_prompt_no_persona": "Tài khoản Steam này đã được gắn với một tài khoản Cleo khác.",
+    "conflict_prompt": "Tài khoản Steam {persona} đã được gắn vào một tài khoản Kleopolis khác.",
+    "conflict_prompt_no_persona": "Tài khoản Steam này đã được gắn với một tài khoản Kleopolis khác.",
     "conflict_warning": "Điều này không thể hoàn tác.",
     "invalid_code": "Mã đó có vẻ không hợp lệ. Hãy kiểm tra và thử lại.",
     "linking": "Đang liên kết…",
     "load_error": "Không thể tải thông tin tài khoản của bạn. Vui lòng thử lại từ Steam.",
     "load_error_code": "Không thể tải thông tin tài khoản của bạn. Vui lòng thử lại.",
     "reason_account_already_has_steam": "Tài khoản của bạn đã được liên kết với một tài khoản Steam khác.",
-    "reason_discard_blocked": "Tài khoản Cleo của tài khoản Steam này không thể được gỡ tự động. Vui lòng liên hệ bộ phận hỗ trợ và chúng tôi sẽ giải quyết cho bạn.",
-    "reason_discard_blocked_paid": "Tài khoản Cleo của Steam này có các giao dịch mua, nên chúng tôi không thể xóa nó tự động. Vui lòng liên hệ bộ phận hỗ trợ và chúng tôi sẽ giải quyết cho bạn.",
+    "reason_discard_blocked": "Tài khoản Kleopolis của tài khoản Steam này không thể được gỡ tự động. Vui lòng liên hệ bộ phận hỗ trợ và chúng tôi sẽ giải quyết cho bạn.",
+    "reason_discard_blocked_paid": "Tài khoản Kleopolis của Steam này có các giao dịch mua, nên chúng tôi không thể xóa nó tự động. Vui lòng liên hệ bộ phận hỗ trợ và chúng tôi sẽ giải quyết cho bạn.",
     "reason_discard_deferred": "Giao dịch mua trên tài khoản đó vẫn đang được xử lý. Vui lòng thử lại sau vài phút.",
     "reason_discard_not_linked": "Quá trình liên kết không hoàn thành. Vui lòng bắt đầu liên kết lại.",
     "reason_expired": "Liên kết này đã hết hạn. Vui lòng thử lại từ Steam.",
     "reason_offer_unavailable": "Xác nhận này đã hết hạn. Vui lòng bắt đầu liên kết lại.",
     "reason_rate_limited": "Bạn đã thử quá nhiều lần. Vui lòng đợi {seconds, plural, =0 {một lát} one {# giây} other {# giây}} rồi thử lại.",
     "reason_steam_has_progress": "Tài khoản Steam này đã có tiến trình riêng và không thể hợp nhất.",
-    "reason_steam_linked_elsewhere": "Tài khoản Steam này đã được liên kết với một tài khoản Cleo khác.",
+    "reason_steam_linked_elsewhere": "Tài khoản Steam này đã được liên kết với một tài khoản Kleopolis khác.",
     "success": "Tài khoản Steam của bạn đã được liên kết.",
     "title": "Liên kết tài khoản Steam"
   },
@@ -1849,7 +1849,7 @@
   },
   "steam_wishlist": {
     "buy_cta": "\"Mua trên Steam",
-    "buy_on_steam": "Mua Cleo trên Steam"
+    "buy_on_steam": "Mua Kleopolis trên Steam"
   },
   "store": {
     "already_owned": "Bạn đã sở hữu vật phẩm này rồi. Không có khoản phí nào được tính.",
@@ -1925,11 +1925,11 @@
     "subscribe_heading": "Bắt đầu Gói định kỳ",
     "subscribed": "Đã đăng ký",
     "subscription_past_due": "Khoản thanh toán đăng ký gần nhất của bạn không thành công, nên gói đăng ký của bạn đang bị tạm giữ. Hãy cập nhật phương thức thanh toán để khôi phục. Đừng đăng ký lại, nếu không bạn có thể bị tính phí hai lần.",
-    "subscription_past_due_desktop": "Khoản thanh toán đăng ký gần nhất của bạn không thành công, nên gói đăng ký của bạn đang bị tạm giữ. Hãy cập nhật phương thức thanh toán trên trang web Cleo để khôi phục. Đừng đăng ký lại, nếu không bạn có thể bị tính phí hai lần.",
+    "subscription_past_due_desktop": "Khoản thanh toán đăng ký gần nhất của bạn không thành công, nên gói đăng ký của bạn đang bị tạm giữ. Hãy cập nhật phương thức thanh toán trên trang web Kleopolis để khôi phục. Đừng đăng ký lại, nếu không bạn có thể bị tính phí hai lần.",
     "subscription_purchase_success": "Đã kích hoạt gói định kỳ!",
     "subscriptions": "Gói định kỳ",
     "switch_button": "Chuyển đổi",
-    "tier_change_steam_needs_desktop": "Gói định kỳ của bạn được thanh toán qua Steam. Hãy thay đổi nó từ ứng dụng Cleo trên Steam, hoặc quản lý nó trong cài đặt tài khoản Steam của bạn.",
+    "tier_change_steam_needs_desktop": "Gói định kỳ của bạn được thanh toán qua Steam. Hãy thay đổi nó từ ứng dụng Kleopolis trên Steam, hoặc quản lý nó trong cài đặt tài khoản Steam của bạn.",
     "tier_change_unavailable_steam": "Để đổi cấp độ trên Steam, hãy hủy gói định kỳ trong cài đặt tài khoản Steam của bạn và đăng ký cấp độ mới sau khi tháng hiện tại kết thúc.",
     "title": "Cửa hàng",
     "tribe_boost_button": "Quảng bá",
@@ -2006,7 +2006,7 @@
     "browser": "Trình duyệt",
     "canvas_2d_no_gpu": "Canvas 2D (không dùng GPU)",
     "charging": "Đang sạc",
-    "chromium_tip": "Cleo hoạt động tốt nhất trên các trình duyệt dựa trên Chromium.",
+    "chromium_tip": "Kleopolis hoạt động tốt nhất trên các trình duyệt dựa trên Chromium.",
     "copied_to_clipboard": "Đã sao chép thông tin vào bảng tạm! Nếu cần trợ giúp, hãy chia sẻ thông tin này trên máy chủ Discord của chúng tôi.",
     "device_pixel_ratio": "Tỷ lệ điểm ảnh của thiết bị",
     "environment": "Môi trường",
@@ -2097,8 +2097,8 @@
     "warship": "Tàu chiến"
   },
   "update_available": {
-    "desktop": "Đã có phiên bản mới của Cleo. Nó sẽ tải xuống trong nền; hãy tải lại từ thanh cập nhật khi sẵn sàng.",
-    "message": "Đã có phiên bản mới của Cleo. Trang sẽ tự động tải lại để cập nhật."
+    "desktop": "Đã có phiên bản mới của Kleopolis. Nó sẽ tải xuống trong nền; hãy tải lại từ thanh cập nhật khi sẵn sàng.",
+    "message": "Đã có phiên bản mới của Kleopolis. Trang sẽ tự động tải lại để cập nhật."
   },
   "user_setting": {
     "alert_frame_desc": "Bật hoặc tắt khung cảnh báo. Khi bật, khung sẽ xuất hiện khi bạn bị phản bội hoặc bị tấn công qua đường bộ.",
@@ -2330,7 +2330,7 @@
     "other_won": "{player} đã chiến thắng!",
     "requeue": "Chơi lại",
     "spectate": "Xem",
-    "support_openfront": "Hỗ trợ Cleo!",
+    "support_openfront": "Hỗ trợ Kleopolis!",
     "territory_pattern": "Mua một skin lãnh thổ để loại bỏ quảng cáo!",
     "you_won": "Bạn đã thắng!",
     "your_team": "Đội của bạn đã thắng!",
