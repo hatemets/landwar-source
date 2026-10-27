@@ -103,7 +103,7 @@ const DEFAULT_OPTIONS = {
   goldMultiplier: true,
   goldMultiplierValue: 3 as number | undefined,
   startingGold: true,
-  startingGoldValue: 1 as number | undefined,
+  startingGoldValue: 5 as number | undefined,
   disabledUnits: [] as UnitType[],
   customAlliances: false,
   customAllianceMinutes: undefined as number | undefined,
@@ -440,7 +440,7 @@ export class SinglePlayerModal extends BaseModal {
         .inputStep=${"any"}
         .inputValue=${this.startingGoldValue}
         .inputAriaLabel=${translateText("game_settings.starting_gold")}
-        .inputPlaceholder=${"5"}
+        .inputPlaceholder=${"0"}
         .defaultInputValue=${5}
         .minValidOnEnable=${0.1}
         .onToggle=${this.handleStartingGoldToggle}

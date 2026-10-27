@@ -82,7 +82,7 @@ export class HostLobbyModal extends BaseModal {
   @state() private goldMultiplier: boolean = true;
   @state() private goldMultiplierValue: number | undefined = 3;
   @state() private startingGold: boolean = true;
-  @state() private startingGoldValue: number | undefined = 1;
+  @state() private startingGoldValue: number | undefined = 5;
   @state() private customAlliances: boolean = false;
   @state() private customAllianceMinutes: number | undefined = undefined;
   @state() private doomsdayClock: boolean = false;
@@ -451,7 +451,7 @@ export class HostLobbyModal extends BaseModal {
         .inputStep=${"any"}
         .inputValue=${this.startingGoldValue}
         .inputAriaLabel=${translateText("game_settings.starting_gold")}
-        .inputPlaceholder=${"5"}
+        .inputPlaceholder=${"0"}
         .defaultInputValue=${5}
         .minValidOnEnable=${0.1}
         .onToggle=${this.handleStartingGoldToggle}
@@ -506,7 +506,7 @@ export class HostLobbyModal extends BaseModal {
         .inputStep=${"any"}
         .inputValue=${this.hostCheatStartingGoldValue}
         .inputAriaLabel=${translateText("game_settings.starting_gold")}
-        .inputPlaceholder=${"5"}
+        .inputPlaceholder=${"0"}
         .defaultInputValue=${5}
         .minValidOnEnable=${0.1}
         .onToggle=${this.handleHostCheatStartingGoldToggle}
@@ -875,7 +875,7 @@ export class HostLobbyModal extends BaseModal {
     this.goldMultiplier = true;
     this.goldMultiplierValue = 3;
     this.startingGold = true;
-    this.startingGoldValue = 1;
+    this.startingGoldValue = 5;
     this.customAlliances = false;
     this.customAllianceMinutes = undefined;
     this.doomsdayClock = false;
