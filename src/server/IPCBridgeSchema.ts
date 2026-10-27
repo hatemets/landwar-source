@@ -98,6 +98,8 @@ const MasterCreateGameSchema = z.object({
   gameID: z.string(),
   gameConfig: GameConfigSchema,
   publicGameType: PublicGameTypeSchema,
+  // Set for a lobby that starts at a fixed time (prime time).
+  startsAt: z.number().optional(),
 });
 
 // Master asks a worker for an invite-only ranked match. The config names the

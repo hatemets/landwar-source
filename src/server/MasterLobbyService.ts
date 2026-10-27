@@ -3,6 +3,7 @@ import {
   PublicGameType,
   SCHEDULED_PUBLIC_GAME_TYPES,
 } from "@openfront/shared/WireSchemas";
+import { nextPrimeTime, PRIME_TIME_LEAD_MS } from "@openfront/shared/PrimeTime";
 import { Worker } from "cluster";
 import winston from "winston";
 import {
@@ -281,6 +282,7 @@ export class MasterLobbyService {
       special: [],
       goldrush: [],
       hosted: [],
+      primetime: [],
     };
 
     for (const lobby of lobbies) {
@@ -474,6 +476,37 @@ export class MasterLobbyService {
         publicGameType: type,
       } satisfies MasterCreateGame);
     }
+
+    await this.maybeSchedulePrimeTime(lobbiesByType.primetime);
+  }
+
+  // The start the last prime-time lobby was created for. The lobby list
+  // alone lags one worker report, which would create a second lobby.
+  private primeTimeScheduledFor: number | null = null;
+
+  /**
+   * Opens the daily prime-time lobby PRIME_TIME_LEAD_MS before its fixed
+   * start. Unlike the queues, its countdown runs with or without players:
+   * the time is published, so people plan to be there.
+   */
+  private async maybeSchedulePrimeTime(lobbies: InternalGameInfo[]) {
+    if (!this.active) return;
+    const { startsAt } = nextPrimeTime(Date.now());
+    if (startsAt - Date.now() > PRIME_TIME_LEAD_MS) return;
+    if (
+      this.primeTimeScheduledFor === startsAt ||
+      lobbies.some((lobby) => lobby.startsAt === startsAt)
+    ) {
+      return;
+    }
+    this.primeTimeScheduledFor = startsAt;
+    this.sendMessageToWorker({
+      type: "createGame",
+      gameID: ServerEnv.generateGameId(),
+      gameConfig: await this.playlist.primeTimeConfig(),
+      publicGameType: "primetime",
+      startsAt,
+    } satisfies MasterCreateGame);
   }
 
   // Creates an invite-only ranked match on the worker the id hashes to.

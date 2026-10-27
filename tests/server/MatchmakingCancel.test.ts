@@ -58,7 +58,7 @@ describe("GameServer - short-handed matchmade game cancellation", () => {
     // Swapped in after the join: an unknown ranked type can never reach a real
     // server (CreateGameInput validates it, and the binary wire only encodes
     // declared enum members), so this pokes the guard directly.
-    (game.gameConfig as any).rankedType = "3v3";
+    (game.gameConfig as any).rankedType = "7v7";
 
     expect(game.cancelShortHandedMatch()).toBe(false);
   });
@@ -70,6 +70,24 @@ describe("GameServer - short-handed matchmade game cancellation", () => {
     });
     expect(game.joinClient(makeClient("c1", "p1"))).toBe("joined");
 
+    expect(game.cancelShortHandedMatch()).toBe(false);
+  });
+
+  it.each([
+    [RankedType.ThreeVThree, 6],
+    [RankedType.FiveVFive, 10],
+  ])("cancels a %s game missing one player", (rankedType, size) => {
+    const game = makeRankedGame(rankedType, size);
+    for (let i = 1; i < size; i++) {
+      expect(game.joinClient(makeClient(`c${i}`, `p${i}`))).toBe("joined");
+    }
+    expect(game.cancelShortHandedMatch()).toBe(true);
+    expect(game.phase()).toBe(GamePhase.Finished);
+  });
+
+  it("does not cancel ranked FFA, which has no fixed roster", () => {
+    const game = makeRankedGame(RankedType.FreeForAll, 6);
+    expect(game.joinClient(makeClient("c1", "p1"))).toBe("joined");
     expect(game.cancelShortHandedMatch()).toBe(false);
   });
 });

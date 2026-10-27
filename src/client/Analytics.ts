@@ -46,7 +46,8 @@ export type AnalyticsEvent =
   | "match_ready"
   | "first_valid_action"
   | "match_ended"
-  | "rematch_started";
+  | "rematch_started"
+  | "replay_shared";
 
 /** Sends one event. A no-op off production and before initAnalytics. */
 export function track(

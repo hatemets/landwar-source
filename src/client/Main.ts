@@ -33,7 +33,8 @@ import {
   SendToggleGameStartTimer,
   SendUpdateGameConfigIntentEvent,
 } from "./LobbyEvents";
-import type { MatchmakingModal, MatchmakingMode } from "./Matchmaking";
+import type { MatchmakingModal } from "./Matchmaking";
+import { isMatchmakingMode, type MatchmakingMode } from "./MatchmakingModes";
 import {
   hideMenuChrome,
   menuChromeIsTornDown,
@@ -875,20 +876,21 @@ class Client {
       : null;
   }
 
-  // Returns the requeue mode ("/?requeue" = 1v1), or null when the URL has
-  // no requeue param.
+  // Returns the requeue mode ("/?requeue=3v3"; a bare or unknown value is
+  // 1v1), or null when the URL has no requeue param.
   private consumeRequeueUrl(): MatchmakingMode | null {
     const searchParams = new URLSearchParams(window.location.search);
     if (!searchParams.has("requeue")) {
       return null;
     }
+    const mode = searchParams.get("requeue");
     searchParams.delete("requeue");
     const newUrl =
       window.location.pathname +
       (searchParams.toString() ? `?${searchParams.toString()}` : "") +
       window.location.hash;
     history.replaceState(null, "", newUrl);
-    return "1v1";
+    return isMatchmakingMode(mode) ? mode : "1v1";
   }
 
   // See the call site in handleUrl. True when a navigation was issued.
@@ -1205,7 +1207,7 @@ class Client {
       return;
     }
     if (event.detail?.mode !== undefined) {
-      window.location.href = "/?requeue";
+      window.location.href = `/?requeue=${event.detail.mode}`;
     }
   }
 

@@ -737,3 +737,96 @@ describe("WinCheckExecution - Overtime", () => {
     expect(winCheck.isActive()).toBe(false);
   });
 });
+
+describe("WinCheckExecution - ranked team modes", () => {
+  // Three humans per side, pinned to their team the way the matchmaker does.
+  async function rankedTeamGame(rankedType: RankedType) {
+    const humans = ["A1", "A2", "A3", "B1", "B2", "B3"].map(
+      (name, i) =>
+        new PlayerInfo(
+          name,
+          PlayerType.Human,
+          null,
+          name,
+          false,
+          null,
+          [],
+          i < 3 ? 0 : 1,
+        ),
+    );
+    const game = await setup(
+      "big_plains",
+      {
+        infiniteGold: true,
+        gameMode: GameMode.Team,
+        playerTeams: 2,
+        instantBuild: true,
+        rankedType,
+      },
+      humans,
+    );
+    // A few tiles each, far below the land threshold.
+    const players = humans.map((h) => game.player(h.id));
+    let next = 0;
+    game.map().forEachTile((tile) => {
+      if (!game.map().isLand(tile) || next >= players.length * 5) return;
+      players[Math.floor(next / 5)]!.conquer(tile);
+      next++;
+    });
+    const setWinnerSpy = vi.fn();
+    game.setWinner = setWinnerSpy;
+    const winCheck = new WinCheckExecution();
+    winCheck.init(game, 0);
+    return { game, players, setWinnerSpy, winCheck };
+  }
+
+  test("pins the matched sides to separate teams", async () => {
+    const { players } = await rankedTeamGame(RankedType.ThreeVThree);
+    const [a1, a2, a3, b1, b2, b3] = players;
+    expect(a1!.team()).toBe(a2!.team());
+    expect(a1!.team()).toBe(a3!.team());
+    expect(b1!.team()).toBe(b2!.team());
+    expect(b1!.team()).toBe(b3!.team());
+    expect(a1!.team()).not.toBe(b1!.team());
+  });
+
+  test("the side left with connected humans wins", async () => {
+    const { players, setWinnerSpy, winCheck } = await rankedTeamGame(
+      RankedType.ThreeVThree,
+    );
+    for (const b of players.slice(3)) b.markDisconnected(true);
+    winCheck.checkWinnerTeam();
+    expect(setWinnerSpy).toHaveBeenCalledWith(
+      players[0]!.team(),
+      expect.anything(),
+    );
+    expect(winCheck.isActive()).toBe(false);
+  });
+
+  test("one connected player keeps the side in the game", async () => {
+    const { players, setWinnerSpy, winCheck } = await rankedTeamGame(
+      RankedType.FiveVFive,
+    );
+    players[3]!.markDisconnected(true);
+    players[4]!.markDisconnected(true);
+    winCheck.checkWinnerTeam();
+    expect(setWinnerSpy).not.toHaveBeenCalled();
+    expect(winCheck.isActive()).toBe(true);
+  });
+
+  test("an unranked team game keeps the land rule only", async () => {
+    const { game, players, setWinnerSpy } = await rankedTeamGame(
+      RankedType.ThreeVThree,
+    );
+    const config = game.config().gameConfig();
+    vi.spyOn(game.config(), "gameConfig").mockReturnValue({
+      ...config,
+      rankedType: undefined,
+    });
+    for (const b of players.slice(3)) b.markDisconnected(true);
+    const winCheck = new WinCheckExecution();
+    winCheck.init(game, 0);
+    winCheck.checkWinnerTeam();
+    expect(setWinnerSpy).not.toHaveBeenCalled();
+  });
+});

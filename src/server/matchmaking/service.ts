@@ -10,8 +10,12 @@ import { logger } from "../Logger";
 import type { MasterLobbyService } from "../MasterLobbyService";
 import { ServerEnv } from "../ServerEnv";
 import { START_ELO } from "../stats/elo";
-import { MATCH_JOIN_DEADLINE_SECONDS, matchGameConfig } from "./matchConfig";
-import type { QueueMode } from "./matcher";
+import {
+  MATCH_JOIN_DEADLINE_SECONDS,
+  matchGameConfig,
+  matchTeams,
+} from "./matchConfig";
+import { isQueueMode, type QueueMode } from "./matcher";
 import { type Identity, Matchmaker, type QueueSocket } from "./Matchmaker";
 
 const log = logger.child({ comp: "matchmaking" });
@@ -19,10 +23,11 @@ const log = logger.child({ comp: "matchmaking" });
 const TICK_MS = 1000;
 const PATH = "/matchmaking/join";
 
-function parseMode(url: string | undefined): QueueMode | null {
+export function parseMode(url: string | undefined): QueueMode | null {
   const mode = new URL(url ?? "", "http://localhost").searchParams.get("mode");
   // The client omits the mode for 1v1.
-  return mode === null || mode === "1v1" ? "1v1" : null;
+  if (mode === null) return "1v1";
+  return isQueueMode(mode) ? mode : null;
 }
 
 // The queue the master runs. Players connect over a WebSocket, and a match
@@ -56,6 +61,7 @@ export function startMatchmaking(
       lobbies.createMatchGame({
         gameID,
         gameConfig: matchGameConfig(mode, match),
+        teams: matchTeams(match),
         startsAt: Date.now() + MATCH_JOIN_DEADLINE_SECONDS * 1000,
       });
       log.info("ranked match made", {

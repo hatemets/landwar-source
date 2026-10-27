@@ -1,14 +1,20 @@
+import { GameType } from "@openfront/engine-api/game/GameTypes";
 import { GameUpdateType } from "@openfront/engine-api/game/GameUpdates";
 import { assetUrl } from "@openfront/shared/AssetUrls";
 import { EventBus } from "@openfront/shared/EventBus";
 import { html, LitElement, TemplateResult } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import {
+  copyToClipboard,
   getTranslatedPlayerTeamLabel,
   homeHref,
+  showToast,
   translateText,
 } from "../../../client/Utils";
 import { track } from "../../Analytics";
+import { ClientEnv } from "../../ClientEnv";
+import { useNativeShare } from "../../components/ProfileShare";
+import { matchmakingModeFor } from "../../MatchmakingModes";
 import { Controller } from "../../Controller";
 import { PlaySoundEffectEvent } from "../../sound/Sounds";
 import { SendWinnerEvent } from "../../Transport";
@@ -36,6 +42,11 @@ export class WinModal extends LitElement implements Controller {
   // replays and cancelled matches get none.
   @state()
   private art: "win" | "defeat" | null = null;
+
+  // Set once the game has a winner and the server will archive its record,
+  // so `/game/<id>` opens its replay. See canShareReplay.
+  @state()
+  private replayShareable = false;
 
   private _title: string;
 
@@ -73,6 +84,16 @@ export class WinModal extends LitElement implements Controller {
         >
           ${this._title || ""}
         </h2>
+        ${this.replayShareable
+          ? html`<button
+              type="button"
+              data-win-action="share-replay"
+              class="win-share mx-auto shrink-0"
+              @click=${() => void this.shareReplay()}
+            >
+              ${translateText("win_modal.share_replay")}
+            </button>`
+          : null}
         <!-- Leaving is the quieter action, on the left; staying in the game
              is the main one, on the right. -->
         <div class="mt-4 flex flex-wrap justify-between gap-3 shrink-0">
@@ -154,6 +175,24 @@ export class WinModal extends LitElement implements Controller {
       .win-action-quiet:hover {
         background: var(--color-gray-700);
       }
+      /* Share replay: a small text button, below the main actions' weight. */
+      .win-share {
+        padding: 0.25rem 0.75rem;
+        border: none;
+        border-radius: 6px;
+        background: transparent;
+        color: rgb(255 255 255 / 0.7);
+        font-size: 0.8125rem;
+        cursor: pointer;
+        transition: color 150ms ease-out;
+      }
+      .win-share:hover {
+        color: #fff;
+      }
+      .win-share:focus-visible {
+        outline: 2px solid var(--color-malibu-blue);
+        outline-offset: 2px;
+      }
     </style>`;
   }
 
@@ -182,16 +221,54 @@ export class WinModal extends LitElement implements Controller {
     window.location.href = homeHref();
   }
 
+  // A decided game the server archives: multiplayer only, since singleplayer
+  // games run on LocalServer and leave no record. A cancelled match is
+  // archived too, but has nothing worth watching, so it gets no button.
+  private canShareReplay(): boolean {
+    return this.game.config().gameConfig().gameType !== GameType.Singleplayer;
+  }
+
+  // `/game/<id>` on the share origin: the page that opens the finished
+  // game's replay and unfurls into its preview card (GamePreviewRoute).
+  private replayUrl(): string {
+    return `${ClientEnv.shareOrigin()}${ClientEnv.gamePath(this.game.gameID())}`;
+  }
+
+  private async shareReplay(): Promise<void> {
+    const url = this.replayUrl();
+    if (useNativeShare()) {
+      try {
+        await navigator.share({
+          title: translateText("win_modal.share_replay_title"),
+          url,
+        });
+        track("replay_shared", { method: "native" });
+        return;
+      } catch (err) {
+        // Dismissing the sheet rejects with AbortError: nothing to do. Any
+        // other failure falls back to copying the link.
+        if (err instanceof DOMException && err.name === "AbortError") return;
+      }
+    }
+    try {
+      await copyToClipboard(url);
+      showToast(translateText("win_modal.replay_link_copied"), "green");
+      track("replay_shared", { method: "copy" });
+    } catch {
+      showToast(translateText("common.failed_copy"), "red");
+    }
+  }
+
   private _handleRequeue() {
     this.hide();
     track("rematch_started", { ranked: true });
     // Requeue for the same mode; Main owns the mechanism (currently a
     // reload with the requeue param, which reopens the queue after the
     // page teardown).
+    const mode =
+      matchmakingModeFor(this.game.config().gameConfig().rankedType) ?? "1v1";
     document.dispatchEvent(
-      new CustomEvent("matchmaking-requeue", {
-        detail: { mode: "1v1" as const },
-      }),
+      new CustomEvent("matchmaking-requeue", { detail: { mode } }),
     );
   }
 
@@ -221,6 +298,7 @@ export class WinModal extends LitElement implements Controller {
         this._title = translateText("win_modal.match_cancelled");
         this.isWin = false;
         this.art = null;
+        this.replayShareable = false;
         history.replaceState(null, "", `${window.location.pathname}?replay`);
         this.show();
       } else if (wu.winner[0] === "team") {
@@ -235,6 +313,7 @@ export class WinModal extends LitElement implements Controller {
           this.isWin = false;
         }
         this.art = this.outcomeArt();
+        this.replayShareable = this.canShareReplay();
         this.playEndOfGameSound();
         history.replaceState(null, "", `${window.location.pathname}?replay`);
         this.show();
@@ -245,6 +324,7 @@ export class WinModal extends LitElement implements Controller {
         });
         this.isWin = false;
         this.art = this.outcomeArt();
+        this.replayShareable = this.canShareReplay();
         this.playEndOfGameSound();
         this.show();
       } else {
@@ -269,6 +349,7 @@ export class WinModal extends LitElement implements Controller {
           this.isWin = false;
         }
         this.art = this.outcomeArt();
+        this.replayShareable = this.canShareReplay();
         this.playEndOfGameSound();
         history.replaceState(null, "", `${window.location.pathname}?replay`);
         this.show();

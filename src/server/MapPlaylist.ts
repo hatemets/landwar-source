@@ -26,21 +26,6 @@ const log = logger.child({});
 const CROWDED_COMPACT_PLAYER_COUNT = 60;
 const CROWDED_PLAYER_COUNT = 125;
 
-// Every Nth scheduled public game (FFA, team and special alike, counted in
-// creation order) is trusted-only (GameConfig.trusted): only accounts the API
-// reports as trusted may join. A fixed rotation rather than a roll so the
-// lobbies on offer at any moment are never all locked. Must stay coprime with
-// the 3-type ffa/team/special scheduling cycle (MasterLobbyService), or the
-// trusted slot aliases onto a single game type.
-//
-// Off in Kleopolis: no account is ever trusted (Worker.ts joins every client
-// untrusted), so a trusted-only lobby would never let anyone in.
-export const TRUSTED_PUBLIC_EVERY = 7;
-
-// Trusted-only lobbies draw from a much smaller pool of eligible accounts, so
-// cap them well below the open-lobby sizes to keep them filling and starting.
-const TRUSTED_MAX_PLAYER_COUNT = 25;
-
 const TEAM_WEIGHTS: { config: TeamCountConfig; weight: number }[] = [
   { config: 2, weight: 10 },
   { config: 3, weight: 10 },
@@ -133,6 +118,25 @@ export const GOLD_RUSH_MAPS: readonly GameMapType[] = [
   GameMapType.NorthAmerica,
   GameMapType.SouthAmerica,
 ];
+// Prime time is the day's big match, so it is always a large, real-world map
+// that a newcomer recognises: no fictional, joke or arcade maps.
+export const PRIME_TIME_MAPS: readonly GameMapType[] = [
+  GameMapType.World,
+  GameMapType.GiantWorldMap,
+  GameMapType.Europe,
+  GameMapType.Asia,
+  GameMapType.Africa,
+  GameMapType.NorthAmerica,
+  GameMapType.SouthAmerica,
+  GameMapType.UnitedStates,
+  GameMapType.Russia,
+  GameMapType.MareNostrum,
+  GameMapType.Mena,
+  GameMapType.IndianSubcontinent,
+  GameMapType.EastAsia,
+  GameMapType.Scandinavia,
+  GameMapType.Britannia,
+];
 export const GOLD_RUSH_STARTING_GOLD = 50_000_000;
 export const GOLD_RUSH_GOLD_MULTIPLIER = 5;
 export const GOLD_RUSH_NATION_DIFFICULTIES: readonly Difficulty[] = [
@@ -152,7 +156,13 @@ const MISSILE_UNITS: readonly UnitType[] = [
 // Special games roll ffa/team per-game (see getSpecialConfig), so their
 // playlist is split in two rather than sharing one "special" queue -
 // each half can then fall back to the matching ffaFrequency/teamFrequency.
-type PlaylistKey = "ffa" | "team" | "specialFfa" | "specialTeam" | "goldRush";
+type PlaylistKey =
+  | "ffa"
+  | "team"
+  | "specialFfa"
+  | "specialTeam"
+  | "goldRush"
+  | "primeTime";
 
 export class MapPlaylist {
   private playlists: Record<PlaylistKey, GameMapType[]> = {
@@ -161,10 +171,8 @@ export class MapPlaylist {
     specialFfa: [],
     specialTeam: [],
     goldRush: [],
+    primeTime: [],
   };
-
-  // Scheduled public games handed out so far, across all types.
-  private scheduled = 0;
 
   // Gold rush games handed out so far: even is no missiles, odd has missiles
   // and a nation difficulty roll.
@@ -173,9 +181,6 @@ export class MapPlaylist {
   // Rotation weight overrides from the API (see MapWeights.ts), spread over
   // each map's info.json frequencies when a playlist is built.
   private weightOverrides: MapWeightOverrides = {};
-
-  // null turns the trusted-only rotation off.
-  constructor(private readonly trustedEvery: number | null = null) {}
 
   // Queued playlists were built from the old weights, so drop them: a map
   // pulled to 0 must stop appearing now, not after a full rotation.
@@ -190,22 +195,8 @@ export class MapPlaylist {
   }
 
   public async gameConfig(type: ScheduledPublicGameType): Promise<GameConfig> {
-    this.scheduled++;
-    const trusted =
-      this.trustedEvery !== null && this.scheduled % this.trustedEvery === 0;
-    const config = await this.rollConfig(type, trusted);
-    if (trusted) {
-      config.trusted = true;
-    }
-    return config;
-  }
-
-  private async rollConfig(
-    type: ScheduledPublicGameType,
-    trusted: boolean,
-  ): Promise<GameConfig> {
     if (type === "special") {
-      return this.getSpecialConfig(trusted);
+      return this.getSpecialConfig();
     }
     if (type === "goldrush") {
       return this.getGoldRushConfig();
@@ -227,13 +218,11 @@ export class MapPlaylist {
       isCompact = undefined;
     }
 
-    let unadjustedMaxPlayers = await this.lobbyMaxPlayers(map, mode, isCompact);
-    if (trusted) {
-      unadjustedMaxPlayers = Math.min(
-        unadjustedMaxPlayers,
-        TRUSTED_MAX_PLAYER_COUNT,
-      );
-    }
+    const unadjustedMaxPlayers = await this.lobbyMaxPlayers(
+      map,
+      mode,
+      isCompact,
+    );
     playerTeams = this.adjustTeamCountForPlayerCapacity(
       playerTeams,
       unadjustedMaxPlayers,
@@ -269,6 +258,46 @@ export class MapPlaylist {
       // Overtime (the win threshold sinking after 30 minutes) is the default
       // for every public FFA game, so it carries no lobby modifier badge.
       overtime: mode === GameMode.FFA ? { enabled: true } : undefined,
+    } satisfies GameConfig;
+  }
+
+  /**
+   * The daily prime-time match: plain FFA on a real-world map at its
+   * largest player count, with bots and nations to fill the empty slots.
+   * No modifiers: it is the match a newcomer should understand.
+   */
+  public async primeTimeConfig(): Promise<GameConfig> {
+    const playlist = this.playlists.primeTime;
+    if (playlist.length === 0) {
+      playlist.push(
+        ...new PseudoRandom(Date.now()).shuffleArray([...PRIME_TIME_MAPS]),
+      );
+    }
+    const map = playlist.shift()!;
+    const [maxPlayers] = this.calculateMapPlayerCounts(
+      await getMapLandTiles(map),
+    );
+    return {
+      donateGold: false,
+      donateTroops: false,
+      gameMap: map,
+      maxPlayers,
+      gameType: GameType.Public,
+      gameMapSize: GameMapSize.Normal,
+      publicGameModifiers: {},
+      difficulty: Difficulty.Medium,
+      infiniteGold: false,
+      infiniteTroops: false,
+      maxTimerValue: undefined,
+      instantBuild: false,
+      randomSpawn: false,
+      nations: "default",
+      gameMode: GameMode.FFA,
+      bots: 400,
+      spawnImmunityDuration: this.getSpawnImmunityDuration(),
+      disabledUnits: [],
+      disableClanTags: true,
+      overtime: { enabled: true },
     } satisfies GameConfig;
   }
 
@@ -316,19 +345,13 @@ export class MapPlaylist {
     } satisfies GameConfig;
   }
 
-  private async getSpecialConfig(trusted: boolean): Promise<GameConfig> {
+  private async getSpecialConfig(): Promise<GameConfig> {
     const mode = Math.random() < 0.5 ? GameMode.FFA : GameMode.Team;
     const map = this.getNextMap("special", mode);
     let playerTeams =
       mode === GameMode.Team ? this.getTeamCount(map) : undefined;
 
     const excludedModifiers: ModifierKey[] = [];
-
-    // Crowded raises the count to 60/125, which the trusted cap would undo
-    // anyway; keep its modifier slot for one that still has an effect.
-    if (trusted) {
-      excludedModifiers.push("isCrowded");
-    }
 
     // Check if compact map would leave every team with at least 2 players
     const supportsCompact =
@@ -489,14 +512,8 @@ export class MapPlaylist {
       }
     }
 
-    let unadjustedMaxPlayers =
+    const unadjustedMaxPlayers =
       crowdedMaxPlayers ?? (await this.lobbyMaxPlayers(map, mode, isCompact));
-    if (trusted) {
-      unadjustedMaxPlayers = Math.min(
-        unadjustedMaxPlayers,
-        TRUSTED_MAX_PLAYER_COUNT,
-      );
-    }
     playerTeams = this.adjustTeamCountForPlayerCapacity(
       playerTeams,
       unadjustedMaxPlayers,

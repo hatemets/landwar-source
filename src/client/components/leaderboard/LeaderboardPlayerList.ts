@@ -18,11 +18,17 @@ interface LadderState {
 }
 
 // The ranked types with a player ladder.
-export type PlayerLadder = RankedType.OneVOne | RankedType.FreeForAll;
+export type PlayerLadder =
+  | RankedType.OneVOne
+  | RankedType.FreeForAll
+  | RankedType.ThreeVThree
+  | RankedType.FiveVFive;
 
 const RANKED_TYPES: PlayerLadder[] = [
   RankedType.OneVOne,
   RankedType.FreeForAll,
+  RankedType.ThreeVThree,
+  RankedType.FiveVFive,
 ];
 
 /** How old the loaded ladders may get before reopening reloads them. */
@@ -31,6 +37,8 @@ const REFRESH_MS = 5 * 60_000;
 const emptyLadders = (): Record<PlayerLadder, LadderState> => ({
   [RankedType.OneVOne]: { entries: [], userEntry: null, hasMore: true },
   [RankedType.FreeForAll]: { entries: [], userEntry: null, hasMore: true },
+  [RankedType.ThreeVThree]: { entries: [], userEntry: null, hasMore: true },
+  [RankedType.FiveVFive]: { entries: [], userEntry: null, hasMore: true },
 });
 
 const toPlayerEntry = (

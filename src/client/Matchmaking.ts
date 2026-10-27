@@ -1,6 +1,6 @@
 import { CloseCode, isTerminalClose } from "@openfront/shared/CloseCodes";
 import { isCommitLike } from "@openfront/shared/ServerList";
-import { assetUrl } from "@openfront/shared/AssetUrls";
+import type { UserMeResponse } from "@openfront/shared/ApiSchemas";
 import { html } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { ClientEnv } from "src/client/ClientEnv";
@@ -15,6 +15,7 @@ import "./components/Difficulties";
 import { GameStartAlertController } from "./components/GameStartAlertController";
 import { DEFAULT_TITLE_CLASS, modalHeader } from "./components/ui/ModalHeader";
 import { whenModalLoaded } from "./LazyModals";
+import { MATCHMAKING_MODES, type MatchmakingMode } from "./MatchmakingModes";
 import type { JoinLobbyEvent } from "./Main";
 import {
   ensureServerList,
@@ -25,9 +26,13 @@ import type { SinglePlayerModal } from "./SinglePlayerModal";
 import { describeSocketClose } from "./SocketClose";
 import { translateText } from "./Utils";
 
-// The ranked queues. Same strings as RankedType, the server's `mode` param and
-// the `/?requeue=` value.
-export type MatchmakingMode = "1v1";
+// Where /api/me reports the Elo of each queue's ladder.
+type Ladders = NonNullable<UserMeResponse["player"]["leaderboard"]>;
+const LADDER_KEYS: Record<MatchmakingMode, keyof Ladders> = {
+  "1v1": "oneVone",
+  "3v3": "threeVthree",
+  "5v5": "fiveVfive",
+};
 
 // How long a player waits alone before the queue offers a practice match
 // against a bot.
@@ -56,7 +61,7 @@ export class MatchmakingModal extends BaseModal {
   // The lobby's latest queue-size broadcast.
   @state() private queueSize: { count: number } | null = null;
   @state() private offerPractice = false;
-  private elo: number | string = "...";
+  private ladders: Ladders | null = null;
   private readonly gameStartAlert = new GameStartAlertController(
     this,
     () => this.isModalOpen && this.gameID !== null,
@@ -72,13 +77,23 @@ export class MatchmakingModal extends BaseModal {
   }
 
   protected renderHeaderSlot() {
-    const title = translateText("matchmaking_modal.title");
+    const title = translateText("matchmaking_modal.title_mode", {
+      mode: this.mode,
+    });
     return modalHeader({
       titleContent: html`<span class="${DEFAULT_TITLE_CLASS}">${title}</span>
         ${this.gameStartAlert.renderBell()}`,
       onBack: () => this.close(),
       ariaLabel: translateText("common.back"),
     });
+  }
+
+  private get elo(): number | string {
+    if (this.ladders === null) return "...";
+    return (
+      this.ladders[LADDER_KEYS[this.mode]]?.elo ??
+      translateText("matchmaking_modal.no_elo")
+    );
   }
 
   protected renderBody() {
@@ -89,9 +104,54 @@ export class MatchmakingModal extends BaseModal {
     `;
     return html`
       <div class="flex flex-col items-center justify-center gap-6 p-6">
-        ${eloDisplay} ${this.renderInner()}
+        ${this.renderModeSwitch()} ${eloDisplay} ${this.renderInner()}
       </div>
     `;
+  }
+
+  // One queue at a time. Switching leaves the old queue and joins the new
+  // one. A matched player keeps the queue they were matched in.
+  private renderModeSwitch() {
+    const locked = this.gameID !== null;
+    return html`
+      <div
+        role="tablist"
+        aria-label=${translateText("matchmaking_modal.mode")}
+        class="flex w-full max-w-xs gap-1 p-1 bg-white/5 border border-white/10 rounded-xl"
+      >
+        ${MATCHMAKING_MODES.map((mode) => {
+          const active = mode === this.mode;
+          return html`
+            <button
+              type="button"
+              role="tab"
+              aria-selected=${active}
+              ?disabled=${locked && !active}
+              @click=${() => this.switchMode(mode)}
+              class="grow px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${active
+                ? "bg-malibu-blue/20 text-aquarius border border-malibu-blue/30"
+                : "text-white/50 hover:text-white hover:bg-white/5 border border-transparent"}"
+            >
+              ${mode}
+            </button>
+          `;
+        })}
+      </div>
+    `;
+  }
+
+  private switchMode(mode: MatchmakingMode) {
+    if (mode === this.mode || this.gameID !== null) return;
+    track("play_clicked", { mode: `ranked_${mode}` });
+    this.mode = mode;
+    this.requestUpdate();
+    // The server's queue is picked by the socket's URL, so reconnect.
+    this.connected = false;
+    this.intentionalClose = false;
+    this.queueSize = null;
+    this.reconnectAttempts = 0;
+    this.startPracticeTimer();
+    void this.connect();
   }
 
   private renderInner() {
@@ -118,29 +178,12 @@ export class MatchmakingModal extends BaseModal {
     }
   }
 
-  // The radar stands in for the globe while the queue looks for a match.
   private renderSearching() {
-    return html`
-      <div
-        class="flex flex-col items-center justify-center gap-4 p-6 h-full min-h-[320px]"
-        role="status"
-      >
-        <img
-          class="illustration-scan size-44"
-          src=${assetUrl("images/illustrations/Radar.webp")}
-          alt=""
-          aria-hidden="true"
-          draggable="false"
-        />
-        <p class="text-sm text-[var(--field-muted)]">
-          ${translateText("matchmaking_modal.searching")}
-        </p>
-      </div>
-    `;
+    return renderGlobeLoader(translateText("matchmaking_modal.searching"));
   }
 
   // Few players are online at launch, so a lone player gets a way to play now
-  // instead of watching the radar. The match is local and unranked.
+  // instead of watching the globe. The match is local and unranked.
   private renderPracticeOffer() {
     if (!this.offerPractice) return "";
     return html`
@@ -417,9 +460,7 @@ export class MatchmakingModal extends BaseModal {
       return;
     }
 
-    this.elo =
-      userMe.player.leaderboard?.oneVone?.elo ??
-      translateText("matchmaking_modal.no_elo");
+    this.ladders = userMe.player.leaderboard ?? {};
 
     this.connected = false;
     this.gameID = null;

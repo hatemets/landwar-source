@@ -277,26 +277,33 @@ export async function rankedPage(
   };
 }
 
+// The keys /api/me reports each ladder under. A ladder missing here is not
+// reported.
+const RATING_KEYS = {
+  "1v1": "oneVone",
+  "3v3": "threeVthree",
+  "5v5": "fiveVfive",
+  ffa: "ffa",
+} as const;
+
+export type UserRatings = Partial<
+  Record<(typeof RATING_KEYS)[keyof typeof RATING_KEYS], { elo: number }>
+>;
+
 // The caller's Elo on each ladder, keyed the way /api/me reports it. A ladder
 // the player has not played is absent.
 export async function ratingsForUser(
   db: Db,
   userId: string,
-): Promise<{
-  oneVone?: { elo: number };
-  ffa?: { elo: number };
-}> {
+): Promise<UserRatings> {
   const rows = await db
     .select({ ladder: playerRatings.ladder, elo: playerRatings.elo })
     .from(playerRatings)
     .where(and(eq(playerRatings.userId, userId), gt(playerRatings.games, 0)));
-  const out: {
-    oneVone?: { elo: number };
-    ffa?: { elo: number };
-  } = {};
+  const out: UserRatings = {};
   for (const r of rows) {
-    if (r.ladder === "1v1") out.oneVone = { elo: r.elo };
-    else if (r.ladder === "ffa") out.ffa = { elo: r.elo };
+    const key = RATING_KEYS[r.ladder as keyof typeof RATING_KEYS];
+    if (key !== undefined) out[key] = { elo: r.elo };
   }
   return out;
 }

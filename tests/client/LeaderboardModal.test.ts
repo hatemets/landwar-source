@@ -485,6 +485,50 @@ describe("LeaderboardModal", () => {
       expect(fetchMock.mock.calls.length).toBe(callCount);
     });
 
+    it.each([
+      ["players3v3", "3v3", RankedType.ThreeVThree],
+      ["players5v5", "5v5", RankedType.FiveVFive],
+    ] as const)(
+      "shows the %s team ladder from the same request",
+      async (tab, key, rankedType) => {
+        const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+        fetchMock.mockResolvedValueOnce(
+          jsonRes({
+            "1v1": [entry(1, "player-1", 1200)],
+            ffa: [],
+            [key]: [entry(1, "player-5", 1400), entry(2, "player-1", 1010)],
+          }),
+        );
+
+        const playerList = getPlayerList()!;
+        await playerList.loadPlayerLeaderboard(true);
+        const callCount = fetchMock.mock.calls.length;
+        const ladder = await showLadder(tab);
+
+        expect(ladder.rankedType).toBe(rankedType);
+        expect(ladder.playerData.map((p) => p.playerId)).toEqual([
+          "player-5",
+          "player-1",
+        ]);
+        expect(ladder.playerData[1].elo).toBe(1010);
+        expect(fetchMock.mock.calls.length).toBe(callCount);
+      },
+    );
+
+    it("shows empty team ladders when the API has none", async () => {
+      // An API deployed before the team queues omits their keys.
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        jsonRes({ "1v1": [entry(1, "player-1", 1200)], ffa: [] }),
+      );
+
+      const playerList = getPlayerList()!;
+      await playerList.loadPlayerLeaderboard(true);
+      const trios = await showLadder("players3v3");
+
+      expect(trios.playerData).toEqual([]);
+      expect(modal.textContent).toContain("No ranked games on this ladder");
+    });
+
     it("shows an empty FFA ladder when the API has none", async () => {
       // An API deployed before ranked FFA omits the key.
       (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(

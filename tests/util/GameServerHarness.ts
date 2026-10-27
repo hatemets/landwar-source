@@ -113,7 +113,6 @@ export interface ClientOpts {
   publicId?: string;
   friends?: string[];
   spectator?: boolean;
-  trusted?: boolean;
   platform?: Client["platform"];
   levelBadge?: Client["levelBadge"];
 }
@@ -141,7 +140,6 @@ export function makeClient(opts: ClientOpts = {}): Client {
     opts.publicId,
     opts.friends ?? [],
     opts.spectator ?? false,
-    opts.trusted ?? false,
     opts.platform,
     opts.levelBadge,
   );

@@ -3,12 +3,13 @@ import { z } from "zod";
 import {
   findMatches,
   type Match,
+  QUEUE_MODES,
   type QueueMode,
   type Ticket,
 } from "./matcher";
 
-// The ranked queues. A client connects to /matchmaking/join?mode=1v1,
-// sends {type:"join", jwt}, and waits. The server sends {type:"queue-size"}
+// The ranked queues. A client connects to /matchmaking/join?mode=1v1 (or 3v3,
+// 5v5), sends {type:"join", jwt}, and waits. The server sends {type:"queue-size"}
 // every few seconds and, once matched, {type:"match-assignment", gameId}.
 // Close codes follow the client's contract: a rejection is terminal, a newer
 // connection for the account closes the old one with Normal, and a server
@@ -159,7 +160,7 @@ export class Matchmaker {
   // everyone how many are waiting. Call it about once a second.
   async tick(): Promise<void> {
     const now = this.deps.now();
-    for (const mode of ["1v1"] as const) {
+    for (const mode of QUEUE_MODES) {
       const waiting = [...this.entries.values()]
         .filter((e) => e.mode === mode && !this.pending.has(e.ticket.userId))
         .map((e) => e.ticket);

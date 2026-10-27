@@ -534,10 +534,6 @@ export const UserMeResponseSchema = z.object({
     // True when the player may list a custom lobby publicly. The API decides
     // which subscriptions, grants and Steam licences confer this.
     canCreatePublicLobbies: z.boolean(),
-    // Account trust as computed by the API. "untrusted" means new, unlinked or
-    // banned, never an accusation. null when the API's computation failed;
-    // absent on an API that predates the field. Both read as untrusted.
-    trustTier: z.enum(["untrusted", "trusted"]).nullable().optional(),
     // Account username (custom-usernames). All optional so responses from an
     // API without the feature still parse; absent means the same as never set.
     // `username` is the server-resolved DISPLAY form — the bare base for an
@@ -571,6 +567,16 @@ export const UserMeResponseSchema = z.object({
           })
           .optional(),
         ffa: z
+          .object({
+            elo: z.number().optional(),
+          })
+          .optional(),
+        threeVthree: z
+          .object({
+            elo: z.number().optional(),
+          })
+          .optional(),
+        fiveVfive: z
           .object({
             elo: z.number().optional(),
           })
@@ -1022,6 +1028,8 @@ const RecentRankedStatsSchema = z.object({
   all: PlayerRecentStatsSchema,
   [RankedType.OneVOne]: PlayerRecentStatsSchema.optional(),
   [RankedType.FreeForAll]: PlayerRecentStatsSchema.optional(),
+  [RankedType.ThreeVThree]: PlayerRecentStatsSchema.optional(),
+  [RankedType.FiveVFive]: PlayerRecentStatsSchema.optional(),
 });
 
 export const PlayerRecentStatsTreeSchema = z.object({
@@ -1153,6 +1161,9 @@ export const RankedLeaderboardResponseSchema = z.object({
   // appear on both with a different elo and rank. Defaulted because an API
   // deployment without the FFA ladder omits the key entirely.
   [RankedType.FreeForAll]: RankedLeaderboardEntrySchema.array().default([]),
+  // The team ladders, defaulted for the same reason.
+  [RankedType.ThreeVThree]: RankedLeaderboardEntrySchema.array().default([]),
+  [RankedType.FiveVFive]: RankedLeaderboardEntrySchema.array().default([]),
 });
 export type RankedLeaderboardResponse = z.infer<
   typeof RankedLeaderboardResponseSchema

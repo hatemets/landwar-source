@@ -32,6 +32,7 @@ import { fetchMapWeights, MAP_WEIGHTS_POLL_MS } from "./MapWeights";
 import { MasterLobbyService } from "./MasterLobbyService";
 import { startMatchmaking } from "./matchmaking/service";
 import { setNoStoreHeaders } from "./NoStoreHeaders";
+import { registerPlayerProfileRoute } from "./PlayerProfileRoute";
 import { startPolling } from "./PollingLoop";
 import { renderAppShell } from "./RenderHtml";
 import { registerServedConfigRoutes } from "./ServedConfigRoutes";
@@ -75,7 +76,10 @@ registerClusterListRoute(app);
 registerFriendsRoutes(app);
 registerServedConfigRoutes(app);
 registerShopRoutes(app);
-registerSitemapRoutes(app);
+registerSitemapRoutes(app, { log });
+// Before the static handler and the SPA fallback: the bare `/player/<id>`
+// link gets the player's head tags here.
+registerPlayerProfileRoute({ app, log, baseDir: __dirname });
 
 // Serve the shared app shell for the root document.
 app.use(async (req, res, next) => {

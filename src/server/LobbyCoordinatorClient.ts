@@ -380,6 +380,7 @@ export class LobbyCoordinatorClient {
           special: [],
           goldrush: [],
           hosted: [],
+          primetime: [],
         };
         for (const type of PublicGameTypeSchema.options) {
           for (const entry of msg.games[type] ?? []) {

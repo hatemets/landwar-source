@@ -1,6 +1,7 @@
 import {
   ColoredTeams,
   GameMode,
+  isRankedTeamType,
   PlayerType,
   RankedType,
   Team,
@@ -113,6 +114,29 @@ export class WinCheckExecution implements Execution {
 
   checkWinnerTeam(): void {
     if (this.mg === null) throw new Error("Not initialized");
+
+    // Ranked team games end when one side has the only connected humans:
+    // every player on the other side is dead or gone.
+    if (isRankedTeamType(this.mg.config().gameConfig().rankedType)) {
+      const standing = new Set<Team>();
+      for (const p of this.mg.players()) {
+        const team = p.team();
+        if (
+          team !== null &&
+          p.type() === PlayerType.Human &&
+          !p.isDisconnected()
+        ) {
+          standing.add(team);
+        }
+      }
+      if (standing.size === 1) {
+        const [team] = standing;
+        this.mg.setWinner(team!, this.mg.stats().stats());
+        console.log(`${team} has won the game`);
+        this.active = false;
+        return;
+      }
+    }
 
     const teamToTiles = new Map<Team, number>();
     for (const player of this.mg.players()) {

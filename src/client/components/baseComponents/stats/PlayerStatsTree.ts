@@ -150,6 +150,10 @@ export class PlayerStatsTreeView extends LitElement {
         return translateText("player_stats_tree.ranked_1v1");
       case RankedType.FreeForAll:
         return translateText("player_stats_tree.ranked_ffa");
+      case RankedType.ThreeVThree:
+        return translateText("player_stats_tree.ranked_3v3");
+      case RankedType.FiveVFive:
+        return translateText("player_stats_tree.ranked_5v5");
     }
   }
 

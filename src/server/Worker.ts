@@ -581,7 +581,6 @@ export async function startWorker() {
           publicId,
           [],
           clientMsg.spectator === true,
-          false,
           clientMsg.platform,
           undefined,
         );
@@ -603,12 +602,6 @@ export async function startWorker() {
             workerId,
           });
           ws.close(CloseCode.Forbidden, CloseReason.NotAllowlisted);
-        } else if (joinResult === "not_trusted") {
-          log.info(`untrusted client tried to join game ${clientMsg.gameID}`, {
-            gameID: clientMsg.gameID,
-            workerId,
-          });
-          ws.close(CloseCode.Forbidden, CloseReason.NotTrusted);
         } else if (joinResult === "redirected") {
           // Normal, not a rejection code: the game already sent this client
           // where to go, and Normal is the client's silent branch, so no

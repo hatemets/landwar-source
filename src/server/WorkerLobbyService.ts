@@ -147,7 +147,7 @@ export class WorkerLobbyService {
           msg.gameID,
           msg.gameConfig,
           undefined,
-          undefined,
+          msg.startsAt,
           msg.publicGameType,
         );
         if (game === null) {

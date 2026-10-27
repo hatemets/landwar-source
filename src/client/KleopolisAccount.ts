@@ -25,6 +25,8 @@ const MeSchema = z.object({
     .object({
       oneVone: RatingSchema.optional(),
       ffa: RatingSchema.optional(),
+      threeVthree: RatingSchema.optional(),
+      fiveVfive: RatingSchema.optional(),
     })
     .default({}),
 });
@@ -69,7 +71,6 @@ export function toUserMeCandidate(
       username: account.displayName,
       usernameBase: account.displayName,
       usernameStatus: "unclaimed",
-      trustTier: "untrusted",
       subscription: null,
       achievements: { singleplayerMap: [], player: [] },
       leaderboard: mine.ratings,

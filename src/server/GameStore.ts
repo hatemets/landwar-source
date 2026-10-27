@@ -21,8 +21,9 @@ import { replacer } from "@openfront/shared/SharedUtil";
 import { GameRecord, GameRecordSchema } from "@openfront/shared/WireSchemas";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
+import { isQueueMode, MODE_SIZE } from "./matchmaking/matcher";
 import { award, coinsEarned } from "./shop/wallet";
-import { eloDeltas, START_ELO } from "./stats/elo";
+import { eloDeltas, START_ELO, teamEloDeltas } from "./stats/elo";
 
 // Stores finished games in Postgres: one row per game, one per player, the
 // running totals per account, and the full record for replays.
@@ -191,10 +192,13 @@ export function summarizeRecord(
 // games have their own ladders, named for their queue.
 export const FFA_LADDER = "ffa";
 
-type RatingKind = "ffa" | "duel";
+type RatingKind = "ffa" | "duel" | "team";
 
 function ratingKind(summary: GameSummary): RatingKind | null {
   if (summary.rankedType === "1v1") return "duel";
+  if (summary.rankedType === "3v3" || summary.rankedType === "5v5") {
+    return "team";
+  }
   if (summary.rankedType === null) {
     return summary.gameType === "Public" && summary.mode === "Free For All"
       ? "ffa"
@@ -337,7 +341,8 @@ export async function saveGameRecord(
 
 // Moves the Elo of every account in a rated game. A guest has no rating, so a
 // free-for-all needs two accounts to count. A matchmade game needs its full
-// roster of accounts and a decided winner.
+// roster of accounts and a decided winner. A team game rates the sides by
+// their mean Elo.
 async function rateGame(
   tx: Pick<Db, "select" | "insert">,
   summary: GameSummary,
@@ -352,8 +357,16 @@ async function rateGame(
   const ladder = kind === "ffa" ? FFA_LADDER : summary.rankedType!;
   const ids = [...best.keys()];
   if (ids.length < 2) return;
-  if (kind !== "ffa" && summary.players.length !== 2) return;
-  if (kind !== "ffa" && !summary.players.some((p) => p.won)) return;
+  if (kind !== "ffa") {
+    // Every seat of the match must have held an account.
+    if (!isQueueMode(ladder)) return;
+    const roster = MODE_SIZE[ladder];
+    if (summary.players.length !== roster || ids.length !== roster) return;
+    const winners = ids.filter((id) => best.get(id)!.won).length;
+    if (winners === 0) return;
+    // A team game needs one whole side to have won.
+    if (kind === "team" && winners !== roster / 2) return;
+  }
 
   const current = await tx
     .select()
@@ -365,13 +378,18 @@ async function rateGame(
   const before = new Map(current.map((r) => [r.userId, r]));
   const eloOf = (id: string) => before.get(id)?.elo ?? START_ELO;
 
-  const deltas = eloDeltas(
-    ids.map((id) => ({
-      id,
-      placement: best.get(id)!.placement,
-      elo: eloOf(id),
-    })),
-  );
+  const deltas =
+    kind === "team"
+      ? teamEloDeltas(
+          ids.map((id) => ({ id, elo: eloOf(id), won: best.get(id)!.won })),
+        )
+      : eloDeltas(
+          ids.map((id) => ({
+            id,
+            placement: best.get(id)!.placement,
+            elo: eloOf(id),
+          })),
+        );
 
   for (const id of ids) {
     const row = before.get(id);

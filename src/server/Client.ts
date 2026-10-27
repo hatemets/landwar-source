@@ -36,9 +36,6 @@ export class Client {
     // Set once at join, and again by GameServer when someone arrives after the
     // game has started — the player list is already frozen, so they can only watch.
     public spectator: boolean = false,
-    // Whether the API reported this account as trusted when it joined (the
-    // gate for GameConfig.trusted). Anonymous joins are never trusted.
-    public readonly trusted: boolean = false,
     // Client-reported and unverified; metric dimension only.
     public readonly platform: ClientPlatform | "unknown" = "unknown",
     // From the server's /users/@me lookup at join (levelBadgeForPlayer);

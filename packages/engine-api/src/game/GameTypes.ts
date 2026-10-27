@@ -136,7 +136,18 @@ export enum GameMode {
 export enum RankedType {
   OneVOne = "1v1",
   FreeForAll = "ffa",
+  ThreeVThree = "3v3",
+  FiveVFive = "5v5",
 }
+
+// Matchmade ranked team games: two teams of this many players each.
+export const RANKED_TEAM_SIZE: Partial<Record<RankedType, number>> = {
+  [RankedType.ThreeVThree]: 3,
+  [RankedType.FiveVFive]: 5,
+};
+
+export const isRankedTeamType = (value: RankedType | undefined): boolean =>
+  value !== undefined && RANKED_TEAM_SIZE[value] !== undefined;
 
 // Ranked FFA lobby size. The API's matcher assigns between these many players
 // and only rates a game whose roster is in this range, so a match that ends

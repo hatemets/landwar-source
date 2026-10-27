@@ -89,7 +89,6 @@ export type JoinResult =
   | "rejected"
   | "ended"
   | "not_allowlisted"
-  | "not_trusted"
   | "started"
   // Not a refusal: the client was told which sibling lobby to go to instead.
   | "redirected";
@@ -121,6 +120,13 @@ const KICK_REASON_LOBBY_CREATOR = "kick_reason.lobby_creator";
 const KICK_REASON_ADMIN = "kick_reason.admin";
 const KICK_REASON_HOST_LEFT = "kick_reason.host_left";
 const KICK_REASON_MATCH_CANCELLED = "kick_reason.match_cancelled";
+
+// The ranked types the matchmaker makes. Each needs its full roster to start.
+const MATCHMADE_RANKED_TYPES: ReadonlySet<RankedType | undefined> = new Set([
+  RankedType.OneVOne,
+  RankedType.ThreeVThree,
+  RankedType.FiveVFive,
+]);
 
 export interface GameServerOptions {
   id: string;
@@ -541,13 +547,6 @@ export class GameServer {
       return "not_allowlisted";
     }
 
-    if (!this.passesTrustGate(client)) {
-      this.log.warn("client not trusted, rejecting", {
-        clientID: client.clientID,
-      });
-      return "not_trusted";
-    }
-
     // Being routed is not a refusal, so it must not consume the "full" or
     // "started" answer that belongs to the lobby they end up on.
     const redirect = this.poolRedirectFor(client);
@@ -890,14 +889,15 @@ export class GameServer {
     return this.desync.count();
   }
 
-  // Matchmade ranked games (1v1) must start with full attendance: the roster
-  // freezes at start(), so a game missing a player would hand out a walkover
-  // the absent player never contested. Called at the start deadline; cancels
-  // the game and returns true when too few matched players connected.
+  // Matchmade ranked games (1v1, 3v3, 5v5) must start with full attendance:
+  // the roster freezes at start(), so a game missing a player would hand out
+  // a walkover the absent player never contested, or an uneven team fight.
+  // Called at the start deadline; cancels the game and returns true when too
+  // few matched players connected.
   public cancelShortHandedMatch(): boolean {
-    // Explicitly 1v1 only — a future ranked type must opt in rather than
+    // Matchmade types only: a future ranked type must opt in rather than
     // inherit pre-start cancellation.
-    if (this.gameConfig.rankedType !== RankedType.OneVOne) return false;
+    if (!MATCHMADE_RANKED_TYPES.has(this.gameConfig.rankedType)) return false;
     const expected = this.gameConfig.maxPlayers;
     if (expected === undefined || this.playerCount() >= expected) {
       return false;
@@ -1187,15 +1187,6 @@ export class GameServer {
     return client.publicId !== undefined && allowed.includes(client.publicId);
   }
 
-  // Trusted-only lobbies (GameConfig.trusted) admit only accounts the API
-  // reported as trusted at join time. Shared by joinClient and the seat toggle
-  // for the same reason as passesAllowlist; admins bypass it the same way.
-  private passesTrustGate(client: Client): boolean {
-    if (this.gameConfig.trusted !== true) return true;
-    if (isAdminRole(client.role)) return true;
-    return client.trusted;
-  }
-
   // ONE definition of which member a client belongs to, shared by every path
   // that can seat someone here — joinClient and the Play/Spectate toggle — the
   // same way passesAllowlist is. Null means seat them here.
@@ -1251,7 +1242,6 @@ export class GameServer {
     if (!spectator) {
       if (this.stage === "started" || this.ended) return;
       if (!this.passesAllowlist(client)) return;
-      if (!this.passesTrustGate(client)) return;
       if (this.poolTargetForClient(client) !== null) return;
       const max = this.gameConfig.maxPlayers;
       if (max !== undefined && this.playerCount() >= max) return;

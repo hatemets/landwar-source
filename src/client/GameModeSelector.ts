@@ -1,20 +1,13 @@
 import { GameMapType, GameType } from "@openfront/engine-api/game/GameTypes";
-import { UserMeResponse } from "@openfront/shared/ApiSchemas";
 import { assetUrl } from "@openfront/shared/AssetUrls";
+import { nextPrimeTime } from "@openfront/shared/PrimeTime";
 import { PublicGameInfo, PublicGames } from "@openfront/shared/WireSchemas";
 import { html, LitElement, nothing, type TemplateResult } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { track } from "./Analytics";
 import "./components/ConquestGlobe";
 import type { GlobeRegionSelectEvent } from "./components/ConquestGlobe";
-import {
-  canJoinTrustedLobby,
-  lobbyCard,
-  mapAspectRatios,
-  trustRequiredDialog,
-  viewerIsSignedIn,
-  viewerIsTrusted,
-} from "./components/LobbyCard";
+import { lobbyCard, mapAspectRatios } from "./components/LobbyCard";
 import {
   MAP_REGIONS,
   mapRegions,
@@ -37,7 +30,6 @@ import {
   type BackendReachabilityDetail,
 } from "./ServerList";
 import type { SinglePlayerModal } from "./SinglePlayerModal";
-import { lastUserMeResponse } from "./UserMeBroadcast";
 import { UsernameInput } from "./UsernameInput";
 import {
   calculateServerTimeOffset,
@@ -150,9 +142,6 @@ export function joinIsGateable(lobby: JoinLobbyEvent): boolean {
 export class GameModeSelector extends LitElement {
   @state() private lobbies: PublicGames | null = null;
   @state() private inputValid: boolean = true;
-  @state() private viewerTrusted: boolean = false;
-  @state() private viewerSignedIn: boolean = false;
-  @state() private showTrustRequired: boolean = false;
   // The DEBOUNCED outage signal, not the raw per-attempt one: see
   // multiplayerAllowedForBackend for why one missed heartbeat must not dim
   // these buttons.
@@ -246,10 +235,6 @@ export class GameModeSelector extends LitElement {
       "username-validity-change",
       this.handleValidityChange,
     );
-    document.addEventListener("userMeResponse", this.onUserMe);
-    // play-page renders this after Main may already have broadcast.
-    const last = lastUserMeResponse();
-    if (last !== null) this.applyUserMe(last.response);
     this.start();
     // Repaint countdowns between lobby-feed updates.
     this.countdownTimer ??= window.setInterval(
@@ -288,7 +273,6 @@ export class GameModeSelector extends LitElement {
       "username-validity-change",
       this.handleValidityChange,
     );
-    document.removeEventListener("userMeResponse", this.onUserMe);
     document.removeEventListener(
       "backend-reachability",
       this.onBackendReachability,
@@ -358,15 +342,6 @@ export class GameModeSelector extends LitElement {
   private handleValidityChange = (e: Event) => {
     this.inputValid = (e as CustomEvent).detail?.isValid ?? true;
   };
-
-  private onUserMe = (e: Event) => {
-    this.applyUserMe((e as CustomEvent<UserMeResponse | false>).detail);
-  };
-
-  private applyUserMe(me: UserMeResponse | false): void {
-    this.viewerSignedIn = viewerIsSignedIn(me);
-    this.viewerTrusted = viewerIsTrusted(me);
-  }
 
   private onBackendReachability = (e: Event) => {
     this.backendOutage = (
@@ -529,6 +504,8 @@ export class GameModeSelector extends LitElement {
   /** Every advertised lobby, in the order the upcoming list shows them. */
   private allLobbies(): PublicGameInfo[] {
     return [
+      // The day's big match goes first: it is the one to be in.
+      ...(this.lobbies?.games?.primetime ?? []),
       ...(this.lobbies?.games?.ffa ?? []),
       ...(this.lobbies?.games?.team ?? []),
       ...(this.lobbies?.games?.special ?? []),
@@ -601,7 +578,7 @@ export class GameModeSelector extends LitElement {
             "images/menu/JoinLobbyIcon.png",
           )}
           ${this.renderSmallActionCard(
-            translateText("mode_selector.ranked_1v1"),
+            translateText("mode_selector.ranked"),
             this.openRanked,
             SECONDARY_ACTION,
             undefined,
@@ -616,16 +593,19 @@ export class GameModeSelector extends LitElement {
         </div>
 
         <div class="menu-lobbies">
-          ${this.renderUpcomingHeading()}
+          ${this.renderUpcomingHeading()} ${this.renderNextPrimeTime()}
           ${featuredLobbies.length > 0
             ? html`<div class="menu-lobby-list">
                 ${featuredLobbies.map((lobby) => {
                   const config = lobby.gameConfig;
                   const mode = config ? getGameModeLabel(config) : "";
-                  const subtitle =
+                  let subtitle =
                     config?.nations === "disabled"
                       ? mode
                       : `${mode} · ${translateText("player_type.nation")}`;
+                  if (lobby.publicGameType === "primetime") {
+                    subtitle = `${translateText("public_lobby.prime_time")} · ${subtitle}`;
+                  }
                   return html`<div class="min-w-0">
                     ${this.renderLobbyCard(lobby, subtitle, heroHeight)}
                   </div>`;
@@ -654,13 +634,6 @@ export class GameModeSelector extends LitElement {
           ?orbiting=${(this.lobbies === null && !this.offlineForLobbies()) ||
           this.retryPending}
         ></conquest-globe>
-
-        ${this.showTrustRequired
-          ? trustRequiredDialog(
-              this.viewerSignedIn,
-              () => (this.showTrustRequired = false),
-            )
-          : nothing}
       </div>
     `;
   }
@@ -685,7 +658,8 @@ export class GameModeSelector extends LitElement {
     return true;
   }
 
-  // Joins a ranked queue. The matchmaking modal checks the player is signed in.
+  // Joins a ranked queue, 1v1 first. The modal switches to 3v3 or 5v5, and
+  // checks the player is signed in.
   private openRanked = () => {
     if (this.blockedFromApiAction()) return;
     if (!this.validateUsername()) return;
@@ -806,6 +780,28 @@ export class GameModeSelector extends LitElement {
     `;
   }
 
+  /**
+   * When the next prime-time match starts, in the viewer's own clock. Hidden
+   * while its lobby is open: the lobby card shows the countdown then.
+   */
+  private renderNextPrimeTime() {
+    if ((this.lobbies?.games?.primetime?.length ?? 0) > 0) return nothing;
+    const now = Date.now();
+    const { startsAt } = nextPrimeTime(now);
+    // Whole minutes: a seconds digit ticking hours ahead is noise.
+    const seconds = Math.ceil((startsAt - now) / 60_000) * 60;
+    const time = new Date(startsAt).toLocaleTimeString(undefined, {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    return html`<p class="menu-empty-hint">
+      ${translateText("public_lobby.prime_time_next", {
+        time,
+        in: renderDuration(seconds),
+      })}
+    </p>`;
+  }
+
   /** Every lobby the browser lists, hosted included. */
   private advertisedLobbyCount(): number {
     return Object.values(this.lobbies?.games ?? {}).flat().length;
@@ -874,7 +870,8 @@ export class GameModeSelector extends LitElement {
     let timeDisplay: string;
     let timeDisplayUppercase = false;
     if (timeRemaining === undefined) {
-      timeDisplay = translateText("host_modal.waiting");
+      // No countdown yet: an empty pill says nothing a 0/N count doesn't.
+      timeDisplay = "";
     } else if (timeRemaining > 0) {
       timeDisplay = translateText("public_lobby.starting_in", {
         time: renderDuration(timeRemaining),
@@ -893,7 +890,6 @@ export class GameModeSelector extends LitElement {
       timeDisplayUppercase,
       disabled: !this.inputValid,
       blocked: false,
-      viewerTrusted: this.viewerTrusted,
       heightClass,
       onClick: () => this.validateAndJoin(lobby),
     });
@@ -901,10 +897,6 @@ export class GameModeSelector extends LitElement {
 
   private validateAndJoin(lobby: PublicGameInfo) {
     if (!this.validateUsername()) return;
-    if (!canJoinTrustedLobby(lobby, this.viewerTrusted)) {
-      this.showTrustRequired = true;
-      return;
-    }
 
     this.dispatchEvent(
       new CustomEvent("join-lobby", {

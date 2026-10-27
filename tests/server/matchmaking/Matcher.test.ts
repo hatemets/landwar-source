@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   BASE_WINDOW,
+  balanceTeams,
   findMatches,
   MAX_WINDOW,
   type Ticket,
@@ -72,5 +73,54 @@ describe("findMatches 1v1", () => {
       5_000,
     );
     expect(ids(m[0]!.players)).toEqual(["early", "mid"]);
+  });
+});
+
+describe("findMatches team queues", () => {
+  const group = (n: number, elo = 1000) =>
+    Array.from({ length: n }, (_, i) => t(`p${i}`, elo + i, i));
+
+  it("waits for six players in 3v3 and ten in 5v5", () => {
+    expect(findMatches(group(5), "3v3", 0)).toEqual([]);
+    expect(findMatches(group(6), "3v3", 0)).toHaveLength(1);
+    expect(findMatches(group(9), "5v5", 0)).toEqual([]);
+    expect(findMatches(group(10), "5v5", 0)).toHaveLength(1);
+  });
+
+  it("splits a team match into two equal sides", () => {
+    const [m] = findMatches(group(10), "5v5", 0);
+    expect(m!.players).toHaveLength(10);
+    expect(m!.teams!.map((side) => side.length)).toEqual([5, 5]);
+  });
+
+  it("gives a 1v1 no sides", () => {
+    const [m] = findMatches(group(2), "1v1", 0);
+    expect(m!.teams).toBeUndefined();
+  });
+});
+
+describe("balanceTeams", () => {
+  const sum = (side: Ticket[]) => side.reduce((a, p) => a + p.elo, 0);
+
+  it("puts the strongest player with the weakest", () => {
+    const sides = balanceTeams([
+      t("a", 1600),
+      t("b", 1400),
+      t("c", 1200),
+      t("d", 1000),
+    ]);
+    expect(sides.map(ids)).toEqual([
+      ["a", "d"],
+      ["b", "c"],
+    ]);
+  });
+
+  it("finds the closest totals for ten players", () => {
+    const elos = [1900, 1500, 1450, 1200, 1180, 1100, 1000, 950, 900, 820];
+    const sides = balanceTeams(elos.map((e, i) => t(`p${i}`, e)));
+    expect(sides.map((s) => s.length)).toEqual([5, 5]);
+    // These 12000 points split into two even sides of 6000.
+    expect(sum(sides[0]!)).toBe(6000);
+    expect(sum(sides[1]!)).toBe(6000);
   });
 });

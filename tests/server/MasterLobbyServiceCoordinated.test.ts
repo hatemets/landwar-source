@@ -120,6 +120,7 @@ describe("MasterLobbyService with a lobby coordinator", () => {
         special: [],
         goldrush: [],
         hosted: [],
+        primetime: [],
       },
       delistGameIDs: [],
     });
@@ -138,7 +139,14 @@ describe("MasterLobbyService with a lobby coordinator", () => {
   it("forwards the coordinator's delists once", async () => {
     service.coordinatorHandlers().onRoster({
       serverTime: 1,
-      games: { ffa: [], team: [], special: [], goldrush: [], hosted: [] },
+      games: {
+        ffa: [],
+        team: [],
+        special: [],
+        goldrush: [],
+        hosted: [],
+        primetime: [],
+      },
       delistGameIDs: ["LOSER1"],
     });
     await broadcaster()();
@@ -203,6 +211,7 @@ describe("MasterLobbyService with a lobby coordinator", () => {
         special: [],
         goldrush: [],
         hosted: [],
+        primetime: [],
       },
       delistGameIDs: [],
     });

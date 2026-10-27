@@ -2,22 +2,20 @@ import { GAME_ID_REGEX } from "@openfront/engine-api/Schemas";
 import { replacer } from "@openfront/shared/SharedUtil";
 import { GameInfo } from "@openfront/shared/WireSchemas";
 import type { Express, Request } from "express";
-import fsPromises from "fs/promises";
-import { parse } from "node-html-parser";
-import path from "path";
 import type { Logger } from "winston";
 import { z } from "zod";
 import { db } from "./db";
 import type { GameManager } from "./GameManager";
+import { publicOrigin } from "./auth/config";
 import {
   buildPreview,
-  escapeHtml,
   ExternalGameInfo,
   ExternalGameInfoSchema,
 } from "./GamePreviewBuilder";
 import { loadGameRecord } from "./GameStore";
 import { setNoStoreHeaders } from "./NoStoreHeaders";
 import { getAppShellContent, setHtmlNoCacheHeaders } from "./RenderHtml";
+import { gamePageUrl, injectHeadMeta, resolveShellPath } from "./SeoMeta";
 import { ServerEnv } from "./ServerEnv";
 
 const requestOrigin = (req: Request): string => {
@@ -100,49 +98,26 @@ export function registerGamePreviewRoute(opts: {
       );
 
       // Always serve HTML with meta tags for /game/:id route
-      const staticHtml = path.join(baseDir, "../../static/index.html");
-      const rootHtml = path.join(baseDir, "../../index.html");
-      let filePath: string | null = null;
-
-      try {
-        await fsPromises.access(staticHtml);
-        filePath = staticHtml;
-      } catch {
-        try {
-          await fsPromises.access(rootHtml);
-          filePath = rootHtml;
-        } catch {
-          // Neither file exists
-        }
-      }
-
+      const filePath = await resolveShellPath(baseDir);
       if (filePath) {
         const html = await getAppShellContent(filePath);
-        const root = parse(html);
-        const head = root.querySelector("head");
-        if (head) {
-          head
-            .querySelectorAll('meta[property^="og:"], meta[name^="twitter:"]')
-            .forEach((el) => el.remove());
-
-          const tagsToInject = [
-            `<meta property="og:title" content="${escapeHtml(meta.title)}" />`,
-            `<meta property="og:description" content="${escapeHtml(meta.description || meta.title)}" />`,
-            `<meta property="og:url" content="${escapeHtml(meta.joinUrl)}" />`,
-            `<meta property="og:image" content="${escapeHtml(meta.image)}" />`,
-            `<meta name="twitter:card" content="summary_large_image" />`,
-            `<meta name="twitter:title" content="${escapeHtml(meta.title)}" />`,
-            `<meta name="twitter:description" content="${escapeHtml(meta.description || meta.title)}" />`,
-            `<meta name="twitter:image" content="${escapeHtml(meta.image)}" />`,
-          ];
-
-          tagsToInject.forEach((tag) =>
-            head.insertAdjacentHTML("beforeend", tag),
-          );
-        }
+        const gameType =
+          lobby?.gameConfig?.gameType ?? publicInfo?.info?.config?.gameType;
+        const description = meta.description || meta.title;
+        const page = injectHeadMeta(html, {
+          title: `${meta.title} - Kleopolis`,
+          description,
+          canonical: gamePageUrl(publicOrigin(), gameID),
+          url: meta.joinUrl,
+          ogType: "website",
+          image: meta.image,
+          twitterCard: "summary_large_image",
+          // Private games stay out of search results.
+          noindex: gameType !== undefined && gameType !== "Public",
+        });
 
         setHtmlNoCacheHeaders(res);
-        return res.status(200).send(root.toString());
+        return res.status(200).send(page);
       }
 
       // Fallback to JSON if HTML file not found

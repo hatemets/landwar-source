@@ -31,3 +31,23 @@ export function eloDeltas(players: RatedPlayer[]): Map<string, number> {
   for (const [id, value] of delta) delta.set(id, Math.round(value));
   return delta;
 }
+
+export interface RatedTeamPlayer {
+  id: string;
+  elo: number;
+  won: boolean;
+}
+
+// Elo for a two-side team game. Each side plays as one player rated at its
+// members' mean Elo, and every member takes the side's whole-point change.
+// Returns an empty map unless there are exactly two sides: winners and losers.
+export function teamEloDeltas(players: RatedTeamPlayer[]): Map<string, number> {
+  const winners = players.filter((p) => p.won);
+  const losers = players.filter((p) => !p.won);
+  if (winners.length === 0 || losers.length === 0) return new Map();
+  const mean = (side: RatedTeamPlayer[]) =>
+    side.reduce((a, p) => a + p.elo, 0) / side.length;
+  const expected = 1 / (1 + Math.pow(10, (mean(losers) - mean(winners)) / 400));
+  const change = Math.round(ELO_K * (1 - expected));
+  return new Map(players.map((p) => [p.id, p.won ? change : -change]));
+}

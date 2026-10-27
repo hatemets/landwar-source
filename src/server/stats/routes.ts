@@ -173,12 +173,14 @@ export function registerStatsRoutes(app: Express): void {
       return;
     }
     try {
-      const [duel, ffa] = await Promise.all([
+      const [duel, ffa, trios, fives] = await Promise.all([
         rankedPage(db().db, "1v1", page.data),
         rankedPage(db().db, FFA_LADDER, page.data),
+        rankedPage(db().db, "3v3", page.data),
+        rankedPage(db().db, "5v5", page.data),
       ]);
       // Past the end of the longest ladder.
-      const pages = Math.max(duel.pages, ffa.pages);
+      const pages = Math.max(duel.pages, ffa.pages, trios.pages, fives.pages);
       if (page.data > pages) {
         res
           .status(400)
@@ -189,6 +191,8 @@ export function registerStatsRoutes(app: Express): void {
       res.json({
         "1v1": duel.entries,
         ffa: ffa.entries,
+        "3v3": trios.entries,
+        "5v5": fives.entries,
       });
     } catch (error) {
       log.error("failed to read the ranked ladder", { error: String(error) });

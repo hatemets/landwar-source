@@ -1,3 +1,4 @@
+import { RankedType } from "@openfront/engine-api/game/GameTypes";
 import type { UserMeResponse } from "@openfront/shared/ApiSchemas";
 import type { Mock } from "vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -72,6 +73,10 @@ vi.mock("../../src/client/Utils", () => ({
 }));
 
 import { MatchmakingModal } from "../../src/client/Matchmaking";
+import {
+  type MatchmakingMode,
+  matchmakingModeFor,
+} from "../../src/client/MatchmakingModes";
 import { UserSettings } from "../../src/client/UserSettings";
 
 class FakeWebSocket {
@@ -149,7 +154,7 @@ function installClanSelection(tag: string | null) {
   return input;
 }
 
-async function openAndJoin(mode: "1v1") {
+async function openAndJoin(mode: MatchmakingMode) {
   const modal = new MatchmakingModal();
   modal.mode = mode;
   modal.open();
@@ -684,5 +689,89 @@ describe("MatchmakingModal game-start alert", () => {
       modal.querySelector('[aria-label="public_lobby.notify_off"]'),
     ).not.toBeNull();
     expect(new UserSettings().lobbyStartAlerts()).toBe(true);
+  });
+});
+
+// Each queue is its own ladder: the socket's URL picks the queue, and the
+// Elo shown is the one for that queue.
+describe("MatchmakingModal queue modes", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    sockets.length = 0;
+    apiMocks.getUserMe.mockReset();
+    const me = userMe();
+    me.player.leaderboard = {
+      oneVone: { elo: 1100 },
+      threeVthree: { elo: 1250 },
+    };
+    apiMocks.getUserMe.mockResolvedValue(me);
+    vi.stubGlobal("WebSocket", FakeWebSocket);
+    vi.spyOn(console, "log").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+
+  const eloOf = (modal: MatchmakingModal) =>
+    (modal as unknown as { elo: number | string }).elo;
+  const switchMode = (modal: MatchmakingModal, mode: MatchmakingMode) =>
+    (
+      modal as unknown as { switchMode: (m: MatchmakingMode) => void }
+    ).switchMode(mode);
+
+  it.each(["3v3", "5v5"] as const)("joins the %s queue", async (mode) => {
+    const { socket } = await openAndJoin(mode);
+    expect(new URL(socket.url).searchParams.get("mode")).toBe(mode);
+  });
+
+  it("shows the Elo of the open queue's ladder", async () => {
+    const { modal } = await openAndJoin("3v3");
+    expect(eloOf(modal)).toBe(1250);
+    switchMode(modal, "1v1");
+    expect(eloOf(modal)).toBe(1100);
+    switchMode(modal, "5v5");
+    expect(eloOf(modal)).toBe("matchmaking_modal.no_elo");
+  });
+
+  it("leaves the old queue and joins the new one on a switch", async () => {
+    const { modal, socket } = await openAndJoin("1v1");
+    switchMode(modal, "5v5");
+    expect(socket.readyState).toBe(FakeWebSocket.CLOSED);
+    await vi.waitFor(() => expect(sockets).toHaveLength(2));
+    expect(new URL(sockets[1]!.url).searchParams.get("mode")).toBe("5v5");
+    sockets[1]!.open();
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(sockets[1]!.sent).toHaveLength(1);
+    // The old socket's handlers are gone: no reconnect into the old queue.
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(
+      sockets.every(
+        (s, i) => i === 0 || new URL(s.url).searchParams.get("mode") === "5v5",
+      ),
+    ).toBe(true);
+  });
+
+  it("keeps the queue once a match is assigned", async () => {
+    const { modal, socket } = await openAndJoin("3v3");
+    socket.onmessage?.({
+      data: JSON.stringify({ type: "match-assignment", gameId: "abcd1234" }),
+    });
+    switchMode(modal, "1v1");
+    expect(modal.mode).toBe("3v3");
+    expect(sockets).toHaveLength(1);
+    modal.close();
+  });
+});
+
+describe("matchmakingModeFor", () => {
+  it("maps each matchmade ranked type to its queue", () => {
+    expect(matchmakingModeFor(RankedType.OneVOne)).toBe("1v1");
+    expect(matchmakingModeFor(RankedType.ThreeVThree)).toBe("3v3");
+    expect(matchmakingModeFor(RankedType.FiveVFive)).toBe("5v5");
+    expect(matchmakingModeFor(RankedType.FreeForAll)).toBeNull();
+    expect(matchmakingModeFor(undefined)).toBeNull();
   });
 });

@@ -1,5 +1,4 @@
 import { GameMapType } from "@openfront/engine-api/game/GameTypes";
-import { UserMeResponse } from "@openfront/shared/ApiSchemas";
 import { assetUrl } from "@openfront/shared/AssetUrls";
 import { PublicGameInfo, PublicGames } from "@openfront/shared/WireSchemas";
 import { html, nothing, TemplateResult } from "lit";
@@ -9,7 +8,6 @@ import type { JoinLobbyModal } from "../JoinLobbyModal";
 import { whenModalLoaded } from "../LazyModals";
 import { PublicLobbySocket } from "../LobbySocket";
 import { JoinLobbyEvent } from "../Main";
-import { lastUserMeResponse } from "../UserMeBroadcast";
 import { UsernameInput } from "../UsernameInput";
 import {
   calculateServerTimeOffset,
@@ -36,14 +34,7 @@ import {
   NUMERIC_TEAM_CONFIGS,
   saveFilterProfile,
 } from "./DetailedGameViewFilters";
-import {
-  canJoinTrustedLobby,
-  lobbyCard,
-  mapAspectRatios,
-  trustRequiredDialog,
-  viewerIsSignedIn,
-  viewerIsTrusted,
-} from "./LobbyCard";
+import { lobbyCard, mapAspectRatios } from "./LobbyCard";
 import { modalHeader } from "./ui/ModalHeader";
 import { styledSelect } from "./ui/StyledSelect";
 
@@ -106,9 +97,6 @@ export class DetailedGameViewModal extends BaseModal {
   @state() private profiles: Record<string, LobbyFilters> = {};
   @state() private selectedProfile = "";
   @state() private profileName = "";
-  @state() private viewerTrusted: boolean = false;
-  @state() private viewerSignedIn: boolean = false;
-  @state() private showTrustRequired: boolean = false;
   // No backend-reachability state, deliberately. Every lobby this browser
   // shows arrived over a live game-server socket, and by the reachability
   // rule (GameModeSelector, top of file) the server-list API's health may not
@@ -167,28 +155,9 @@ export class DetailedGameViewModal extends BaseModal {
     }
   }
 
-  connectedCallback() {
-    super.connectedCallback();
-    document.addEventListener("userMeResponse", this.onUserMe);
-    // It loads on demand (see LazyModals), usually after Main's broadcast
-    // went out.
-    const last = lastUserMeResponse();
-    if (last !== null) this.applyUserMe(last.response);
-  }
-
   disconnectedCallback() {
-    document.removeEventListener("userMeResponse", this.onUserMe);
     this.onClose();
     super.disconnectedCallback();
-  }
-
-  private onUserMe = (e: Event) => {
-    this.applyUserMe((e as CustomEvent<UserMeResponse | false>).detail);
-  };
-
-  private applyUserMe(me: UserMeResponse | false): void {
-    this.viewerSignedIn = viewerIsSignedIn(me);
-    this.viewerTrusted = viewerIsTrusted(me);
   }
 
   // ---- Slot animation ----
@@ -275,12 +244,6 @@ export class DetailedGameViewModal extends BaseModal {
       <div
         class="lobby-experience lobby-browser custom-scrollbar p-4 lg:p-6 flex flex-col gap-4"
       >
-        ${this.showTrustRequired
-          ? trustRequiredDialog(
-              this.viewerSignedIn,
-              () => (this.showTrustRequired = false),
-            )
-          : nothing}
         ${this.showFilters ? this.renderFilterPanel() : nothing}
         ${shown.length === 0
           ? html`<div class="lobby-empty-state lobby-browser__empty">
@@ -297,6 +260,14 @@ export class DetailedGameViewModal extends BaseModal {
             </div>`
           : tab === ALL_TAB
             ? html`
+                <!-- The day's prime-time match, only while its lobby is open. -->
+                ${ofType(all, "primetime").length > 0
+                  ? this.renderPane(
+                      translateText("detailed_view.pane_primetime"),
+                      ofType(shown, "primetime"),
+                      ofType(all, "primetime").length,
+                    )
+                  : nothing}
                 <!-- One pane per scheduled bucket, cards stacked within it. -->
                 <div
                   class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 items-start"
@@ -436,7 +407,6 @@ export class DetailedGameViewModal extends BaseModal {
       timeDisplay: this.timeDisplay(lobby, startAt),
       timeDisplayUppercase: startAt === undefined,
       heightClass: "h-full",
-      viewerTrusted: this.viewerTrusted,
       onClick: () => this.join(lobby),
     });
   }
@@ -758,12 +728,6 @@ export class DetailedGameViewModal extends BaseModal {
 
   private join(lobby: PublicGameInfo) {
     if (!this.canPlay()) return;
-    // Also before close(): the popup explains how to become trusted, so it
-    // must stay on screen with the browser rather than vanish with it.
-    if (!canJoinTrustedLobby(lobby, this.viewerTrusted)) {
-      this.showTrustRequired = true;
-      return;
-    }
     this.close();
 
     // Hosted lobbies are private games a subscriber listed publicly: joining

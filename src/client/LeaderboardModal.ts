@@ -16,6 +16,8 @@ import { translateText } from "./Utils";
 const PLAYER_TABS: Record<string, PlayerLadder> = {
   players: RankedType.OneVOne,
   playersFfa: RankedType.FreeForAll,
+  players3v3: RankedType.ThreeVThree,
+  players5v5: RankedType.FiveVFive,
 };
 
 @customElement("leaderboard-modal")
@@ -38,6 +40,14 @@ export class LeaderboardModal extends BaseModal {
         {
           key: "playersFfa",
           label: translateText("leaderboard_modal.ranked_ffa_tab"),
+        },
+        {
+          key: "players3v3",
+          label: translateText("leaderboard_modal.ranked_3v3_tab"),
+        },
+        {
+          key: "players5v5",
+          label: translateText("leaderboard_modal.ranked_5v5_tab"),
         },
       ],
     };

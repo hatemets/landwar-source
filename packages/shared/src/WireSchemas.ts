@@ -139,15 +139,20 @@ export const PublicGameTypeSchema = z.enum([
   "special",
   "goldrush",
   "hosted",
+  // The daily big match at a fixed time (PrimeTime.ts). Last, so the enum
+  // index of every older type stays the same on the wire.
+  "primetime",
 ]);
 
 // Lobby types the master schedules from the map playlist. "hosted" is
 // excluded: those are player-created private lobbies that a subscriber has
 // listed publicly, and the host (not the master) controls their lifecycle.
+// "primetime" is excluded too: the clock opens it, not the queue depth.
 // Derived from PublicGameTypeSchema so a new lobby type is scheduled by
 // default and opting out is the explicit act.
 export const ScheduledPublicGameTypeSchema = PublicGameTypeSchema.exclude([
   "hosted",
+  "primetime",
 ]);
 
 export const SCHEDULED_PUBLIC_GAME_TYPES =

@@ -10,7 +10,7 @@ import { saveGameRecord } from "../../../src/server/GameStore";
 import { sampleRecord } from "../GameStore.fixture";
 
 // Runs only when TEST_DATABASE_URL is set. Matchmade games rate their own
-// ladders: 1v1 as a duel.
+// ladders: 1v1 as a duel, 3v3 and 5v5 as two sides rated by their mean.
 const url = process.env.TEST_DATABASE_URL;
 
 describe.skipIf(!url)("ranked ratings (database)", () => {
@@ -46,7 +46,11 @@ describe.skipIf(!url)("ranked ratings (database)", () => {
         )
     )[0];
 
-  function match(kind: "1v1", ids: string[], winners: number[]): GameRecord {
+  function match(
+    kind: "1v1" | "3v3" | "5v5",
+    ids: string[],
+    winners: number[],
+  ): GameRecord {
     const record = sampleRecord(newGameId(), {
       winner: ids[0]!,
       loser: ids[1]!,
@@ -54,10 +58,11 @@ describe.skipIf(!url)("ranked ratings (database)", () => {
     const clientIds = ids.map((_, i) =>
       `client${String.fromCharCode(65 + i)}${i}`.padEnd(8, "x"),
     );
+    const teams = kind !== "1v1";
     record.info.config = {
       ...record.info.config,
       rankedType: kind,
-      gameMode: "Free For All",
+      gameMode: teams ? "Team" : "Free For All",
     } as never;
     record.info.players = ids.map((id, i) => ({
       clientID: clientIds[i]!,
@@ -67,7 +72,11 @@ describe.skipIf(!url)("ranked ratings (database)", () => {
       stats: {},
     })) as never;
     record.info.winner = (
-      winners.length === 0 ? undefined : ["player", clientIds[winners[0]!]!]
+      winners.length === 0
+        ? undefined
+        : teams
+          ? ["team", "Red", ...winners.map((i) => clientIds[i]!)]
+          : ["player", clientIds[winners[0]!]!]
     ) as never;
     return record;
   }
@@ -137,5 +146,54 @@ describe.skipIf(!url)("ranked ratings (database)", () => {
         .where(eq(games.id, record.info.gameID))
     )[0];
     expect(row?.rankedType).toBe("1v1");
+  });
+
+  const accounts = (prefix: string, n: number) =>
+    Promise.all(Array.from({ length: n }, (_, i) => account(`${prefix}${i}`)));
+
+  it("rates a 3v3 on its own ladder, sixteen points a player", async () => {
+    const ids = await accounts("Trio", 6);
+    await saveGameRecord(handle.db, match("3v3", ids, [0, 1, 2]));
+    for (const id of ids.slice(0, 3)) {
+      expect(await rating(id, "3v3")).toMatchObject({
+        elo: 1016,
+        wins: 1,
+        games: 1,
+      });
+    }
+    for (const id of ids.slice(3)) {
+      expect(await rating(id, "3v3")).toMatchObject({
+        elo: 984,
+        losses: 1,
+        games: 1,
+      });
+    }
+    // The other ladders are untouched.
+    expect(await rating(ids[0]!, "1v1")).toBeUndefined();
+    expect(await rating(ids[0]!, "5v5")).toBeUndefined();
+  });
+
+  it("rates a 5v5 on its own ladder", async () => {
+    const ids = await accounts("Five", 10);
+    await saveGameRecord(handle.db, match("5v5", ids, [5, 6, 7, 8, 9]));
+    expect(await rating(ids[9]!, "5v5")).toMatchObject({ elo: 1016 });
+    expect(await rating(ids[0]!, "5v5")).toMatchObject({ elo: 984 });
+    expect(await rating(ids[0]!, "3v3")).toBeUndefined();
+  });
+
+  it("does not rate a team game missing a seat or a whole winning side", async () => {
+    const short = await accounts("Short", 5);
+    await saveGameRecord(handle.db, match("3v3", short, [0, 1, 2]));
+    expect(await rating(short[0]!, "3v3")).toBeUndefined();
+
+    const split = await accounts("Split", 6);
+    await saveGameRecord(handle.db, match("3v3", split, [0, 1]));
+    expect(await rating(split[0]!, "3v3")).toBeUndefined();
+  });
+
+  it("does not rate a team game with a guest seat", async () => {
+    const ids = [...(await accounts("Guest", 5)), randomUUID()];
+    await saveGameRecord(handle.db, match("3v3", ids, [0, 1, 2]));
+    expect(await rating(ids[0]!, "3v3")).toBeUndefined();
   });
 });

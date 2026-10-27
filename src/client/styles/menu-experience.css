@@ -413,10 +413,12 @@ body:not(.in-game) #sidebar-menu .nav-menu-item.active {
   border-radius: var(--field-radius-lg);
   background: transparent;
 }
-/* The bare map, whole: no backdrop, and never cropped. */
+/* The map fills its box, so every thumbnail is the same size. Its sea is
+   transparent; the backdrop is the in-game ocean colour
+   (render-settings.json terrain.oceanColor). */
 .menu-lobby-list .menu-lobby-card__image {
-  background: transparent;
-  object-fit: contain;
+  background: #3b6585;
+  object-fit: cover;
 }
 .menu-lobby-slot {
   min-height: 0;
@@ -538,9 +540,9 @@ body:not(.in-game) #sidebar-menu .nav-menu-item.active {
   align-self: center;
   width: 160px !important;
   height: 96px !important;
-  border-radius: var(--field-radius);
-  background: transparent;
-  object-fit: contain;
+  border-radius: 12px;
+  background: #3b6585;
+  object-fit: cover;
 }
 .menu-lobby-card__name {
   text-align: left;
@@ -1887,27 +1889,6 @@ lobby-player-view .player-tag button {
 @media (max-width: 399px) {
   lobby-player-view .players-list--grid {
     grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-/* A slow sway for the matchmaking radar, so the search reads as active. */
-.illustration-scan {
-  user-select: none;
-  transform-origin: 50% 85%;
-  animation: illustration-scan 3.2s ease-in-out infinite;
-}
-@keyframes illustration-scan {
-  0%,
-  100% {
-    transform: rotate(-4deg);
-  }
-  50% {
-    transform: rotate(4deg);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .illustration-scan {
-    animation: none;
   }
 }
 

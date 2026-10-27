@@ -48,6 +48,8 @@ function setup(
     "jwt-b": { userId: "b", publicId: "pb" },
     "jwt-c": { userId: "c", publicId: "pc" },
     "jwt-d": { userId: "d", publicId: "pd" },
+    "jwt-e": { userId: "e", publicId: "pe" },
+    "jwt-f": { userId: "f", publicId: "pf" },
   };
   const created: { mode: QueueMode; match: Match }[] = [];
   const mm = new Matchmaker({
@@ -226,5 +228,40 @@ describe("Matchmaker", () => {
     s.say({ type: "join", jwt: "x" });
     await flush();
     expect(s.closed?.code).toBe(1011);
+  });
+
+  it("keeps each queue apart and fills a 3v3 with two sides", async () => {
+    const { mm, join, created } = setup({ a: 1150, b: 1000, c: 1080 });
+    // Two players in the 1v1 queue would match, but they queued for 3v3.
+    for (const jwt of ["jwt-a", "jwt-b", "jwt-c", "jwt-d", "jwt-e"]) {
+      await join(jwt, "3v3");
+    }
+    await mm.tick();
+    expect(created).toHaveLength(0);
+    expect(mm.size("3v3")).toBe(5);
+    expect(mm.size("1v1")).toBe(0);
+
+    await join("jwt-f", "3v3");
+    await mm.tick();
+    expect(created).toHaveLength(1);
+    expect(created[0]!.mode).toBe("3v3");
+    const teams = created[0]!.match.teams!;
+    expect(teams.map((t) => t.length)).toEqual([3, 3]);
+    expect(
+      teams
+        .flat()
+        .map((p) => p.userId)
+        .sort(),
+    ).toEqual(["a", "b", "c", "d", "e", "f"]);
+    expect(mm.size()).toBe(0);
+  });
+
+  it("moves a player to another queue when they join it", async () => {
+    const { mm, join } = setup();
+    const first = await join("jwt-a", "1v1");
+    await join("jwt-a", "5v5");
+    expect(first.closed?.code).toBe(1000);
+    expect(mm.size("1v1")).toBe(0);
+    expect(mm.size("5v5")).toBe(1);
   });
 });

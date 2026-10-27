@@ -13,7 +13,6 @@ export const CloseCode = {
   WrongWorker: 4007,
   GameStarted: 4008,
   RankedLimitReached: 4100,
-  NotTrusted: 4103,
 } as const;
 
 export type CloseCode = (typeof CloseCode)[keyof typeof CloseCode];
@@ -41,7 +40,6 @@ export const CloseReason = {
   GameNotFound: "close_reason.game_not_found",
   CannotJoin: "close_reason.cannot_join",
   NotAllowlisted: "close_reason.not_allowlisted",
-  NotTrusted: "close_reason.not_trusted",
   LobbyFull: "close_reason.lobby_full",
   WrongWorker: "close_reason.wrong_worker",
   InternalError: "close_reason.internal_error",
