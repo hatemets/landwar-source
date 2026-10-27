@@ -59,6 +59,9 @@ mv "$DIR/app.env.new" "$DIR/app.env"
 } > "$DIR/.env"
 
 cd "$DIR"
+# The 20 GB disk holds only a few images: drop the unused ones first, or the
+# pull fails with "no space left on device". Rollback pulls from the registry.
+docker image prune -af > /dev/null
 docker compose pull --quiet
 docker compose up -d --remove-orphans
 
@@ -67,7 +70,7 @@ for _ in $(seq 1 60); do
     status="$(docker inspect -f '{{.State.Health.Status}}' "$(docker compose ps -q app)" 2>/dev/null || echo starting)"
     if [ "$status" = healthy ]; then
         echo "$TAG" > "$TAG_FILE"
-        docker image prune -af --filter "until=168h" > /dev/null
+        docker image prune -af > /dev/null
         echo "Deployed $IMAGE:$TAG"
         exit 0
     fi

@@ -140,11 +140,17 @@ export class ConstructionExecution implements Execution {
       case UnitType.MIRV:
         this.mg.addExecution(new MirvExecution(player, this.tile));
         break;
-      case UnitType.Warship:
-        this.mg.addExecution(
-          new WarshipExecution({ owner: player, patrolTile: this.tile }),
-        );
+      case UnitType.Warship: {
+        // Each warship pays its own escalating price when it spawns; the
+        // ones the player can no longer afford fail to spawn.
+        const count = this.amount ?? 1;
+        for (let i = 0; i < count; i++) {
+          this.mg.addExecution(
+            new WarshipExecution({ owner: player, patrolTile: this.tile }),
+          );
+        }
         break;
+      }
       case UnitType.Port:
         this.mg.addExecution(new PortExecution(this.structure!));
         break;

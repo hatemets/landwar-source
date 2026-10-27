@@ -593,6 +593,52 @@ describe("RadialMenuElements", () => {
       ]);
     });
 
+    it("offers bulk and max warship builds", () => {
+      mockPlayerActions.buildableUnits = [
+        {
+          type: UnitType.Warship,
+          canBuild: 1,
+          canUpgrade: false,
+          cost: 250n,
+          upgradeCosts: [250n, 750n, 1500n, 2500n, 3500n, 4500n],
+        },
+      ];
+      mockParams.selected = {
+        id: () => 2,
+        isPlayer: vi.fn(() => true),
+      } as unknown as PlayerView;
+      const warshipElement = attackMenuElement.subMenu!(mockParams).find(
+        (item) => item.id === "attack_Warship",
+      );
+
+      // Gold for three warships: x1/x2/x5/xMax, x5 disabled, max builds 3.
+      (mockGame as any).myPlayer = vi.fn(() => ({ gold: () => 1600n }));
+      const options = warshipElement!.subMenu!(mockParams);
+      expect(options.map((o) => o.id)).toEqual([
+        `upgrade_${UnitType.Warship}_1`,
+        `upgrade_${UnitType.Warship}_2`,
+        `upgrade_${UnitType.Warship}_5`,
+        `upgrade_${UnitType.Warship}_max`,
+      ]);
+      expect(options.map((o) => o.disabled(mockParams))).toEqual([
+        false,
+        false,
+        true,
+        false,
+      ]);
+      options[3].action!(mockParams);
+      expect(mockParams.eventBus.emit).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          unit: UnitType.Warship,
+          amount: 3,
+          rocketDirectionUp: undefined,
+        }),
+      );
+      expect(mockParams.eventBus.emit).toHaveBeenLastCalledWith(
+        expect.any(BuildUnitIntentEvent),
+      );
+    });
+
     it("caps the nuke bulk amount at loaded silo tubes", () => {
       const enemyPlayer = {
         id: () => 2,

@@ -382,9 +382,10 @@ export interface BuildableUnit {
   canUpgrade: number | false;
   type: PlayerBuildableUnitType;
   cost: Gold;
-  // Cumulative cost of upgrading 1..MAX_UPGRADE_AMOUNT times (upgrade costs
-  // escalate per level, so a bulk total is NOT cost * amount). Only set when
-  // canUpgrade is not false.
+  // Cumulative cost of upgrading (or, for warships, building)
+  // 1..MAX_UPGRADE_AMOUNT times (costs escalate per unit, so a bulk total is
+  // NOT cost * amount). Only set when canUpgrade is not false, or for a
+  // warship that can be built.
   upgradeCosts?: Gold[];
   overlappingRailroads: TileRef[];
   ghostRailPaths: TileRef[][];

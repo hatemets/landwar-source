@@ -1598,11 +1598,14 @@ export class PlayerImpl implements Player {
 
       const buildNew = canBuild !== false && canUpgrade === false;
 
-      // Cumulative bulk-upgrade totals. Each upgrade raises the unit's level
-      // and the constructed count, so step n costs the same as if the player
-      // already had n extra units — cost(mg, this, n).
+      // Cumulative bulk totals. Each upgrade (or new warship) raises the
+      // constructed count, so step n costs the same as if the player already
+      // had n extra units — cost(mg, this, n).
       let upgradeCosts: Gold[] | undefined;
-      if (canUpgrade !== false) {
+      if (
+        canUpgrade !== false ||
+        (u === UnitType.Warship && canBuild !== false)
+      ) {
         upgradeCosts = new Array<Gold>(MAX_UPGRADE_AMOUNT);
         let total = 0n;
         for (let n = 0; n < MAX_UPGRADE_AMOUNT; n++) {

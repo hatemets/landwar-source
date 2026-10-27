@@ -1415,6 +1415,7 @@
     "waiting_for_players": "Waiting for players"
   },
   "radial_menu": {
+    "build_x": "Build x{amount}",
     "delete_unit_description": "Click to delete the nearest unit",
     "delete_unit_title": "Delete Unit",
     "upgrade_x": "Upgrade x{amount}"

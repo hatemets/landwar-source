@@ -471,8 +471,12 @@ function createMenuElements(
           const isStackableNuke =
             item.unitType === UnitType.AtomBomb &&
             buildableUnit.canBuild !== false;
+          const isStackableWarship =
+            item.unitType === UnitType.Warship &&
+            buildableUnit.canBuild !== false;
+          const isStackableBuild = isStackableNuke || isStackableWarship;
           if (
-            (buildableUnit.canUpgrade === false && !isStackableNuke) ||
+            (buildableUnit.canUpgrade === false && !isStackableBuild) ||
             !params.buildMenu.canBuildOrUpgrade(item)
           ) {
             return [];
@@ -493,7 +497,7 @@ function createMenuElements(
           if (maxAmount <= 1) {
             return [];
           }
-          const steps = isStackableNuke
+          const steps = isStackableBuild
             ? NUKE_BULK_STEPS
             : STRUCTURE_BULK_STEPS;
           const slots = [1, ...steps, maxAmount];
@@ -519,9 +523,12 @@ function createMenuElements(
               icon: "",
               tooltipItems: [
                 {
-                  text: translateText("radial_menu.upgrade_x", {
-                    amount: amount.toString(),
-                  }),
+                  text: translateText(
+                    isStackableWarship
+                      ? "radial_menu.build_x"
+                      : "radial_menu.upgrade_x",
+                    { amount: amount.toString() },
+                  ),
                   className: "title",
                 },
                 {
@@ -532,12 +539,14 @@ function createMenuElements(
               disabled: (p: MenuElementParams) =>
                 !executable || (p.game.myPlayer()?.gold() ?? 0n) < cost,
               action: (p: MenuElementParams) => {
-                if (isStackableNuke) {
+                if (isStackableBuild) {
                   p.eventBus.emit(
                     new BuildUnitIntentEvent(
                       buildableUnit.type,
                       p.tile,
-                      p.uiState?.rocketDirectionUp,
+                      isStackableNuke
+                        ? p.uiState?.rocketDirectionUp
+                        : undefined,
                       amount,
                     ),
                   );
