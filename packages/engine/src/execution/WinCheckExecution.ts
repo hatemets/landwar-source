@@ -66,11 +66,12 @@ export class WinCheckExecution implements Execution {
       }
     }
 
-    // A bot can't win ranked FFA: the API only rates a winner who was in the
-    // match, so the largest human takes the threshold or the timer. Ranked 1v1
-    // keeps the old rule so archived 1v1 replays still resolve the same way.
+    // A tribe or nation can't win a ranked game: the API only rates a winner
+    // who was in the match, so the largest human takes the threshold or the
+    // timer. Archived ranked 1v1 games had only humans, so they resolve the
+    // same way.
     const contenders =
-      rankedType === RankedType.FreeForAll
+      rankedType === RankedType.OneVOne || rankedType === RankedType.FreeForAll
         ? sorted.filter((p) => p.type() === PlayerType.Human)
         : sorted;
     const max = contenders[0];
@@ -138,11 +139,15 @@ export class WinCheckExecution implements Execution {
       }
     }
 
+    // The tribes can't win a ranked team game, so a human side takes the
+    // timer even when the tribes hold more land.
+    const ranked = isRankedTeamType(this.mg.config().gameConfig().rankedType);
     const teamToTiles = new Map<Team, number>();
     for (const player of this.mg.players()) {
       const team = player.team();
       // Sanity check, team should not be null here
       if (team === null) continue;
+      if (ranked && team === ColoredTeams.Bot) continue;
       teamToTiles.set(
         team,
         (teamToTiles.get(team) ?? 0) + player.numTilesOwned(),

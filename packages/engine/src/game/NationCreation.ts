@@ -4,6 +4,7 @@ import {
   GameMapSize,
   GameMode,
   GameType,
+  isRankedTeamType,
   HumansVsNations,
   Nation,
   PlayerInfo,
@@ -22,7 +23,8 @@ import { PseudoRandom } from "@openfront/engine-lib/PseudoRandom";
  * If config.nations is "disabled", returns no nations.
  * If config.nations is "default":
  *   - Public HumansVsNations: matches nation count to human player count
- *   - Public compact maps: uses 25% of manifest nations
+ *   - Public compact maps: uses 25% of manifest nations (an even count in
+ *     ranked team games)
  *   - Otherwise: uses all manifest nations
  *
  * When more nations are needed than the manifest defines, names are first
@@ -88,10 +90,12 @@ export function createNationsForGame(
 
     // For compact maps, use only 25% of nations (minimum 1)
     if (isCompactMap) {
-      const targetCount = getCompactMapNationCount(
-        manifestNations.length,
-        true,
-      );
+      let targetCount = getCompactMapNationCount(manifestNations.length, true);
+      // A ranked team game splits the nations across its two sides as AI
+      // teammates, so an even count keeps the sides equal.
+      if (isRankedTeamType(gameStart.config.rankedType)) {
+        targetCount -= targetCount % 2;
+      }
       const shuffled = random.shuffleArray(manifestNations);
       const slicedNations = shuffled.slice(0, targetCount);
       return slicedNations.map(toNation);

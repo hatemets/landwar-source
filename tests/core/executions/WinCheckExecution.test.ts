@@ -552,6 +552,44 @@ describe("WinCheckExecution - 1v1 Ranked Mode", () => {
     expect(setWinnerSpy).toHaveBeenCalledWith(human, expect.anything());
     expect(winCheck.isActive()).toBe(false);
   });
+  test("gives the 1v1 timer win to the larger human, not a larger nation", async () => {
+    const game = await setup(
+      "big_plains",
+      {
+        infiniteGold: true,
+        gameMode: GameMode.FFA,
+        instantBuild: true,
+        rankedType: RankedType.OneVOne,
+        maxTimerValue: 1,
+      },
+      [
+        playerInfo("Player1", PlayerType.Human),
+        playerInfo("Player2", PlayerType.Human),
+        playerInfo("NationPlayer", PlayerType.Nation),
+      ],
+    );
+    const players = ["Player1", "Player2", "NationPlayer"].map((n) =>
+      game.player(n),
+    );
+    const quota = [10, 5, 50];
+    const counts = [0, 0, 0];
+    game.map().forEachTile((tile) => {
+      if (!game.map().isLand(tile)) return;
+      const i = counts.findIndex((c, j) => c < quota[j]);
+      if (i === -1) return;
+      players[i].conquer(tile);
+      counts[i]++;
+    });
+    vi.spyOn(game, "elapsedGameSeconds").mockReturnValue(60);
+    const setWinnerSpy = vi.fn();
+    game.setWinner = setWinnerSpy;
+    const winCheck = new WinCheckExecution();
+    winCheck.init(game, 0);
+
+    winCheck.checkWinnerFFA();
+
+    expect(setWinnerSpy).toHaveBeenCalledWith(players[0], expect.anything());
+  });
 });
 
 describe("WinCheckExecution - FFA Ranked Mode", () => {
@@ -740,7 +778,10 @@ describe("WinCheckExecution - Overtime", () => {
 
 describe("WinCheckExecution - ranked team modes", () => {
   // Three humans per side, pinned to their team the way the matchmaker does.
-  async function rankedTeamGame(rankedType: RankedType) {
+  async function rankedTeamGame(
+    rankedType: RankedType,
+    maxTimerValue?: number,
+  ) {
     const humans = ["A1", "A2", "A3", "B1", "B2", "B3"].map(
       (name, i) =>
         new PlayerInfo(
@@ -762,6 +803,7 @@ describe("WinCheckExecution - ranked team modes", () => {
         playerTeams: 2,
         instantBuild: true,
         rankedType,
+        maxTimerValue,
       },
       humans,
     );
@@ -812,6 +854,31 @@ describe("WinCheckExecution - ranked team modes", () => {
     winCheck.checkWinnerTeam();
     expect(setWinnerSpy).not.toHaveBeenCalled();
     expect(winCheck.isActive()).toBe(true);
+  });
+
+  test("gives the timer win to a side, not the larger tribes", async () => {
+    const { game, players, setWinnerSpy, winCheck } = await rankedTeamGame(
+      RankedType.ThreeVThree,
+      1,
+    );
+    const tribe = game.addPlayer(playerInfo("Tribe", PlayerType.Bot));
+    expect(tribe.team()).toBe(ColoredTeams.Bot);
+    // One extra tile for the first side, then 100 for the tribe.
+    let taken = 0;
+    game.map().forEachTile((tile) => {
+      if (!game.map().isLand(tile) || game.hasOwner(tile) || taken > 100)
+        return;
+      (taken === 0 ? players[0]! : tribe).conquer(tile);
+      taken++;
+    });
+    vi.spyOn(game, "elapsedGameSeconds").mockReturnValue(60);
+
+    winCheck.checkWinnerTeam();
+
+    expect(setWinnerSpy).toHaveBeenCalledWith(
+      players[0]!.team(),
+      expect.anything(),
+    );
   });
 
   test("an unranked team game keeps the land rule only", async () => {

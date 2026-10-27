@@ -46,9 +46,10 @@ export function matchGameConfig(
     gameType: GameType.Public,
     gameMapSize: GameMapSize.Compact,
     difficulty: Difficulty.Medium,
-    // Only the matched humans play.
-    nations: "disabled",
-    bots: 0,
+    // Tribes and nations fill the map in every queue. In team games the
+    // nations split evenly across the two sides as AI teammates.
+    nations: "default",
+    bots: 100,
     infiniteGold: false,
     infiniteTroops: false,
     instantBuild: false,

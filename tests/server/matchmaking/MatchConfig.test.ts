@@ -32,6 +32,8 @@ describe("matchGameConfig", () => {
     expect(config.rankedType).toBe(RankedType.OneVOne);
     expect(config.playerTeams).toBeUndefined();
     expect(config.maxPlayers).toBe(2);
+    expect(config.nations).toBe("default");
+    expect(config.bots).toBe(100);
     expect(RANKED_1V1_MAPS).toContain(config.gameMap);
     expect(matchTeams(match!)).toBeUndefined();
   });
@@ -49,8 +51,8 @@ describe("matchGameConfig", () => {
       expect(config.playerTeams).toBe(2);
       expect(config.rankedType).toBe(rankedType);
       expect(config.maxPlayers).toBe(size);
-      expect(config.nations).toBe("disabled");
-      expect(config.bots).toBe(0);
+      expect(config.nations).toBe("default");
+      expect(config.bots).toBe(100);
       expect(maps).toContain(config.gameMap);
       expect(config.allowedPublicIds?.sort()).toEqual(
         match!.players.map((p) => p.publicId).sort(),

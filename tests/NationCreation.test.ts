@@ -5,6 +5,7 @@ import {
   GameMode,
   GameType,
   Nation,
+  RankedType,
 } from "@openfront/engine-api/game/GameTypes";
 import {
   AdditionalNation,
@@ -337,4 +338,47 @@ describe("createNationsForGame: additionalNations pool", () => {
     expect(names).toHaveLength(8);
     expect(new Set(names).size).toBe(8);
   });
+});
+
+describe("createNationsForGame ranked", () => {
+  // 12 manifest nations: a compact public map keeps 25%, so 3.
+  function rankedStart(rankedType: RankedType): GameStartInfo {
+    const start = makeGameStart(0);
+    start.config = {
+      ...start.config,
+      gameType: GameType.Public,
+      gameMapSize: GameMapSize.Compact,
+      nations: "default",
+      rankedType,
+      ...(rankedType === RankedType.OneVOne
+        ? {}
+        : { gameMode: GameMode.Team, playerTeams: 2 }),
+    };
+    return start;
+  }
+
+  test("keeps the compact count in a ranked 1v1", () => {
+    const nations = createNationsForGame(
+      rankedStart(RankedType.OneVOne),
+      makeManifestNations(12),
+      [],
+      2,
+      new PseudoRandom(1),
+    );
+    expect(nations).toHaveLength(3);
+  });
+
+  test.each([RankedType.ThreeVThree, RankedType.FiveVFive])(
+    "uses an even count in a ranked %s so both sides get the same",
+    (rankedType) => {
+      const nations = createNationsForGame(
+        rankedStart(rankedType),
+        makeManifestNations(12),
+        [],
+        6,
+        new PseudoRandom(1),
+      );
+      expect(nations).toHaveLength(2);
+    },
+  );
 });
