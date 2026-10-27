@@ -76,14 +76,13 @@ export class HostLobbyModal extends BaseModal {
   @state() private maxTimerValue: number | undefined = undefined;
   @state() private playerLimit: boolean = false;
   @state() private playerLimitValue: number | undefined = undefined;
-  @state() private startDelayValue: number | undefined = 3;
   @state() private instantBuild: boolean = false;
   @state() private randomSpawn: boolean = false;
   @state() private compactMap: boolean = false;
   @state() private goldMultiplier: boolean = true;
-  @state() private goldMultiplierValue: number | undefined = 2;
-  @state() private startingGold: boolean = false;
-  @state() private startingGoldValue: number | undefined = undefined;
+  @state() private goldMultiplierValue: number | undefined = 3;
+  @state() private startingGold: boolean = true;
+  @state() private startingGoldValue: number | undefined = 1;
   @state() private customAlliances: boolean = false;
   @state() private customAllianceMinutes: number | undefined = undefined;
   @state() private doomsdayClock: boolean = false;
@@ -381,19 +380,6 @@ export class HostLobbyModal extends BaseModal {
         .onInput=${this.handlePlayerLimitValueChanges}
         .onKeyDown=${this.handlePlayerLimitValueKeyDown}
       ></toggle-input-card>`,
-      html`<input-card
-        .labelKey=${"host_modal.start_delay"}
-        .inputId=${"start-delay-value"}
-        .inputMin=${0}
-        .inputMax=${600}
-        .inputStep=${"1"}
-        .inputValue=${this.startDelayValue}
-        .inputAriaLabel=${translateText("host_modal.start_delay")}
-        .inputPlaceholder=${"3"}
-        .defaultInputValue=${3}
-        .onChange=${this.handleStartDelayValueChanges}
-        .onKeyDown=${this.handleStartDelayValueKeyDown}
-      ></input-card>`,
       html`<toggle-input-card
         .labelKey=${"host_modal.player_immunity_duration"}
         .checked=${this.spawnImmunity}
@@ -878,7 +864,6 @@ export class HostLobbyModal extends BaseModal {
     this.playerLimit = false;
     this.playerLimitValue = undefined;
     this.playerLimitLoadedFor = null;
-    this.startDelayValue = 3;
     this.instantBuild = false;
     this.randomSpawn = false;
     this.compactMap = false;
@@ -888,9 +873,9 @@ export class HostLobbyModal extends BaseModal {
     this.clients = [];
     this.lobbyCreatorClientID = "";
     this.goldMultiplier = true;
-    this.goldMultiplierValue = 2;
-    this.startingGold = false;
-    this.startingGoldValue = undefined;
+    this.goldMultiplierValue = 3;
+    this.startingGold = true;
+    this.startingGoldValue = 1;
     this.customAlliances = false;
     this.customAllianceMinutes = undefined;
     this.doomsdayClock = false;
@@ -1345,26 +1330,6 @@ export class HostLobbyModal extends BaseModal {
     return this.clients.filter((c) => c.spectator !== true).length;
   }
 
-  private handleStartDelayValueKeyDown = (e: KeyboardEvent) => {
-    preventDisallowedKeys(e, ["-", "+", "e", "E", "."]);
-  };
-
-  private handleStartDelayValueChanges = (e: Event) => {
-    const input = e.target as HTMLInputElement;
-    const value = parseBoundedIntegerFromInput(input, {
-      min: 0,
-      max: 600,
-    });
-
-    if (value === undefined) {
-      this.startDelayValue = undefined;
-      input.value = "";
-    } else {
-      this.startDelayValue = value;
-    }
-    this.putGameConfig();
-  };
-
   private handleNationsChange = (e: Event) => {
     const customEvent = e as CustomEvent<{ value: number }>;
     const value = customEvent.detail.value;
@@ -1507,13 +1472,19 @@ export class HostLobbyModal extends BaseModal {
                 : this.playerLimitLoadedFor === this.lobbyId
                   ? null
                   : undefined,
-            startDelay: this.startDelayValue,
+            startDelay: 3,
+            // Off means none: 1x gold and no starting gold, not the
+            // engine defaults that null falls back to.
             goldMultiplier:
-              this.goldMultiplier === true ? this.goldMultiplierValue : null,
+              this.goldMultiplier === true
+                ? (this.goldMultiplierValue ?? null)
+                : 1,
             startingGold:
-              this.startingGold === true && this.startingGoldValue !== undefined
-                ? Math.round(this.startingGoldValue * 1_000_000)
-                : null,
+              this.startingGold !== true
+                ? 0
+                : this.startingGoldValue !== undefined
+                  ? Math.round(this.startingGoldValue * 1_000_000)
+                  : null,
             customAllianceDuration: this.customAlliances
               ? (this.customAllianceMinutes ?? 0)
               : null,

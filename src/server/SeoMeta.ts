@@ -17,6 +17,8 @@ export interface HeadMeta {
   image?: string;
   twitterCard?: "summary" | "summary_large_image";
   noindex?: boolean;
+  // schema.org structured data, emitted as a JSON-LD script.
+  jsonLd?: Record<string, unknown>;
 }
 
 /**
@@ -60,6 +62,12 @@ export function injectHeadMeta(html: string, meta: HeadMeta): string {
       .querySelectorAll(`meta[property="${key}"]`)
       .forEach((el) => el.remove());
   }
+  // The shell's og:image:width/height/alt describe the shell's own image.
+  if (meta.image !== undefined) {
+    head.querySelectorAll("meta[property]").forEach((el) => {
+      if (el.getAttribute("property")?.startsWith("og:image:")) el.remove();
+    });
+  }
   for (const [key, value] of names) {
     if (value === undefined) continue;
     head.querySelectorAll(`meta[name="${key}"]`).forEach((el) => el.remove());
@@ -76,6 +84,11 @@ export function injectHeadMeta(html: string, meta: HeadMeta): string {
   for (const [key, value] of names) {
     if (value === undefined) continue;
     tags.push(`<meta name="${key}" content="${escapeHtml(value)}" />`);
+  }
+  if (meta.jsonLd !== undefined) {
+    // "<" is escaped so the JSON cannot close the script element.
+    const json = JSON.stringify(meta.jsonLd).replace(/</g, "\\u003c");
+    tags.push(`<script type="application/ld+json">${json}</script>`);
   }
   for (const tag of tags) head.insertAdjacentHTML("beforeend", tag);
   return root.toString();

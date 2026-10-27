@@ -20,6 +20,8 @@ afterEach(() => {
 describe("LangSelector applyTranslation", () => {
   it("writes resolved data-i18n keys and skips unresolvable ones", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    // The server renders a per-page title (SeoMeta); translation keeps it.
+    document.title = "Server title";
     document.body.innerHTML = `
       <span data-i18n="test.hello"></span>
       <span data-i18n="test.bogus">untouched</span>
@@ -41,7 +43,7 @@ describe("LangSelector applyTranslation", () => {
       document.querySelector('[data-i18n="test.bogus"]')!.textContent,
     ).toBe("untouched");
     expect(warn).toHaveBeenCalledWith("Translation key not found: test.bogus");
-    expect(document.title).toBe("OpenFront");
+    expect(document.title).toBe("Server title");
   });
 });
 

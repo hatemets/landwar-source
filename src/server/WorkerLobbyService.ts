@@ -203,9 +203,11 @@ export class WorkerLobbyService {
       .map((g) => ({ game: g, info: g.gameInfo() }))
       .filter(({ info }) => info.publicGameType !== undefined)
       .map(({ game, info }) => {
+        const numFillers = game.numSeatedFillers();
         return {
           gameID: info.gameID,
-          numClients: info.clients?.length ?? 0,
+          numClients: (info.clients?.length ?? 0) - numFillers,
+          numFillers: numFillers || undefined,
           startsAt: info.startsAt,
           gameConfig: info.gameConfig,
           publicGameType: info.publicGameType!,
@@ -295,7 +297,8 @@ export class WorkerLobbyService {
 
   // Strips worker/master-internal fields (creatorID, createdAt, queuedAt)
   // before lobby info is sent to browser clients, converting
-  // InternalGameInfo to the browser-facing PublicGameInfo.
+  // InternalGameInfo to the browser-facing PublicGameInfo. Filled seats are
+  // folded into numClients.
   private sanitizeGames(
     games: InternalPublicGames["games"],
   ): PublicGames["games"] {
@@ -309,8 +312,12 @@ export class WorkerLobbyService {
           creatorID: _creatorID,
           createdAt: _createdAt,
           queuedAt: _queuedAt,
+          numFillers,
           ...rest
-        }): PublicGameInfo => rest,
+        }): PublicGameInfo => ({
+          ...rest,
+          numClients: rest.numClients + (numFillers ?? 0),
+        }),
       );
     }
     return sanitized;
@@ -415,7 +422,7 @@ export class WorkerLobbyService {
       const counts: Record<string, number> = {};
       for (const list of Object.values(publicGames.games)) {
         for (const lobby of list) {
-          counts[lobby.gameID] = lobby.numClients;
+          counts[lobby.gameID] = lobby.numClients + (lobby.numFillers ?? 0);
         }
       }
       payload = {

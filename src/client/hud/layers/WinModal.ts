@@ -1,4 +1,4 @@
-import { GameType } from "@openfront/engine-api/game/GameTypes";
+import { GameType, PlayerType } from "@openfront/engine-api/game/GameTypes";
 import { GameUpdateType } from "@openfront/engine-api/game/GameUpdates";
 import { assetUrl } from "@openfront/shared/AssetUrls";
 import { EventBus } from "@openfront/shared/EventBus";
@@ -68,7 +68,7 @@ export class WinModal extends LitElement implements Controller {
       >
         ${this.art
           ? html`<img
-              class="mx-auto mb-2 size-36 shrink-0 select-none"
+              class="mx-auto mb-2 size-72 shrink-0 select-none"
               src=${assetUrl(
                 this.art === "win"
                   ? "images/illustrations/Trophy.webp"
@@ -319,9 +319,14 @@ export class WinModal extends LitElement implements Controller {
         this.show();
       } else if (wu.winner[0] === "nation") {
         this.eventBus.emit(new SendWinnerEvent(wu.winner, wu.allPlayersStats));
-        this._title = translateText("win_modal.nation_won", {
-          nation: wu.winner[1],
-        });
+        // A nation filling a lobby seat is shown as a player, here too.
+        const name = wu.winner[1];
+        const shownAsPlayer = this.game
+          .players()
+          .some((p) => p.name() === name && p.type() === PlayerType.Human);
+        this._title = shownAsPlayer
+          ? translateText("win_modal.other_won", { player: name })
+          : translateText("win_modal.nation_won", { nation: name });
         this.isWin = false;
         this.art = this.outcomeArt();
         this.replayShareable = this.canShareReplay();

@@ -104,7 +104,10 @@ export class MatchmakingModal extends BaseModal {
     `;
     return html`
       <div class="flex flex-col items-center justify-center gap-6 p-6">
-        ${this.renderModeSwitch()} ${eloDisplay} ${this.renderInner()}
+        <div class="flex flex-wrap items-center justify-center gap-4">
+          ${this.renderModeSwitch()} ${this.renderQueueSize()}
+        </div>
+        ${eloDisplay} ${this.renderInner()}
       </div>
     `;
   }
@@ -117,7 +120,7 @@ export class MatchmakingModal extends BaseModal {
       <div
         role="tablist"
         aria-label=${translateText("matchmaking_modal.mode")}
-        class="flex w-full max-w-xs gap-1 p-1 bg-white/5 border border-white/10 rounded-xl"
+        class="flex w-72 max-w-full gap-1 p-1 bg-white/5 border border-white/10 rounded-xl"
       >
         ${MATCHMAKING_MODES.map((mode) => {
           const active = mode === this.mode;
@@ -154,23 +157,25 @@ export class MatchmakingModal extends BaseModal {
     void this.connect();
   }
 
+  private renderQueueSize() {
+    if (!this.connected || this.gameID !== null || this.queueSize === null) {
+      return "";
+    }
+    return html`
+      <p class="text-sm text-white/60 whitespace-nowrap">
+        ${translateText("matchmaking_modal.queue_size", {
+          count: this.queueSize.count,
+        })}
+      </p>
+    `;
+  }
+
   private renderInner() {
     if (!this.connected) {
       return renderGlobeLoader(translateText("matchmaking_modal.connecting"));
     }
     if (this.gameID === null) {
-      return html`
-        ${this.queueSize !== null
-          ? html`
-              <p class="text-center text-white/60">
-                ${translateText("matchmaking_modal.queue_size", {
-                  count: this.queueSize.count,
-                })}
-              </p>
-            `
-          : ""}
-        ${this.renderSearching()} ${this.renderPracticeOffer()}
-      `;
+      return html` ${this.renderSearching()} ${this.renderPracticeOffer()} `;
     } else {
       return renderGlobeLoader(
         translateText("matchmaking_modal.waiting_for_game"),

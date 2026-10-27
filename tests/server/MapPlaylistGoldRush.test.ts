@@ -7,10 +7,9 @@ import { GameConfigSchema } from "@openfront/engine-api/Schemas";
 import { SCHEDULED_PUBLIC_GAME_TYPES } from "@openfront/shared/WireSchemas";
 import { describe, expect, it, vi } from "vitest";
 import {
-  GOLD_RUSH_GOLD_MULTIPLIER,
+  GOLD_RUSH_ECONOMIES,
   GOLD_RUSH_MAPS,
   GOLD_RUSH_NATION_DIFFICULTIES,
-  GOLD_RUSH_STARTING_GOLD,
   MapPlaylist,
 } from "../../src/server/MapPlaylist";
 
@@ -23,17 +22,35 @@ describe("MapPlaylist gold rush games", () => {
     expect(SCHEDULED_PUBLIC_GAME_TYPES).toContain("goldrush");
   });
 
-  it("gives every game a big land and sea map, 50M gold and x5 income", async () => {
+  it("gives every game a big land and sea map, a 10M or 30M start and x5 or x10 income", async () => {
     const playlist = new MapPlaylist();
     for (let i = 0; i < 20; i++) {
       const config = await playlist.gameConfig("goldrush");
       expect(GameConfigSchema.safeParse(config).success).toBe(true);
       expect(GOLD_RUSH_MAPS).toContain(config.gameMap);
       expect(config.gameMode).toBe(GameMode.FFA);
-      expect(config.startingGold).toBe(GOLD_RUSH_STARTING_GOLD);
-      expect(config.goldMultiplier).toBe(GOLD_RUSH_GOLD_MULTIPLIER);
-      expect(config.publicGameModifiers?.startingGold).toBe(50_000_000);
-      expect(config.publicGameModifiers?.goldMultiplier).toBe(5);
+      expect([10_000_000, 30_000_000]).toContain(config.startingGold);
+      expect([5, 10]).toContain(config.goldMultiplier);
+      expect(config.publicGameModifiers?.startingGold).toBe(
+        config.startingGold,
+      );
+      expect(config.publicGameModifiers?.goldMultiplier).toBe(
+        config.goldMultiplier,
+      );
+    }
+  });
+
+  it("runs each economy once without missiles and once with them", async () => {
+    const playlist = new MapPlaylist();
+    for (const economy of GOLD_RUSH_ECONOMIES) {
+      const noMissiles = await playlist.gameConfig("goldrush");
+      const missiles = await playlist.gameConfig("goldrush");
+      for (const config of [noMissiles, missiles]) {
+        expect(config.startingGold).toBe(economy.startingGold);
+        expect(config.goldMultiplier).toBe(economy.goldMultiplier);
+      }
+      expect(noMissiles.publicGameModifiers?.isNukesDisabled).toBe(true);
+      expect(missiles.publicGameModifiers?.isNukesDisabled).toBeUndefined();
     }
   });
 

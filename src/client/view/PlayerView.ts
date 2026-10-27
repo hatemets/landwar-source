@@ -90,7 +90,7 @@ export class PlayerView implements PlayerLike {
     if (data.clientID === game.myClientID()) {
       this.anonymousName = data.name!;
     } else {
-      this.anonymousName = createRandomName(data.name!, data.playerType!);
+      this.anonymousName = createRandomName(data.name!, this.type());
     }
 
     this.refreshCosmetics();

@@ -285,6 +285,9 @@ export interface PlayerUpdate {
   betrayals?: number;
   lastDeleteUnitTick?: Tick;
   isLobbyCreator?: boolean;
+  // Set on a nation that fills a public lobby seat: clients show it as a
+  // player (see PlayerInfo.isLobbyFill).
+  isLobbyFill?: boolean;
 }
 
 export interface AllianceView {

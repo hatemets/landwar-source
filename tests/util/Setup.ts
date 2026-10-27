@@ -66,8 +66,9 @@ export async function setup(
     donateGold: false,
     donateTroops: false,
     bots: 0,
-    // Keep existing economy scenarios at their explicit 1x baseline.
+    // Keep existing economy scenarios at their explicit 1x, no-gold baseline.
     goldMultiplier: 1,
+    startingGold: 0,
     infiniteGold: false,
     infiniteTroops: false,
     instantBuild: false,

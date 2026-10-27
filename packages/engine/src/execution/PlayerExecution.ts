@@ -21,6 +21,7 @@ import type {
   SnapshotReader,
   SnapshotWriter,
 } from "../snapshot/SnapshotContext";
+import { canMeltDown, meltDown } from "./NukeBlast";
 
 const TICKS_PER_CLUSTER_CALC = 20;
 
@@ -91,16 +92,22 @@ export class PlayerExecution implements Execution {
       }
 
       const owner = this.mg!.owner(u.tile());
-      if (!owner?.isPlayer()) {
-        u.delete();
-        continue;
-      }
       if (owner === this.player) {
         continue;
       }
+      // A finished reactor melts down when its tile is lost, to an enemy or
+      // to a blast; it is never captured.
+      const captor = owner?.isPlayer() ? this.mg!.player(owner.id()) : null;
+      if (canMeltDown(u)) {
+        meltDown(this.mg, u, captor);
+        continue;
+      }
+      if (captor === null) {
+        u.delete();
+        continue;
+      }
 
-      const captor = this.mg!.player(owner.id());
-      if (u.type() === UnitType.DefensePost) {
+      if (u.type() === UnitType.DefensePost || u.type() === UnitType.Reactor) {
         u.delete(true, captor);
       } else {
         captor.captureUnit(u);

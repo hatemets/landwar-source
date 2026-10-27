@@ -97,6 +97,7 @@
       "mirv": "Huge explosion, only targets selected player",
       "missile_silo": "Used to launch nukes",
       "port": "Sends trade ships to generate gold",
+      "reactor": "Makes a lot of gold. Explodes if lost or nuked",
       "sam_launcher": "Defends against incoming nukes",
       "warship": "Captures trade ships, destroys ships and boats"
     },
@@ -503,6 +504,7 @@
     "missile_intercepted": "SAM intercepted {unit}",
     "naval_invasion_inbound": "Naval invasion incoming from {name} ({troops})",
     "no_boats_available": "No boats available, max {max}",
+    "reactor_meltdown": "{name} - reactor meltdown",
     "received_gold_from_captured_ship": "Received {gold} gold from ship captured from {name}",
     "received_gold_from_conquest": "Conquered {name}, received {gold} gold",
     "received_gold_from_player": "Received {gold} gold from {name}",
@@ -829,7 +831,6 @@
     "settings_locked_listed": "This lobby is publicly listed, so its settings can no longer be changed.",
     "spectator": "Spectator",
     "spectators": "Spectators",
-    "start_delay": "Start delay (Seconds)",
     "starting_in": "Starting in {time}. Click to cancel",
     "team_count": "Number of Teams",
     "teams_Duos": "Duos (teams of 2)",
@@ -1130,7 +1131,7 @@
   },
   "matchmaking_modal": {
     "connecting": "Connecting to matchmaking server...",
-    "elo": "Your ELO: {elo}",
+    "elo": "ELO: {elo}",
     "mode": "Ranked queue",
     "must_login": "You must be logged in to play ranked matchmaking.",
     "no_elo": "No ELO yet",
@@ -1140,7 +1141,7 @@
     "rejected": "Matchmaking is unavailable right now. Please try again later.",
     "replaced": "You joined matchmaking from another tab or window.",
     "searching": "Searching for game...",
-    "title_mode": "{mode} Ranked Matchmaking (ALPHA)",
+    "title_mode": "{mode} Ranked Matchmaking",
     "waiting_for_game": "Waiting for game to start..."
   },
   "mode_selector": {
@@ -1530,6 +1531,7 @@
     "mirv": "MIRV",
     "missile_silo": "Missile Silo",
     "port": "Port",
+    "reactor": "Reactor",
     "sam_launcher": "SAM Launcher",
     "warship": "Warship"
   },
@@ -1599,6 +1601,8 @@
     "build_missile_silo_desc": "Build a Missile Silo under your cursor.",
     "build_port": "Build Port",
     "build_port_desc": "Build a Port under your cursor.",
+    "build_reactor": "Build Reactor",
+    "build_reactor_desc": "Build a Reactor under your cursor.",
     "build_sam_launcher": "Build SAM Launcher",
     "build_sam_launcher_desc": "Build a SAM Launcher under your cursor.",
     "build_warship": "Build Warship",

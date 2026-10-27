@@ -83,6 +83,10 @@ function getStructureRatios(
       ratioPerCity: 0.2,
       perceivedCostIncreasePerOwned: 1,
     },
+    [UnitType.Reactor]: {
+      ratioPerCity: 0.2,
+      perceivedCostIncreasePerOwned: 1,
+    },
   };
 }
 
@@ -119,6 +123,7 @@ const SAM_PROTECTED_TYPES: readonly UnitType[] = [
   UnitType.Factory,
   UnitType.MissileSilo,
   UnitType.Port,
+  UnitType.Reactor,
 ];
 
 /** Percent chance to upgrade a SAM instead of building one when SAMs already cover every structure */
@@ -671,6 +676,7 @@ export class NationStructureBehavior {
     const buildOrder: UnitType[] = [
       UnitType.Port,
       UnitType.Factory,
+      UnitType.Reactor,
       UnitType.SAMLauncher,
       UnitType.MissileSilo,
     ];
@@ -888,7 +894,8 @@ export class NationStructureBehavior {
     if (
       type === UnitType.City ||
       type === UnitType.Port ||
-      type === UnitType.Factory
+      type === UnitType.Factory ||
+      type === UnitType.Reactor
     ) {
       increasePerOwned *= INCOME_STRUCTURE_SAVING_WEIGHT[difficulty];
     }
@@ -1218,9 +1225,40 @@ export class NationStructureBehavior {
         return this.portValue();
       case UnitType.SAMLauncher:
         return this.samLauncherValue();
+      case UnitType.Reactor:
+        return this.reactorValue();
       default:
         throw new Error(`Value function not implemented for ${type}`);
     }
+  }
+
+  /**
+   * Value function for reactors.
+   * A captured reactor melts down, so it goes deep inside the territory, and
+   * away from other reactors so one meltdown does not set off the next.
+   */
+  private reactorValue(): (tile: TileRef) => number {
+    const game = this.game;
+    const borderTiles = this.player.borderTiles();
+    const otherTiles: Set<TileRef> = new Set(
+      this.player.units(UnitType.Reactor).map((u) => u.tile()),
+    );
+    const blastRange = game.config().nukeMagnitudes(UnitType.Reactor).outer;
+    const { borderSpacing } = this.spacingConstants();
+    const borderCap = Math.max(borderSpacing, blastRange * 2);
+
+    return (tile) => {
+      // Clamped at borderCap, so the ring search may stop there.
+      let w =
+        2 *
+        Math.min(
+          nearestTileDistCapped(game, borderTiles, tile, borderCap),
+          borderCap,
+        );
+      const d = nearestTileDist(game, otherTiles, tile);
+      if (d !== Infinity) w += Math.min(d, blastRange * 2);
+      return w;
+    };
   }
 
   /**
@@ -1589,6 +1627,7 @@ export class NationStructureBehavior {
         case UnitType.Factory:
         case UnitType.MissileSilo:
         case UnitType.Port:
+        case UnitType.Reactor:
           protectEntries.push({
             tile: unit.tile(),
             weight: weightByLevel ? unit.level() : 1,

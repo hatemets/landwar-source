@@ -124,7 +124,9 @@ export class SoundEffectController implements Controller {
       this.handleTrainStation(unit);
     }
     switch (unit.type()) {
+      // A reactor that melts down dies with reachedTarget set.
       case UnitType.AtomBomb:
+      case UnitType.Reactor:
         this.onNukeDetonation(unit, "atom-hit");
         break;
       case UnitType.MIRVWarhead:

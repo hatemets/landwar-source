@@ -61,6 +61,7 @@ import {
   IntentOutcome,
 } from "./IntentAuthorization";
 import { ListingState } from "./ListingState";
+import { LobbyFiller, pickFillers, seatedFillers } from "./LobbyFillers";
 import { identityFor, MatchTelemetryRecorder } from "./MatchTelemetryRecorder";
 import { friendsLookup, NameVisibility } from "./NameVisibility";
 import { poolTargetFor } from "./PoolRouting";
@@ -250,6 +251,10 @@ export class GameServer {
   // fetch lands (undefined until then / on fetch failure / non-public games).
   private tribes?: Tribe[];
 
+  // Seats the server fills in a scheduled public lobby (see LobbyFillers.ts).
+  // Real players push them out as the lobby fills.
+  private readonly fillers: LobbyFiller[];
+
   // The end-of-game winner vote and the running live-stats vote: both
   // IP-weighted majorities among the players (see Consensus.ts).
   private readonly winnerVote = new WinnerVote();
@@ -310,6 +315,7 @@ export class GameServer {
     this.startsAt = opts.startsAt;
     this.publicGameType = opts.publicGameType;
     this.matchmakingTeams = opts.matchmakingTeams;
+    this.fillers = pickFillers(opts.gameConfig, opts.publicGameType);
     this.deps = { ...defaultGameServerDeps(), ...deps };
     this.groupToken = this.deps.mintGroupToken();
     this.telemetry = new MatchTelemetryRecorder(
@@ -1124,6 +1130,9 @@ export class GameServer {
         teamIndex: this.matchmakingTeamIndex(c),
       })),
       tribes: this.tribes,
+      fillers: this.isPublic()
+        ? this.seatedFillers().map((f) => ({ username: f.username }))
+        : undefined,
     });
     if (!result.success) {
       const error = z.prettifyError(result.error);
@@ -1175,6 +1184,21 @@ export class GameServer {
   // everywhere a "player" is meant: the lobby cap, and gameStartInfo.
   private playerCount(): number {
     return this.clients.players().length;
+  }
+
+  // The fillers that still have a seat. They never count toward the cap that
+  // turns players away or starts a full lobby: only the lobby roster, the
+  // advertised count and the game see them.
+  private seatedFillers(): LobbyFiller[] {
+    return seatedFillers(
+      this.fillers,
+      this.playerCount(),
+      this.gameConfig.maxPlayers,
+    );
+  }
+
+  public numSeatedFillers(): number {
+    return this.seatedFillers().length;
   }
 
   // ONE definition of who the allowlist admits, shared by every path that can
@@ -1578,7 +1602,14 @@ export class GameServer {
     const gameConfig = configWithoutPool(this.gameConfig);
     return {
       gameID: this.id,
-      clients: this.names.lobbyClients(viewer, this.clients.active()),
+      clients: [
+        ...this.names.lobbyClients(viewer, this.clients.active()),
+        ...this.seatedFillers().map((f) => ({
+          username: f.username,
+          clanTag: null,
+          clientID: f.clientID,
+        })),
+      ],
       lobbyCreatorClientID: this.lobbyCreatorID,
       gameConfig,
       startsAt: this.startsAt,

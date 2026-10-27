@@ -102,13 +102,15 @@ void main() {
 
   // The sprite lives in the central cell-space region [0,1]; for the enlarged
   // hydrogen-bomb quad, anything outside that range is glow-only margin.
-  vec4 texel = vec4(0.0);
+  // Sample unconditionally (clamped to the cell) and mask afterwards: a
+  // texture() call inside a per-pixel branch has undefined mip derivatives
+  // at the branch edge, which drew a faint outline along the quad border.
   bool inSprite = vCellUV.x >= 0.0 && vCellUV.x <= 1.0 &&
                   vCellUV.y >= 0.0 && vCellUV.y <= 1.0;
-  if (inSprite) {
-    vec2 atlasUV = vec2((vAtlasCol + vCellUV.x) / float(ATLAS_COLS), vCellUV.y);
-    texel = texture(uAtlas, atlasUV);
-  }
+  vec2 cellUV = clamp(vCellUV, 0.0, 1.0);
+  vec2 atlasUV = vec2((vAtlasCol + cellUV.x) / float(ATLAS_COLS), cellUV.y);
+  vec4 sampled = texture(uAtlas, atlasUV);
+  vec4 texel = inSprite ? sampled : vec4(0.0);
 
   // Outside the sprite: render the steady soft glow under the hydrogen bomb,
   // otherwise discard. Glow is suppressed in alt (affiliation) view.

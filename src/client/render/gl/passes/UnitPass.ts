@@ -386,6 +386,10 @@ export class UnitPass {
     const gl = this.gl;
     gl.bindTexture(gl.TEXTURE_2D, this.atlasTex);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
+    // Stop at the last mip level where cells stay texel-aligned (104px cells
+    // → 13px at level 3). Deeper levels blur neighbouring sprites into each
+    // cell, which shows as faint boxes around units when zoomed out.
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAX_LEVEL, 3);
     gl.generateMipmap(gl.TEXTURE_2D);
     gl.texParameteri(
       gl.TEXTURE_2D,

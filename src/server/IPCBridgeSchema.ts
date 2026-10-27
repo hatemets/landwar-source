@@ -32,6 +32,9 @@ export const InternalGameInfoSchema = PublicGameInfoSchema.extend({
   // Paid-queued hosted lobbies only: when the host paid. The master puts
   // these right behind the counting-down lobby, oldest payment first.
   queuedAt: z.number().optional(),
+  // Seats the server filled (see LobbyFillers.ts). numClients counts only
+  // the connected; browsers are shown the sum.
+  numFillers: z.number().optional(),
 });
 
 export const InternalPublicGamesSchema = z.object({

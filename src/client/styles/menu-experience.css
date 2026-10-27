@@ -405,20 +405,96 @@ body:not(.in-game) #sidebar-menu .nav-menu-item.active {
 }
 .menu-lobby-list {
   display: grid;
-  gap: 0;
+  gap: 12px;
 }
-/* Rows stand on the page with no box, dividers or hover fill. */
+/* Homepage cards: the map fills the card and the text sits on it. Status
+   and tags go top left, the player count top right, the name bottom. Its
+   sea is transparent; the backdrop is the in-game ocean colour
+   (render-settings.json terrain.oceanColor). */
 .menu-lobby-list .menu-lobby-card,
 .menu-lobby-list .menu-lobby-card:hover:not(:disabled) {
+  position: relative;
+  display: block;
+  height: 168px !important;
+  min-height: 168px;
   border-radius: var(--field-radius-lg);
-  background: transparent;
+  background: #3b6585;
+  padding: 0;
 }
-/* The map fills its box, so every thumbnail is the same size. Its sea is
-   transparent; the backdrop is the in-game ocean colour
-   (render-settings.json terrain.oceanColor). */
 .menu-lobby-list .menu-lobby-card__image {
+  position: absolute !important;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 0;
   background: #3b6585;
   object-fit: cover;
+  transition: filter 0.15s ease;
+}
+.menu-lobby-list .menu-lobby-card:hover:not(:disabled) .menu-lobby-card__image {
+  filter: brightness(1.08);
+}
+/* A dark band under the name and details keeps them legible on any map. */
+.menu-lobby-list .menu-lobby-card::after {
+  position: absolute;
+  inset: auto 0 0;
+  height: 64px;
+  background: linear-gradient(to top, rgb(10 13 20 / 0.88), transparent);
+  content: "";
+  pointer-events: none;
+}
+.menu-lobby-list .menu-lobby-card__name,
+.menu-lobby-list .menu-lobby-card__details {
+  position: absolute;
+  z-index: 1;
+  left: 14px;
+  right: 14px;
+  max-width: calc(100% - 28px);
+}
+.menu-lobby-list .menu-lobby-card__name {
+  bottom: 28px;
+}
+.menu-lobby-list .menu-lobby-card__details {
+  bottom: 10px;
+  color: var(--field-paper);
+  opacity: 0.75;
+}
+.menu-lobby-list .menu-lobby-card__count,
+.menu-lobby-list .menu-lobby-card__time,
+.menu-lobby-list .menu-lobby-card__tag {
+  border-radius: var(--field-radius-sm);
+  background: rgb(10 13 20 / 0.72) !important;
+  color: var(--field-paper);
+}
+.menu-lobby-list .menu-lobby-card__count {
+  position: absolute;
+  z-index: 1;
+  top: 10px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 7px;
+}
+.menu-lobby-list .menu-lobby-card__count-icon {
+  display: block;
+}
+/* Tags keep to one line, clear of the count. */
+.menu-lobby-list .menu-lobby-card__status {
+  position: absolute;
+  z-index: 1;
+  top: 10px;
+  left: 10px;
+  right: 96px;
+  max-height: 20px;
+  overflow: hidden;
+  gap: 6px;
+}
+.menu-lobby-card__count-icon {
+  display: none;
+  width: 14px;
+  height: 14px;
+  flex: none;
 }
 .menu-lobby-slot {
   min-height: 0;

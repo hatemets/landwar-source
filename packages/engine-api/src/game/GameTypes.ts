@@ -220,6 +220,7 @@ export enum UnitType {
   MIRVWarhead = "MIRV Warhead",
   Train = "Train",
   Factory = "Factory",
+  Reactor = "Reactor",
 }
 
 // Structures the max_upgrade intent spends gold on, in HUD order.
@@ -258,6 +259,7 @@ export const Structures = unitTypeGroup([
   UnitType.MissileSilo,
   UnitType.Port,
   UnitType.Factory,
+  UnitType.Reactor,
 ] as const);
 
 export const BuildMenus = unitTypeGroup([
@@ -350,6 +352,10 @@ export class PlayerInfo {
     // the correct flag even when multiple nations on a map share a display
     // name (e.g. India's and Pakistan's "Punjab").
     public readonly nationFlag: string | null = null,
+    // A nation the server seated in a public lobby to fill it (see
+    // GameStartInfo.fillers). It plays as a nation; clients show it as a
+    // player.
+    public readonly isLobbyFill: boolean = false,
   ) {
     this.displayName = formatPlayerDisplayName(this.name, this.clanTag);
   }

@@ -144,6 +144,8 @@ export function createGame(
     donateGold: false,
     donateTroops: false,
     bots: 0,
+    // Fixtures start with no gold, not the 1M default.
+    startingGold: 0,
     infiniteGold: false,
     infiniteTroops: false,
     instantBuild: false,

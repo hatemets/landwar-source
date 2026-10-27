@@ -37,6 +37,7 @@ import { startPolling } from "./PollingLoop";
 import { renderAppShell } from "./RenderHtml";
 import { registerServedConfigRoutes } from "./ServedConfigRoutes";
 import { ServerEnv } from "./ServerEnv";
+import { sendShellPage } from "./ShellPageMeta";
 import { registerShopRoutes } from "./shop/routes";
 import { registerSitemapRoutes } from "./SitemapRoute";
 import { applyStaticAssetCacheControl } from "./StaticAssetCache";
@@ -85,9 +86,10 @@ registerPlayerProfileRoute({ app, log, baseDir: __dirname });
 app.use(async (req, res, next) => {
   if (req.path === "/") {
     try {
-      await renderAppShell(
+      await sendShellPage(
         res,
         path.join(__dirname, "../../static/index.html"),
+        req.path,
       );
     } catch (error) {
       log.error("Error rendering index.html:", error);
@@ -262,9 +264,10 @@ app.get("/api/health", (_req, res) => {
 });
 
 // SPA fallback route
-app.get("/{*splat}", async function (_req, res) {
+app.get("/{*splat}", async function (req, res) {
   try {
     const htmlPath = path.join(__dirname, "../../static/index.html");
+    if (await sendShellPage(res, htmlPath, req.path)) return;
     await renderAppShell(res, htmlPath);
   } catch (error) {
     log.error("Error rendering SPA fallback:", error);

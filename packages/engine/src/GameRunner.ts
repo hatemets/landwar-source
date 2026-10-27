@@ -34,7 +34,10 @@ import { Game, Player } from "./game/Game";
 import { createGame } from "./game/GameImpl";
 import { humanStatsSnapshot } from "./game/HumanStats";
 import { placeName, placeSpawnName } from "./game/NameBoxCalculator";
-import { createNationsForGame } from "./game/NationCreation";
+import {
+  createLobbyFillers,
+  createNationsForGame,
+} from "./game/NationCreation";
 import {
   readSnapshotHeader,
   restoreGame,
@@ -64,13 +67,16 @@ export async function createGameRunner(
     );
   });
 
-  const nations = createNationsForGame(
-    gameStart,
-    gameMap.nations,
-    gameMap.additionalNations,
-    humans.length,
-    random,
-  );
+  const nations = [
+    ...createNationsForGame(
+      gameStart,
+      gameMap.nations,
+      gameMap.additionalNations,
+      humans.length,
+      random,
+    ),
+    ...createLobbyFillers(gameStart, random),
+  ];
 
   const game: Game = createGame(
     humans,

@@ -14,6 +14,8 @@ import { NukeType } from "@openfront/engine-api/StatsSchemas";
 import {
   Config,
   DEFAULT_GOLD_MULTIPLIER,
+  DEFAULT_STARTING_GOLD,
+  REACTOR_GOLD_PER_TICK,
 } from "@openfront/engine-lib/configuration/Config";
 import { exp, log, pow2 } from "@openfront/engine-lib/DetMath";
 import {
@@ -395,6 +397,11 @@ export class EngineConfig extends Config {
           (numUnits: number) => Math.min(1_000_000, pow2(numUnits) * 125_000),
           ...this.unitCostGroup(UnitType.Factory),
         );
+      case UnitType.Reactor:
+        return this.costWrapper(
+          (numUnits: number) => Math.min(6_000_000, pow2(numUnits) * 1_500_000),
+          UnitType.Reactor,
+        );
       case UnitType.TransportShip:
       case UnitType.Shell:
       case UnitType.SAMMissile:
@@ -436,7 +443,7 @@ export class EngineConfig extends Config {
   }
 
   private startingGoldFor(playerInfo: PlayerInfo): Gold {
-    const base = BigInt(this._gameConfig.startingGold ?? 0);
+    const base = BigInt(this._gameConfig.startingGold ?? DEFAULT_STARTING_GOLD);
     const hc = this._gameConfig.hostCheats;
     if (hc?.startingGold && playerInfo.isLobbyCreator) {
       return base + BigInt(hc.startingGold);
@@ -683,6 +690,12 @@ export class EngineConfig extends Config {
       baseRate = 100n;
     }
     return BigInt(Math.floor(Number(baseRate) * multiplier));
+  }
+
+  reactorGoldRate(player: PlayerLike): Gold {
+    return BigInt(
+      Math.floor(REACTOR_GOLD_PER_TICK * this.goldMultiplierFor(player)),
+    );
   }
 
   nukeSpeed(unitType: UnitType): number {

@@ -634,6 +634,9 @@ export const PlayerSchema = z.object({
 // unique, so the name alone identifies the tribe). Loose to mirror infra's
 // analytics-ingest schema — a field the API adds later flows through to the
 // record without a game-side change, instead of being silently stripped.
+// Most seats the server may fill in one public lobby.
+export const MAX_LOBBY_FILLERS = 8;
+
 export const TribeSchema = z
   .object({
     name: SafeString.min(1).max(64),
@@ -653,6 +656,12 @@ export const GameStartInfoSchema = z.object({
   // zb.json: TribeSchema is `.loose()`, and a positional binary layout would
   // silently drop the passthrough keys that looseness exists to preserve.
   tribes: z.array(zb.json(TribeSchema)).max(100).optional(),
+  // Seats the server filled in a public lobby. Each plays as a nation that
+  // clients show as a player (see PlayerInfo.isLobbyFill).
+  fillers: z
+    .array(z.object({ username: UsernameSchema }))
+    .max(MAX_LOBBY_FILLERS)
+    .optional(),
 });
 
 export const WinnerSchema = z

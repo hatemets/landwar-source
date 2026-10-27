@@ -1163,6 +1163,9 @@ export class NationNukeBehavior {
             return 15_000 * level;
           case UnitType.Factory:
             return 15_000 * level;
+          // Its meltdown hurts the target far beyond the nuke itself.
+          case UnitType.Reactor:
+            return 100_000 * level;
           default:
             return 0;
         }

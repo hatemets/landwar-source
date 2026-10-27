@@ -17,8 +17,15 @@ export interface NukeMagnitude {
   outer: number;
 }
 
-// Kleopolis defaults: 2x gold and 1.25x the original 100 ms tick rate.
-export const DEFAULT_GOLD_MULTIPLIER = 2;
+// Kleopolis defaults: 3x gold, a 1M gold start and 1.25x the original 100 ms
+// tick rate.
+export const DEFAULT_GOLD_MULTIPLIER = 3;
+export const DEFAULT_STARTING_GOLD = 1_000_000;
+
+// A reactor pays this much gold per tick (times the gold multiplier), 4x a
+// player's own income. It melts down when a nuke hits it or an enemy takes its
+// tile, with the blast of an atom bomb.
+export const REACTOR_GOLD_PER_TICK = 400;
 export const DEFAULT_TURN_INTERVAL_MS = 100 / 1.25;
 
 const DEFAULT_SPAWN_IMMUNITY_TICKS = 5 * 10;
@@ -251,6 +258,9 @@ export class Config {
           upgradable: true,
         };
         break;
+      case UnitType.Reactor:
+        info = { constructionDuration: this.instantBuild() ? 0 : 15 * 10 };
+        break;
       case UnitType.TransportShip:
       case UnitType.SAMMissile:
       case UnitType.AtomBomb:
@@ -410,6 +420,7 @@ export class Config {
       case UnitType.MIRVWarhead:
         return { inner: 12, outer: 18 };
       case UnitType.AtomBomb:
+      case UnitType.Reactor:
         return { inner: 12, outer: 30 };
       case UnitType.HydrogenBomb:
         return { inner: 80, outer: 100 };

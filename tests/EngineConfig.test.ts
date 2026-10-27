@@ -1,4 +1,8 @@
-import { UnitType } from "@openfront/engine-api/game/GameTypes";
+import {
+  PlayerInfo,
+  PlayerType,
+  UnitType,
+} from "@openfront/engine-api/game/GameTypes";
 import { GameConfig } from "@openfront/engine-api/Schemas";
 import { Config } from "@openfront/engine-lib/configuration/Config";
 import { EngineConfig } from "@openfront/engine/configuration/EngineConfig";
@@ -26,14 +30,26 @@ describe("EngineConfig.unitInfo", () => {
 });
 
 describe("Kleopolis defaults", () => {
-  it("uses 2x gold and preserves an explicit multiplier", () => {
-    expect(new EngineConfig({} as GameConfig, false).goldMultiplier()).toBe(2);
+  it("uses 3x gold and preserves an explicit multiplier", () => {
+    expect(new EngineConfig({} as GameConfig, false).goldMultiplier()).toBe(3);
     expect(
       new EngineConfig(
         { goldMultiplier: 1 } as GameConfig,
         false,
       ).goldMultiplier(),
     ).toBe(1);
+  });
+  it("starts humans with 1M gold and preserves an explicit amount", () => {
+    const human = new PlayerInfo("a", PlayerType.Human, "c1", "p1");
+    const bot = new PlayerInfo("b", PlayerType.Bot, null, "p2");
+    const defaults = new EngineConfig({} as GameConfig, false);
+    expect(defaults.startingGold(human)).toBe(1_000_000n);
+    expect(defaults.startingGold(bot)).toBe(0n);
+    expect(
+      new EngineConfig({ startingGold: 0 } as GameConfig, false).startingGold(
+        human,
+      ),
+    ).toBe(0n);
   });
   it("runs ticks 1.25x faster than the original 100 ms interval", () => {
     expect(new Config({} as GameConfig, false).msPerTick()).toBe(80);

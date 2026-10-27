@@ -132,7 +132,17 @@ export function lobbyCard({
       />
       <span class="menu-lobby-card__name">${title}</span>
       <span class="menu-lobby-card__details">${subtitleLine}</span>
-      <span class="menu-lobby-card__count">${playerCount} players</span>
+      <span class="menu-lobby-card__count"
+        >${playerCount}<svg
+          class="menu-lobby-card__count-icon"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            d="M7 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM14.5 9a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM1.62 16.23a1.24 1.24 0 0 1-.7-1.29 6.1 6.1 0 0 1 12.16 0c.06.53-.22 1.04-.7 1.29A11.94 11.94 0 0 1 7 17.5c-1.93 0-3.75-.46-5.38-1.27ZM14.25 15.5h-.05c.03-.27.04-.55.02-.84a7.58 7.58 0 0 0-1.55-4.06 4.5 4.5 0 0 1 6.21 3.95 1 1 0 0 1-.5.9 9.92 9.92 0 0 1-4.13 1.05Z"
+          /></svg
+      ></span>
       <span class="menu-lobby-card__status">
         ${timeDisplay
           ? html`<span

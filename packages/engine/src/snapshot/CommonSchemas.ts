@@ -18,6 +18,7 @@ export const PlayerInfoSchema = z.object({
   friends: z.array(z.string()),
   teamIndex: z.number().int().nullable(),
   nationFlag: z.string().nullable(),
+  isLobbyFill: z.boolean().optional(),
 });
 export type PlayerInfoData = z.infer<typeof PlayerInfoSchema>;
 
@@ -32,6 +33,7 @@ export function playerInfoData(info: PlayerInfo): PlayerInfoData {
     friends: [...info.friends],
     teamIndex: info.teamIndex,
     nationFlag: info.nationFlag,
+    isLobbyFill: info.isLobbyFill || undefined,
   };
 }
 
@@ -46,6 +48,7 @@ export function newPlayerInfo(d: PlayerInfoData): PlayerInfo {
     d.friends,
     d.teamIndex,
     d.nationFlag,
+    d.isLobbyFill ?? false,
   );
 }
 

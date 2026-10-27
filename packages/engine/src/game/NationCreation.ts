@@ -102,6 +102,35 @@ export function createNationsForGame(
 }
 
 /**
+ * The nations that fill the seats the server filled in a public lobby
+ * (GameStartInfo.fillers). They spawn at random and carry the lobby name, so
+ * clients show them as players.
+ */
+export function createLobbyFillers(
+  gameStart: GameStartInfo,
+  random: PseudoRandom,
+): Nation[] {
+  return (gameStart.fillers ?? []).map(
+    (f) =>
+      new Nation(
+        undefined,
+        new PlayerInfo(
+          f.username,
+          PlayerType.Nation,
+          null,
+          random.nextID(),
+          false,
+          null,
+          [],
+          null,
+          null,
+          true,
+        ),
+      ),
+  );
+}
+
+/**
  * Creates the requested number of nations from manifest data.
  * If more nations are needed than available in the manifest, fills the gap
  * first with random picks from `additionalNations`, then with procedurally

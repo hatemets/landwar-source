@@ -153,6 +153,10 @@
       "Missile Silo": {
         "scale": 1.55,
         "iconFill": 0.85
+      },
+      "Reactor": {
+        "scale": 1.1,
+        "iconFill": 0.8
       }
     },
     "highlightOutlineWidth": 0.04,
@@ -377,6 +381,10 @@
       "intensity": 1.2
     },
     "Missile Silo": {
+      "radius": 18,
+      "intensity": 1.2
+    },
+    "Reactor": {
       "radius": 18,
       "intensity": 1.2
     },

@@ -256,8 +256,6 @@ export class LangSelector extends LitElement {
       "play-page",
     ];
 
-    document.title = this.translateText("main.title") ?? document.title;
-
     document.querySelectorAll("[data-i18n]").forEach((element) => {
       const key = element.getAttribute("data-i18n");
       if (key === null) return;

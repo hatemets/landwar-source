@@ -23,10 +23,12 @@ import { MissileSiloExecutionSnapshot } from "../execution/MissileSiloExecution"
 import { MoveWarshipExecutionSnapshot } from "../execution/MoveWarshipExecution";
 import { NationExecutionSnapshot } from "../execution/NationExecution";
 import { NoOpExecutionSnapshot } from "../execution/NoOpExecution";
+import { MeltdownExecutionSnapshot } from "../execution/NukeBlast";
 import { NukeExecutionSnapshot } from "../execution/NukeExecution";
 import { PauseExecutionSnapshot } from "../execution/PauseExecution";
 import { PlayerExecutionSnapshot } from "../execution/PlayerExecution";
 import { PortExecutionSnapshot } from "../execution/PortExecution";
+import { ReactorExecutionSnapshot } from "../execution/ReactorExecution";
 import { QuickChatExecutionSnapshot } from "../execution/QuickChatExecution";
 import { RecomputeRailClusterExecutionSnapshot } from "../execution/RecomputeRailClusterExecution";
 import { RetreatExecutionSnapshot } from "../execution/RetreatExecution";
@@ -73,6 +75,7 @@ export const EXECUTION_SNAPSHOT_TYPES = [
   FactoryExecutionSnapshot,
   MarkDisconnectedExecutionSnapshot,
   MaxUpgradeExecutionSnapshot,
+  MeltdownExecutionSnapshot,
   MirvExecutionSnapshot,
   MissileSiloExecutionSnapshot,
   MoveWarshipExecutionSnapshot,
@@ -83,6 +86,7 @@ export const EXECUTION_SNAPSHOT_TYPES = [
   PlayerExecutionSnapshot,
   PortExecutionSnapshot,
   QuickChatExecutionSnapshot,
+  ReactorExecutionSnapshot,
   RecomputeRailClusterExecutionSnapshot,
   RetreatExecutionSnapshot,
   SAMLauncherExecutionSnapshot,

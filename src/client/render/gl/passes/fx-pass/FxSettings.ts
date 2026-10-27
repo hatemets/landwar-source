@@ -7,6 +7,7 @@ import {
   UT_ATOM_BOMB,
   UT_HYDROGEN_BOMB,
   UT_MIRV_WARHEAD,
+  UT_REACTOR,
 } from "../../../types";
 import type { RenderSettings } from "../../RenderSettings";
 
@@ -19,7 +20,9 @@ export function nukeExplosionRadius(
   unitType: string,
 ): number | undefined {
   switch (unitType) {
+    // A melted-down reactor makes an atom bomb's blast.
     case UT_ATOM_BOMB:
+    case UT_REACTOR:
       return fx.nukeRadiusAtom;
     case UT_HYDROGEN_BOMB:
       return fx.nukeRadiusHydro;

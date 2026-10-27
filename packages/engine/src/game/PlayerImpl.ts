@@ -417,6 +417,7 @@ export class PlayerImpl implements Player {
       betrayals: this._betrayalCount,
       lastDeleteUnitTick: this.lastDeleteUnitTick,
       isLobbyCreator: this.isLobbyCreator(),
+      isLobbyFill: this.playerInfo.isLobbyFill || undefined,
     };
   }
 
@@ -1674,6 +1675,7 @@ export class PlayerImpl implements Player {
       case UnitType.SAMLauncher:
       case UnitType.City:
       case UnitType.Factory:
+      case UnitType.Reactor:
         return this.landBasedStructureSpawn(targetTile, validTiles);
       default:
         assertNever(unitType);

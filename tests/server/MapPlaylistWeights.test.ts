@@ -16,31 +16,37 @@ function internals(playlist: MapPlaylist): Internals {
 }
 
 describe("MapPlaylist weight overrides", () => {
+  // Pangaea, not World: the real-world maps have a rotation of their own.
   it("spreads an override over the build frequency", () => {
     const p = internals(new MapPlaylist());
     const count = (overrides: object) =>
       p
         .buildMapsList("ffa", undefined, overrides)
-        .filter((m) => m === GameMapType.World).length;
+        .filter((m) => m === GameMapType.Pangaea).length;
 
-    expect(count({ [GameMapType.World]: { ffaFrequency: 37 } })).toBe(37);
-    expect(count({ [GameMapType.World]: { ffaFrequency: 0 } })).toBe(0);
+    expect(count({ [GameMapType.Pangaea]: { ffaFrequency: 37 } })).toBe(37);
+    expect(count({ [GameMapType.Pangaea]: { ffaFrequency: 0 } })).toBe(0);
     // A field for another queue leaves ffa on the build's value.
-    expect(count({ [GameMapType.World]: { teamFrequency: 37 } })).toBe(
+    expect(count({ [GameMapType.Pangaea]: { teamFrequency: 37 } })).toBe(
       count({}),
     );
   });
 
   it("drops queued playlists when the overrides change", async () => {
     const playlist = new MapPlaylist();
+    // Skip the real-world rotation so the ticket playlist is built.
+    const random = vi.spyOn(Math, "random").mockReturnValue(0.99);
     await playlist.gameConfig("ffa");
+    random.mockRestore();
     const p = internals(playlist);
     expect(p.playlists.ffa.length).toBeGreaterThan(0);
 
     playlist.setWeightOverrides({});
     expect(p.playlists.ffa.length).toBeGreaterThan(0);
 
-    playlist.setWeightOverrides({ [GameMapType.World]: { ffaFrequency: 0 } });
+    playlist.setWeightOverrides({
+      [GameMapType.Pangaea]: { ffaFrequency: 0 },
+    });
     expect(p.playlists.ffa).toEqual([]);
   });
 

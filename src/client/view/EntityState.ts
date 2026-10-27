@@ -145,7 +145,11 @@ export function playerStaticFromUpdate(pu: PlayerUpdate): PlayerStatic {
     displayName: pu.displayName!,
     clanTag: pu.clanTag ?? null,
     clientID: pu.clientID ?? null,
-    playerType: gamePlayerTypeToEnum(pu.playerType!),
+    // A nation filling a public lobby seat is shown as the player it stands
+    // in for.
+    playerType: pu.isLobbyFill
+      ? PlayerTypeEnum.Human
+      : gamePlayerTypeToEnum(pu.playerType!),
     team: pu.team ?? null,
     isLobbyCreator: pu.isLobbyCreator!,
   };

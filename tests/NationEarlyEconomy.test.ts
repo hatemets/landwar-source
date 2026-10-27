@@ -80,7 +80,17 @@ function setupCoast(
     nation.addGold(gold);
     nation.removeGold(gold);
   };
-  return { game, nation, coast, behavior, cities, built, upgraded, earned };
+  return {
+    game,
+    nation,
+    coast,
+    behavior,
+    cities,
+    built,
+    upgraded,
+    earned,
+    spy,
+  };
 }
 
 describe("Nation economy at the start", () => {
@@ -410,5 +420,49 @@ describe("Nation structure pauses after saving up", () => {
     expect(behavior["isInPostSaveUpBlockedPhase"]()).toBe(false);
     behavior["_postSaveUpStartTick"] = game.ticks() - 150;
     expect(behavior["isInPostSaveUpBlockedPhase"]()).toBe(paused);
+  });
+});
+
+describe("Nation reactors", () => {
+  // Ports and factories off, so the reactor is next in the build order.
+  it("builds a reactor once five cities stand", () => {
+    const { nation, behavior, cities, built } = setupCoast({
+      difficulty: Difficulty.Medium,
+      disabledUnits: [UnitType.Port, UnitType.Factory],
+    });
+    cities(5);
+    nation.addGold(50_000_000n);
+    behavior.handleStructures();
+    expect(built()).toEqual([UnitType.Reactor]);
+  });
+
+  it("builds no reactor with four cities", () => {
+    const { nation, behavior, cities, built } = setupCoast({
+      difficulty: Difficulty.Medium,
+      disabledUnits: [UnitType.Port, UnitType.Factory],
+    });
+    cities(4);
+    nation.addGold(50_000_000n);
+    behavior.handleStructures();
+    expect(built()).not.toContain(UnitType.Reactor);
+  });
+
+  // The nation's land ends at the lake at x = 25.
+  it("values tiles far from the border and from its other reactors", () => {
+    const { game, nation, behavior } = setupCoast({
+      difficulty: Difficulty.Medium,
+    });
+    // TestConfig shrinks every blast to one tile; spacing needs real sizes.
+    vi.spyOn(game.config(), "nukeMagnitudes").mockReturnValue({
+      inner: 12,
+      outer: 30,
+    });
+    const value = (x: number, y: number): number =>
+      behavior["reactorValue"]()(game.ref(x, y));
+    expect(value(0, 50)).toBeGreaterThan(value(10, 50));
+    expect(value(10, 50)).toBeGreaterThan(value(24, 50));
+
+    nation.buildUnit(UnitType.Reactor, game.ref(0, 50), {});
+    expect(value(0, 90)).toBeGreaterThan(value(0, 55));
   });
 });

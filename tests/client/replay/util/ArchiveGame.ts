@@ -168,6 +168,10 @@ export function config(overrides: Partial<GameConfig> = {}): GameConfig {
     gameMapSize: GameMapSize.Normal,
     nations: "default",
     bots: 20,
+    // The pre-Kleopolis economy. With the 1M default start, a train in the
+    // procFFA01 game decodes one tile off its live position (frame 330).
+    goldMultiplier: 2,
+    startingGold: 0,
     infiniteGold: false,
     infiniteTroops: false,
     instantBuild: false,

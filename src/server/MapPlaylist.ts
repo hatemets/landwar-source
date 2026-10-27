@@ -13,7 +13,10 @@ import {
   UnitType,
 } from "@openfront/engine-api/game/GameTypes";
 import { GameConfig, TeamCountConfig } from "@openfront/engine-api/Schemas";
-import { SAM_CONSTRUCTION_TICKS } from "@openfront/engine-lib/configuration/Config";
+import {
+  DEFAULT_GOLD_MULTIPLIER,
+  SAM_CONSTRUCTION_TICKS,
+} from "@openfront/engine-lib/configuration/Config";
 import { PseudoRandom } from "@openfront/engine-lib/PseudoRandom";
 import { ScheduledPublicGameType } from "@openfront/shared/WireSchemas";
 import { logger } from "./Logger";
@@ -26,24 +29,25 @@ const log = logger.child({});
 const CROWDED_COMPACT_PLAYER_COUNT = 60;
 const CROWDED_PLAYER_COUNT = 125;
 
+// Small squads and many teams keep each player's game their own. Two big
+// sides (and Humans vs Nations, also two sides) are rare.
 const TEAM_WEIGHTS: { config: TeamCountConfig; weight: number }[] = [
-  { config: 2, weight: 10 },
-  { config: 3, weight: 10 },
-  { config: 4, weight: 10 },
-  { config: 5, weight: 10 },
-  { config: 6, weight: 10 },
-  { config: 7, weight: 10 },
-  { config: Duos, weight: 5 },
-  { config: Trios, weight: 7.5 },
-  { config: Quads, weight: 7.5 },
-  { config: HumansVsNations, weight: 20 },
+  { config: 3, weight: 3 },
+  { config: 4, weight: 7 },
+  { config: 5, weight: 8 },
+  { config: 6, weight: 8 },
+  { config: 7, weight: 8 },
+  { config: Duos, weight: 25 },
+  { config: Trios, weight: 22 },
+  { config: Quads, weight: 15 },
+  { config: HumansVsNations, weight: 4 },
 ];
 
 // Maps with a preferred team count in team / special games, declared via
 // "special_team_count" in each map's info.json.
 // For these maps the preferred team count overrides the random TEAM_WEIGHTS
 // roll with SPECIAL_TEAM_FORCE_CHANCE.
-const SPECIAL_TEAM_FORCE_CHANCE = 0.75;
+const SPECIAL_TEAM_FORCE_CHANCE = 0.25;
 const SPECIAL_TEAM_MAPS: ReadonlyMap<GameMapType, TeamCountConfig> = new Map(
   allMaps
     .filter((m) => m.specialTeamCount !== undefined)
@@ -67,23 +71,47 @@ type ModifierKey =
   | "isDoomsdayClock";
 
 // Each entry represents one "ticket" in the pool. More tickets = higher chance of selection.
-// Weights are roughly informed by the community "favorite modifier" poll.
+// A rich economy (x6 gold, 5M start) and no missiles are the favourites.
+// A 1M start is the default, so it is not in the pool.
 const SPECIAL_MODIFIER_POOL: ModifierKey[] = [
-  ...Array<ModifierKey>(4).fill("isRandomSpawn"),
-  ...Array<ModifierKey>(4).fill("isCompact"),
+  ...Array<ModifierKey>(3).fill("isRandomSpawn"),
+  ...Array<ModifierKey>(3).fill("isCompact"),
   ...Array<ModifierKey>(2).fill("isCrowded"),
   ...Array<ModifierKey>(1).fill("isHardNations"),
-  ...Array<ModifierKey>(2).fill("startingGold1M"),
-  ...Array<ModifierKey>(4).fill("startingGold5M"),
+  ...Array<ModifierKey>(12).fill("startingGold5M"),
   ...Array<ModifierKey>(3).fill("startingGold25M"),
-  ...Array<ModifierKey>(6).fill("goldMultiplier"),
+  ...Array<ModifierKey>(14).fill("goldMultiplier"),
   ...Array<ModifierKey>(1).fill("isAlliancesDisabled"),
-  ...Array<ModifierKey>(1).fill("isNukesDisabled"),
+  ...Array<ModifierKey>(10).fill("isNukesDisabled"),
   ...Array<ModifierKey>(1).fill("isSAMsDisabled"),
   ...Array<ModifierKey>(1).fill("isPeaceTime"),
-  ...Array<ModifierKey>(4).fill("isWaterNukes"),
-  ...Array<ModifierKey>(4).fill("isDoomsdayClock"),
+  ...Array<ModifierKey>(2).fill("isWaterNukes"),
+  ...Array<ModifierKey>(3).fill("isDoomsdayClock"),
 ];
+
+// The share of special games that are free for all, not teams.
+const SPECIAL_FFA_CHANCE = 0.8;
+
+// The ffa and team queues step through these economies in turn. Most games
+// are fast: x5 or x10 gold with a 10M or 30M start. The rest keep the
+// engine's defaults (x3 gold, 1M start) or start with 5M. Half have no
+// missiles.
+interface EconomyPreset {
+  startingGold?: number;
+  goldMultiplier?: number;
+  noMissiles?: boolean;
+}
+export const ECONOMY_ROTATION: readonly EconomyPreset[] = [
+  { startingGold: 10_000_000, goldMultiplier: 5, noMissiles: true },
+  { startingGold: 5_000_000 },
+  { startingGold: 30_000_000, goldMultiplier: 10 },
+  { noMissiles: true },
+  { startingGold: 10_000_000, goldMultiplier: 10, noMissiles: true },
+  { startingGold: 30_000_000, goldMultiplier: 5 },
+];
+
+// The "goldMultiplier" modifier doubles the default gold rate.
+export const SPECIAL_GOLD_MULTIPLIER = 2 * DEFAULT_GOLD_MULTIPLIER;
 
 // Speeds the Doomsday Clock can roll at when it lands in the rotation. Picked
 // per game (see getSpecialConfig) so the pacing varies instead of always being
@@ -119,7 +147,8 @@ export const GOLD_RUSH_MAPS: readonly GameMapType[] = [
   GameMapType.SouthAmerica,
 ];
 // Prime time is the day's big match, so it is always a large, real-world map
-// that a newcomer recognises: no fictional, joke or arcade maps.
+// that a newcomer recognises: no fictional, joke or arcade maps. The ffa,
+// team and special queues favour these maps too (REAL_WORLD_MAP_SHARE).
 export const PRIME_TIME_MAPS: readonly GameMapType[] = [
   GameMapType.World,
   GameMapType.GiantWorldMap,
@@ -137,8 +166,20 @@ export const PRIME_TIME_MAPS: readonly GameMapType[] = [
   GameMapType.Scandinavia,
   GameMapType.Britannia,
 ];
-export const GOLD_RUSH_STARTING_GOLD = 50_000_000;
-export const GOLD_RUSH_GOLD_MULTIPLIER = 5;
+// Gold rush economies. Each runs twice in a row, once without missiles and
+// once with them.
+export const GOLD_RUSH_ECONOMIES: readonly {
+  startingGold: number;
+  goldMultiplier: number;
+}[] = [
+  { startingGold: 10_000_000, goldMultiplier: 5 },
+  { startingGold: 30_000_000, goldMultiplier: 10 },
+  { startingGold: 30_000_000, goldMultiplier: 5 },
+  { startingGold: 10_000_000, goldMultiplier: 10 },
+];
+// The share of ffa, team and special games played on a real-world map
+// (PRIME_TIME_MAPS). By ticket weight alone it would be about a fifth.
+export const REAL_WORLD_MAP_SHARE = 0.65;
 export const GOLD_RUSH_NATION_DIFFICULTIES: readonly Difficulty[] = [
   Difficulty.Medium,
   Difficulty.Hard,
@@ -165,6 +206,10 @@ type PlaylistKey =
   | "primeTime";
 
 export class MapPlaylist {
+  // Real-world map rounds per queue (see nextRealWorldMap).
+  private realWorldPlaylists: Partial<Record<PlaylistKey, GameMapType[]>> = {};
+  private lastRealWorldMap: Partial<Record<PlaylistKey, GameMapType>> = {};
+
   private playlists: Record<PlaylistKey, GameMapType[]> = {
     ffa: [],
     team: [],
@@ -177,6 +222,9 @@ export class MapPlaylist {
   // Gold rush games handed out so far: even is no missiles, odd has missiles
   // and a nation difficulty roll.
   private goldRushScheduled = 0;
+
+  // Position of each queue in ECONOMY_ROTATION.
+  private economyScheduled = { ffa: 0, team: 0 };
 
   // Rotation weight overrides from the API (see MapWeights.ts), spread over
   // each map's info.json frequencies when a playlist is built.
@@ -192,6 +240,7 @@ export class MapPlaylist {
     for (const key of Object.keys(this.playlists) as PlaylistKey[]) {
       this.playlists[key] = [];
     }
+    this.realWorldPlaylists = {};
   }
 
   public async gameConfig(type: ScheduledPublicGameType): Promise<GameConfig> {
@@ -228,6 +277,17 @@ export class MapPlaylist {
       unadjustedMaxPlayers,
     );
 
+    const economy =
+      ECONOMY_ROTATION[
+        this.economyScheduled[type]++ % ECONOMY_ROTATION.length
+      ]!;
+    const { startingGold, goldMultiplier } = economy;
+    const isNukesDisabled =
+      economy.noMissiles === true &&
+      !(mode === GameMode.Team && SPECIAL_TEAM_MAPS.has(map))
+        ? true
+        : undefined;
+
     return {
       donateGold: mode === GameMode.Team,
       donateTroops: mode === GameMode.Team,
@@ -237,7 +297,12 @@ export class MapPlaylist {
       gameMapSize: isCompact ? GameMapSize.Compact : GameMapSize.Normal,
       publicGameModifiers: {
         isCompact,
+        startingGold,
+        goldMultiplier,
+        isNukesDisabled,
       },
+      startingGold,
+      goldMultiplier,
       difficulty:
         playerTeams === HumansVsNations ? Difficulty.Hard : Difficulty.Medium,
       infiniteGold: false,
@@ -252,8 +317,11 @@ export class MapPlaylist {
       gameMode: mode,
       playerTeams,
       bots: isCompact ? 100 : 400,
-      spawnImmunityDuration: this.getSpawnImmunityDuration(playerTeams),
-      disabledUnits: [],
+      spawnImmunityDuration: this.getSpawnImmunityDuration(
+        playerTeams,
+        startingGold,
+      ),
+      disabledUnits: isNukesDisabled ? [...MISSILE_UNITS] : [],
       disableClanTags: mode === GameMode.FFA ? true : undefined,
       // Overtime (the win threshold sinking after 30 minutes) is the default
       // for every public FFA game, so it carries no lobby modifier badge.
@@ -303,6 +371,10 @@ export class MapPlaylist {
 
   private async getGoldRushConfig(): Promise<GameConfig> {
     const map = this.getNextMap("goldrush");
+    const { startingGold, goldMultiplier } =
+      GOLD_RUSH_ECONOMIES[
+        Math.floor(this.goldRushScheduled / 2) % GOLD_RUSH_ECONOMIES.length
+      ]!;
     const noMissiles = this.goldRushScheduled++ % 2 === 0;
     const difficulty = noMissiles
       ? Difficulty.Medium
@@ -317,12 +389,12 @@ export class MapPlaylist {
       gameType: GameType.Public,
       gameMapSize: GameMapSize.Normal,
       publicGameModifiers: {
-        startingGold: GOLD_RUSH_STARTING_GOLD,
-        goldMultiplier: GOLD_RUSH_GOLD_MULTIPLIER,
+        startingGold,
+        goldMultiplier,
         isNukesDisabled: noMissiles || undefined,
       },
-      startingGold: GOLD_RUSH_STARTING_GOLD,
-      goldMultiplier: GOLD_RUSH_GOLD_MULTIPLIER,
+      startingGold,
+      goldMultiplier,
       difficulty,
       infiniteGold: false,
       infiniteTroops: false,
@@ -337,7 +409,7 @@ export class MapPlaylist {
       bots: 400,
       spawnImmunityDuration: this.getSpawnImmunityDuration(
         undefined,
-        GOLD_RUSH_STARTING_GOLD,
+        startingGold,
       ),
       disabledUnits: noMissiles ? [...MISSILE_UNITS] : [],
       disableClanTags: true,
@@ -346,7 +418,8 @@ export class MapPlaylist {
   }
 
   private async getSpecialConfig(): Promise<GameConfig> {
-    const mode = Math.random() < 0.5 ? GameMode.FFA : GameMode.Team;
+    const mode =
+      Math.random() < SPECIAL_FFA_CHANCE ? GameMode.FFA : GameMode.Team;
     const map = this.getNextMap("special", mode);
     let playerTeams =
       mode === GameMode.Team ? this.getTeamCount(map) : undefined;
@@ -460,7 +533,8 @@ export class MapPlaylist {
     if (appliedForced.has("startingGold1M")) startingGold = 1_000_000;
     if (appliedForced.has("startingGold5M")) startingGold = 5_000_000;
     if (appliedForced.has("startingGold25M")) startingGold = 25_000_000;
-    if (appliedForced.has("goldMultiplier")) goldMultiplier = 2;
+    if (appliedForced.has("goldMultiplier"))
+      goldMultiplier = SPECIAL_GOLD_MULTIPLIER;
     if (appliedForced.has("isAlliancesDisabled")) isAlliancesDisabled = true;
     if (appliedForced.has("isNukesDisabled")) isNukesDisabled = true;
     if (appliedForced.has("isSAMsDisabled")) isSAMsDisabled = true;
@@ -533,13 +607,7 @@ export class MapPlaylist {
     // Build disabledUnits from modifiers
     const disabledUnits: UnitType[] = [];
     if (isNukesDisabled) {
-      disabledUnits.push(
-        UnitType.MissileSilo,
-        UnitType.AtomBomb,
-        UnitType.HydrogenBomb,
-        UnitType.MIRV,
-        UnitType.SAMLauncher,
-      );
+      disabledUnits.push(...MISSILE_UNITS);
     }
     if (isSAMsDisabled) {
       disabledUnits.push(UnitType.SAMLauncher);
@@ -610,6 +678,10 @@ export class MapPlaylist {
     mode?: GameMode,
   ): GameMapType {
     const key = this.playlistKey(type, mode);
+    if (type !== "goldrush" && Math.random() < REAL_WORLD_MAP_SHARE) {
+      const map = this.nextRealWorldMap(key, type, mode);
+      if (map !== undefined) return map;
+    }
     const playlist = this.playlists[key];
     if (playlist.length === 0) {
       playlist.push(...this.generateNewPlaylist(type, mode));
@@ -620,6 +692,31 @@ export class MapPlaylist {
       playlist.push(...this.generateNewPlaylist(type, mode, {}));
     }
     return playlist.shift()!;
+  }
+
+  // The next real-world map this queue plays. Each map the queue allows comes
+  // up once per round, in a new order every round. Undefined when the queue
+  // allows none of them.
+  private nextRealWorldMap(
+    key: PlaylistKey,
+    type: ScheduledPublicGameType,
+    mode?: GameMode,
+  ): GameMapType | undefined {
+    const playlist = (this.realWorldPlaylists[key] ??= []);
+    if (playlist.length === 0) {
+      const allowed = PRIME_TIME_MAPS.filter(
+        (map) => this.mapFrequency(map, type, mode, this.weightOverrides) > 0,
+      );
+      const next = new PseudoRandom(Date.now()).shuffleArray([...allowed]);
+      // A new round never opens with the map that closed the last one.
+      if (next.length > 1 && next[0] === this.lastRealWorldMap[key]) {
+        next.push(next.shift()!);
+      }
+      playlist.push(...next);
+    }
+    const map = playlist.shift();
+    if (map !== undefined) this.lastRealWorldMap[key] = map;
+    return map;
   }
 
   private playlistKey(
@@ -692,54 +789,56 @@ export class MapPlaylist {
     overrides: MapWeightOverrides,
   ): GameMapType[] {
     const maps: GameMapType[] = [];
-    allMaps.forEach((buildInfo) => {
-      const mapInfo = { ...buildInfo, ...overrides[buildInfo.type] };
-      const map = mapInfo.type;
-      // Use per-mode frequency if set (>= 0), otherwise fall back to multiplayerFrequency.
-      let freq: number;
-      switch (type) {
-        case "ffa":
-          freq =
-            mapInfo.ffaFrequency >= 0
-              ? mapInfo.ffaFrequency
-              : mapInfo.multiplayerFrequency;
-          break;
-        case "team":
-          freq =
-            mapInfo.teamFrequency >= 0
-              ? mapInfo.teamFrequency
-              : mapInfo.multiplayerFrequency;
-          break;
-        case "special":
-          // Special games are rolled as ffa or team (see getSpecialConfig), so
-          // fall back to the matching per-mode frequency before multiplayerFrequency.
-          // The per-mode frequency only counts here when it's a deliberate positive
-          // weight - a map opted out of ffa/team entirely (frequency 0, e.g. Sol,
-          // ArchipelagoSea) should still reach special via multiplayerFrequency.
-          if (mapInfo.specialFrequency >= 0) {
-            freq = mapInfo.specialFrequency;
-          } else if (mode === GameMode.Team) {
-            freq =
-              mapInfo.teamFrequency > 0
-                ? mapInfo.teamFrequency
-                : mapInfo.multiplayerFrequency;
-          } else {
-            freq =
-              mapInfo.ffaFrequency > 0
-                ? mapInfo.ffaFrequency
-                : mapInfo.multiplayerFrequency;
-          }
-          break;
-        case "goldrush":
-          // A fixed list, one ticket each: the map files decide nothing here.
-          freq = GOLD_RUSH_MAPS.includes(map) ? 1 : 0;
-          break;
-      }
+    for (const { type: map } of allMaps) {
+      // The real-world maps have a rotation of their own (getNextMap).
+      if (type !== "goldrush" && PRIME_TIME_MAPS.includes(map)) continue;
+      const freq = this.mapFrequency(map, type, mode, overrides);
       for (let i = 0; i < freq; i++) {
         maps.push(map);
       }
-    });
+    }
     return maps;
+  }
+
+  // A map's tickets in a queue's rotation.
+  private mapFrequency(
+    map: GameMapType,
+    type: ScheduledPublicGameType,
+    mode: GameMode | undefined,
+    overrides: MapWeightOverrides,
+  ): number {
+    const buildInfo = allMaps.find((m) => m.type === map)!;
+    const mapInfo = { ...buildInfo, ...overrides[map] };
+    // Use per-mode frequency if set (>= 0), otherwise fall back to multiplayerFrequency.
+    switch (type) {
+      case "ffa":
+        return mapInfo.ffaFrequency >= 0
+          ? mapInfo.ffaFrequency
+          : mapInfo.multiplayerFrequency;
+      case "team":
+        return mapInfo.teamFrequency >= 0
+          ? mapInfo.teamFrequency
+          : mapInfo.multiplayerFrequency;
+      case "special":
+        // Special games are rolled as ffa or team (see getSpecialConfig), so
+        // fall back to the matching per-mode frequency before multiplayerFrequency.
+        // The per-mode frequency only counts here when it's a deliberate positive
+        // weight - a map opted out of ffa/team entirely (frequency 0, e.g. Sol,
+        // ArchipelagoSea) should still reach special via multiplayerFrequency.
+        if (mapInfo.specialFrequency >= 0) {
+          return mapInfo.specialFrequency;
+        } else if (mode === GameMode.Team) {
+          return mapInfo.teamFrequency > 0
+            ? mapInfo.teamFrequency
+            : mapInfo.multiplayerFrequency;
+        }
+        return mapInfo.ffaFrequency > 0
+          ? mapInfo.ffaFrequency
+          : mapInfo.multiplayerFrequency;
+      case "goldrush":
+        // A fixed list, one ticket each: the map files decide nothing here.
+        return GOLD_RUSH_MAPS.includes(map) ? 1 : 0;
+    }
   }
 
   private getTeamCount(map: GameMapType): TeamCountConfig {
@@ -804,7 +903,9 @@ export class MapPlaylist {
           : selected.has("startingGold1M")
             ? 1_000_000
             : undefined,
-      goldMultiplier: selected.has("goldMultiplier") ? 2 : undefined,
+      goldMultiplier: selected.has("goldMultiplier")
+        ? SPECIAL_GOLD_MULTIPLIER
+        : undefined,
       isAlliancesDisabled: selected.has("isAlliancesDisabled") || undefined,
       isNukesDisabled: selected.has("isNukesDisabled") || undefined,
       isSAMsDisabled: selected.has("isSAMsDisabled") || undefined,

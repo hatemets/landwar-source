@@ -101,9 +101,9 @@ const DEFAULT_OPTIONS = {
   gameMode: GameMode.FFA,
   teamCount: 2 as TeamCountConfig,
   goldMultiplier: true,
-  goldMultiplierValue: 2 as number | undefined,
-  startingGold: false,
-  startingGoldValue: undefined as number | undefined,
+  goldMultiplierValue: 3 as number | undefined,
+  startingGold: true,
+  startingGoldValue: 1 as number | undefined,
   disabledUnits: [] as UnitType[],
   customAlliances: false,
   customAllianceMinutes: undefined as number | undefined,
@@ -1052,14 +1052,13 @@ export class SinglePlayerModal extends BaseModal {
         Object.values(UnitType).includes(unit),
       ),
       nations: sliderToNationsConfig(this.nations, this.defaultNationCount),
-      ...(this.goldMultiplier && this.goldMultiplierValue
-        ? { goldMultiplier: this.goldMultiplierValue }
-        : {}),
-      ...(this.startingGold && this.startingGoldValue !== undefined
-        ? {
-            startingGold: Math.round(this.startingGoldValue * 1_000_000),
-          }
-        : {}),
+      // Off means none: 1x gold and no starting gold, not the engine defaults.
+      goldMultiplier: this.goldMultiplier ? this.goldMultiplierValue : 1,
+      startingGold: !this.startingGold
+        ? 0
+        : this.startingGoldValue !== undefined
+          ? Math.round(this.startingGoldValue * 1_000_000)
+          : undefined,
       ...(this.customAlliances
         ? { customAllianceDuration: this.customAllianceMinutes ?? 0 }
         : {}),
