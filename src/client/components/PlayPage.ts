@@ -24,6 +24,16 @@ export class PlayPage extends LitElement {
             class="text-inherit underline hover:text-white/60"
             >${translateText("main.source_code")}</a
           >
+          ·
+          <a href="/maps" class="text-inherit underline hover:text-white/60"
+            >${translateText("main.maps_link")}</a
+          >
+          ·
+          <a
+            href="/openfront-alternative"
+            class="text-inherit underline hover:text-white/60"
+            >${translateText("main.openfront_alternative_link")}</a
+          >
         </footer>
       </div>
     `;

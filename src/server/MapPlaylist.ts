@@ -21,6 +21,7 @@ import { PseudoRandom } from "@openfront/engine-lib/PseudoRandom";
 import { ScheduledPublicGameType } from "@openfront/shared/WireSchemas";
 import { logger } from "./Logger";
 import { getMapLandTiles } from "./MapLandTiles";
+import { calculateMapPlayerCounts } from "./MapPlayerCounts";
 import { MapWeightOverrides } from "./MapWeights";
 
 const log = logger.child({});
@@ -366,9 +367,7 @@ export class MapPlaylist {
       );
     }
     const map = playlist.shift()!;
-    const [maxPlayers] = this.calculateMapPlayerCounts(
-      await getMapLandTiles(map),
-    );
+    const [maxPlayers] = calculateMapPlayerCounts(await getMapLandTiles(map));
     return {
       donateGold: false,
       donateTroops: false,
@@ -1002,7 +1001,7 @@ export class MapPlaylist {
     playerTeams: TeamCountConfig,
   ): Promise<boolean> {
     const landTiles = await getMapLandTiles(map);
-    const [l, , s] = this.calculateMapPlayerCounts(landTiles);
+    const [l, , s] = calculateMapPlayerCounts(landTiles);
     // Worst case: smallest tier with team mode 1.5x multiplier, capped at l
     let p = Math.min(Math.ceil(s * 1.5), l);
     // Apply compact 75% player reduction
@@ -1082,7 +1081,7 @@ export class MapPlaylist {
     isCompact: boolean,
   ): Promise<number | undefined> {
     const landTiles = await getMapLandTiles(map);
-    const [firstPlayerCount] = this.calculateMapPlayerCounts(landTiles);
+    const [firstPlayerCount] = calculateMapPlayerCounts(landTiles);
     if (firstPlayerCount <= 60) {
       return isCompact ? CROWDED_COMPACT_PLAYER_COUNT : CROWDED_PLAYER_COUNT;
     }
@@ -1094,7 +1093,7 @@ export class MapPlaylist {
     isCompactMap?: boolean,
   ): Promise<number> {
     const landTiles = await getMapLandTiles(map);
-    const [l] = this.calculateMapPlayerCounts(landTiles);
+    const [l] = calculateMapPlayerCounts(landTiles);
     const size = LOBBY_SIZES[Math.floor(Math.random() * LOBBY_SIZES.length)]!;
     // A compact map has a quarter of the land.
     const cap = isCompactMap ? Math.max(3, Math.floor(l * 0.25)) : l;
@@ -1145,20 +1144,5 @@ export class MapPlaylist {
         break;
     }
     return p;
-  }
-
-  /**
-   * Calculate player counts from land tiles
-   * For every 1,000,000 land tiles, take 50 players
-   * Second value is 75% of calculated value, third is 50%
-   * All values are rounded to the nearest 5
-   */
-  private calculateMapPlayerCounts(
-    landTiles: number,
-  ): [number, number, number] {
-    const roundToNearest5 = (n: number) => Math.round(n / 5) * 5;
-
-    const base = Math.max(roundToNearest5((landTiles / 1_000_000) * 50), 5);
-    return [base, roundToNearest5(base * 0.75), roundToNearest5(base * 0.5)];
   }
 }

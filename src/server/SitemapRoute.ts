@@ -4,10 +4,12 @@ import { publicOrigin } from "./auth/config";
 import { db } from "./db";
 import { escapeHtml } from "./GamePreviewBuilder";
 import { gamePageUrl, playerPageUrl } from "./SeoMeta";
+import { SEO_PAGE_PATHS } from "./SeoPages";
 import { type SitemapEntries, sitemapEntries } from "./stats/seoQueries";
 
 // The pages a search engine should index. Each one serves real content at
-// that URL: the app shell routes and the static policy and press pages.
+// that URL: the app shell routes, the static policy and press pages, and the
+// landing pages (SeoPages).
 const SITEMAP_PATHS = [
   "/",
   "/leaderboard",
@@ -31,7 +33,9 @@ function urlTag(loc: string, lastmod?: Date): string {
 }
 
 export function sitemapXml(origin: string, entries?: SitemapEntries): string {
-  const urls = SITEMAP_PATHS.map((p) => urlTag(new URL(p, origin).href));
+  const urls = [...SITEMAP_PATHS, ...SEO_PAGE_PATHS].map((p) =>
+    urlTag(new URL(p, origin).href),
+  );
   for (const p of entries?.profiles ?? []) {
     urls.push(urlTag(playerPageUrl(origin, p.publicId), p.lastmod));
   }

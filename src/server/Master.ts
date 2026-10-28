@@ -38,6 +38,7 @@ import { renderAppShell } from "./RenderHtml";
 import { registerServedConfigRoutes } from "./ServedConfigRoutes";
 import { ServerEnv } from "./ServerEnv";
 import { sendShellPage } from "./ShellPageMeta";
+import { registerSeoPages } from "./SeoPages";
 import { registerShopRoutes } from "./shop/routes";
 import { registerSitemapRoutes } from "./SitemapRoute";
 import { applyStaticAssetCacheControl } from "./StaticAssetCache";
@@ -78,6 +79,9 @@ registerFriendsRoutes(app);
 registerServedConfigRoutes(app);
 registerShopRoutes(app);
 registerSitemapRoutes(app, { log });
+// Before the static handler, which would answer `/maps/<map>` from the map
+// asset folders.
+registerSeoPages(app, { log });
 // Before the static handler and the SPA fallback: the bare `/player/<id>`
 // link gets the player's head tags here.
 registerPlayerProfileRoute({ app, log, baseDir: __dirname });
