@@ -134,3 +134,47 @@ describe("Unit Grid range tests", () => {
     });
   });
 });
+
+describe("UnitGrid.maxUnitLevelNearby", () => {
+  test("returns the highest level of the player's posts in range", async () => {
+    const game = await setup("plains", {
+      infiniteGold: true,
+      instantBuild: true,
+    });
+    const player = game.addPlayer(
+      new PlayerInfo("p", PlayerType.Human, null, "p_id"),
+    );
+    const other = game.addPlayer(
+      new PlayerInfo("o", PlayerType.Human, null, "o_id"),
+    );
+    const grid = new UnitGrid(game.map());
+    const near = player.buildUnit(UnitType.DefensePost, game.ref(5, 0), {});
+    const far = player.buildUnit(UnitType.DefensePost, game.ref(80, 0), {});
+    const foreign = other.buildUnit(UnitType.DefensePost, game.ref(6, 0), {});
+    near.increaseLevel(1);
+    far.increaseLevel(2);
+    foreign.increaseLevel(2);
+    for (const u of [near, far, foreign]) grid.addUnit(u);
+
+    const at = game.ref(0, 0);
+    expect(grid.maxUnitLevelNearby(at, 30, UnitType.DefensePost, "p_id")).toBe(
+      2,
+    );
+    expect(grid.maxUnitLevelNearby(at, 30, UnitType.DefensePost, "o_id")).toBe(
+      3,
+    );
+    expect(
+      grid.maxUnitLevelNearby(
+        game.ref(40, 40),
+        5,
+        UnitType.DefensePost,
+        "p_id",
+      ),
+    ).toBe(0);
+
+    near.setUnderConstruction(true);
+    expect(grid.maxUnitLevelNearby(at, 30, UnitType.DefensePost, "p_id")).toBe(
+      0,
+    );
+  });
+});

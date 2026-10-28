@@ -1,4 +1,5 @@
 import { ID, isValidGameID } from "@openfront/engine-api/Schemas";
+import { shutdownAnalytics } from "./Analytics";
 import { CloseCode, CloseReason } from "@openfront/shared/CloseCodes";
 import { generateID } from "@openfront/shared/SharedUtil";
 import {
@@ -670,6 +671,10 @@ export async function startWorker() {
   });
 
   // Process-level error handlers
+  process.on("SIGTERM", () => {
+    void shutdownAnalytics().finally(() => process.exit(0));
+  });
+
   process.on("uncaughtException", (err) => {
     log.error(`uncaught exception:`, err);
   });

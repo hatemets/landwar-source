@@ -57,7 +57,10 @@ function serveRootPublicDir(publicDir: string): Plugin {
 // so the worker can mint a self-owned id. Runs as direct middleware (before
 // vite's /api proxy).
 const RANDOM_WORKER_PATHS = ["/api/create_game", "/api/adminbot/create_game"];
-function randomWorkerCreateProxy(numWorkers: number): Plugin {
+function randomWorkerCreateProxy(
+  numWorkers: number,
+  firstWorkerPort: number,
+): Plugin {
   return {
     name: "random-worker-create-proxy",
     configureServer(server) {
@@ -65,7 +68,7 @@ function randomWorkerCreateProxy(numWorkers: number): Plugin {
         if (req.method !== "POST") return next();
         const path = (req.url ?? "").split("?")[0];
         if (!RANDOM_WORKER_PATHS.includes(path)) return next();
-        const port = 3001 + Math.floor(Math.random() * numWorkers);
+        const port = firstWorkerPort + Math.floor(Math.random() * numWorkers);
         const proxyReq = http.request(
           {
             host: "localhost",
@@ -91,6 +94,9 @@ function randomWorkerCreateProxy(numWorkers: number): Plugin {
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
+  // The dev game server's master port; workers follow it
+  // (ServerEnv.masterPort). Set in .env when another app holds 3000.
+  const SERVER_PORT = env.SERVER_PORT ? Number(env.SERVER_PORT) : 3000;
   const isProduction = mode === "production";
   // Dev identity: the same INSTANCE_LETTER / NUM_WORKERS defaults the dev
   // server boots with (ServerEnv), so the dev-served index.html carries the
@@ -309,7 +315,7 @@ export default defineConfig(({ mode }) => {
       ...(!isProduction
         ? [
             serveRootPublicDir(getPublicDir(resourcesDir)),
-            randomWorkerCreateProxy(devNumWorkers),
+            randomWorkerCreateProxy(devNumWorkers, SERVER_PORT + 1),
           ]
         : []),
       ...(isProduction
@@ -336,7 +342,7 @@ export default defineConfig(({ mode }) => {
     define: {
       __ASSET_MANIFEST__: JSON.stringify(assetManifest),
       "process.env.WEBSOCKET_URL": JSON.stringify(
-        isProduction ? "" : "localhost:3000",
+        isProduction ? "" : `localhost:${SERVER_PORT}`,
       ),
       "process.env.GAME_ENV": JSON.stringify(isProduction ? "prod" : "dev"),
       // Add other process.env variables if needed, OR migrate code to import.meta.env
@@ -376,19 +382,19 @@ export default defineConfig(({ mode }) => {
       open: process.env.SKIP_BROWSER_OPEN !== "true",
       proxy: {
         "/lobbies": {
-          target: "ws://localhost:3000",
+          target: `ws://localhost:${SERVER_PORT}`,
           ws: true,
           changeOrigin: true,
         },
         // The ranked queues run on the master.
         "/matchmaking": {
-          target: "ws://localhost:3000",
+          target: `ws://localhost:${SERVER_PORT}`,
           ws: true,
           changeOrigin: true,
         },
         // Worker proxies
         "/w0": {
-          target: "ws://localhost:3001",
+          target: `ws://localhost:${SERVER_PORT + 1}`,
           ws: true,
           secure: false,
           changeOrigin: true,
@@ -396,7 +402,7 @@ export default defineConfig(({ mode }) => {
           rewrite: (path) => path.replace(/^\/w0/, ""),
         },
         "/w1": {
-          target: "ws://localhost:3002",
+          target: `ws://localhost:${SERVER_PORT + 2}`,
           ws: true,
           secure: false,
           changeOrigin: true,
@@ -405,7 +411,7 @@ export default defineConfig(({ mode }) => {
         },
         // API proxies
         "/api": {
-          target: "http://localhost:3000",
+          target: `http://localhost:${SERVER_PORT}`,
           changeOrigin: true,
           secure: false,
         },

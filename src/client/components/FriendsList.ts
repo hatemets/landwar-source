@@ -12,6 +12,7 @@ import {
 import { showInGameConfirm } from "../InGameModal";
 import { parsePlayerProfilePath } from "../utilities/PlayerProfileUrl";
 import { showToast, translateText } from "../Utils";
+import { renderGlobeLoader } from "./ConquestGlobe";
 import { playerNameLink } from "./ui/PlayerNameLink";
 import { menuIcon } from "./ui/MenuIcon";
 
@@ -258,13 +259,7 @@ export class FriendsList extends LitElement {
 
   render(): TemplateResult {
     if (this.loading) {
-      return html`
-        <div class="flex items-center justify-center p-12">
-          <div
-            class="w-10 h-10 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"
-          ></div>
-        </div>
-      `;
+      return renderGlobeLoader();
     }
 
     return html`

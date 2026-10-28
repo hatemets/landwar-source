@@ -307,6 +307,7 @@ export function recordGoldRates(player: PlayerView, game: GameView): void {
       trade: player.tradeGold(),
       train: player.trainGold(),
       piracy: player.piracyGold(),
+      reactor: player.reactorGold(),
     },
     game.ticks(),
   );

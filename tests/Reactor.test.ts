@@ -77,6 +77,15 @@ describe("Reactor", () => {
     );
   });
 
+  test("counts its payouts in reactorGold", async () => {
+    const { game, owner } = await twoPlayers();
+    buildReactor(game, owner, 40, 100);
+    const before = owner.reactorGold();
+    ticks(game, 10);
+    const rate = game.config().reactorGoldRate(owner);
+    expect(owner.reactorGold() - before).toBe(rate * 10n);
+  });
+
   test("pays nothing while under construction", async () => {
     const { game, owner } = await twoPlayers(false);
     owner.addGold(game.unitInfo(UnitType.Reactor).cost(game, owner));

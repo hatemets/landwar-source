@@ -50,6 +50,7 @@ describe("GameLeftSidebar", () => {
       tradeGold: () => 0,
       trainGold: () => 0,
       piracyGold: () => 0,
+      reactorGold: () => 0,
       goldEarned: () => 0,
       isAlive: () => true,
       isOnSameTeam: () => false,

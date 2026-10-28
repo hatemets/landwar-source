@@ -29,6 +29,7 @@ export interface TeamPreviewData {
 
 @customElement("lobby-player-view")
 export class LobbyTeamView extends LitElement {
+  @property({ type: Boolean }) tableLayout = false;
   @property({ type: String }) gameMode: GameMode = GameMode.FFA;
   @property({ type: Array }) clients: ClientInfo[] = [];
   @state() private teamPreview: TeamPreviewData[] = [];
@@ -116,13 +117,17 @@ export class LobbyTeamView extends LitElement {
           </div>
         </div>
         <div
-          class="players-list ${this.gameMode === GameMode.Team
-            ? "players-list--teams"
-            : "players-list--grid"} rounded-lg border border-white/10 bg-white/5 p-2"
+          class="players-list ${this.tableLayout
+            ? "players-list--table"
+            : this.gameMode === GameMode.Team
+              ? "players-list--teams"
+              : "players-list--grid"} rounded-lg border border-white/10 bg-white/5 p-2"
         >
-          ${this.gameMode === GameMode.Team
-            ? this.renderTeamMode()
-            : this.renderFreeForAll()}
+          ${this.tableLayout
+            ? this.renderRosterTable(this.activePlayers, "host_modal.players")
+            : this.gameMode === GameMode.Team
+              ? this.renderTeamMode()
+              : this.renderFreeForAll()}
         </div>
         ${this.renderSpectators()}
       </div>
@@ -148,23 +153,27 @@ export class LobbyTeamView extends LitElement {
             : translateText("host_modal.spectators")}
         </div>
         <div
-          class="players-list players-list--grid rounded-lg border border-white/10 bg-white/5 p-2"
+          class="players-list ${this.tableLayout
+            ? "players-list--table"
+            : "players-list--grid"} rounded-lg border border-white/10 bg-white/5 p-2"
         >
-          ${repeat(
-            spectators,
-            (c) => c.clientID ?? c.username,
-            (client) =>
-              html`<span
-                class="player-tag ${this.isCurrentPlayer(client)
-                  ? "current-player"
-                  : ""}"
-              >
-                <span class="text-white"
-                  >${this.getClientDisplayName(client)}
-                  ${this.renderVerifiedBadge(client)}</span
-                >
-              </span>`,
-          )}
+          ${this.tableLayout
+            ? this.renderRosterTable(spectators, "host_modal.spectators", false)
+            : repeat(
+                spectators,
+                (c) => c.clientID ?? c.username,
+                (client) =>
+                  html`<span
+                    class="player-tag ${this.isCurrentPlayer(client)
+                      ? "current-player"
+                      : ""}"
+                  >
+                    <span class="text-white"
+                      >${this.getClientDisplayName(client)}
+                      ${this.renderVerifiedBadge(client)}</span
+                    >
+                  </span>`,
+              )}
         </div>
       </div>
     `;
@@ -253,50 +262,93 @@ export class LobbyTeamView extends LitElement {
     </button>`;
   }
 
+  private renderRosterTable(
+    clients: ClientInfo[],
+    label: string,
+    showTeam = true,
+  ) {
+    const teams = showTeam && this.gameMode === GameMode.Team;
+    return html`<table class="lobby-roster-table">
+      <thead>
+        <tr>
+          <th scope="col">${translateText(label)}</th>
+          ${teams
+            ? html`<th scope="col">
+                ${translateText("host_modal.assigned_teams")}
+              </th>`
+            : null}
+        </tr>
+      </thead>
+      <tbody>
+        ${repeat(
+          clients,
+          (c) => c.clientID ?? c.username,
+          (client) => {
+            const team = this.teamPreview.find((t) =>
+              t.players.some((p) => p.clientID === client.clientID),
+            );
+            return html`<tr
+              class=${this.isCurrentPlayer(client)
+                ? "lobby-roster-table__self"
+                : ""}
+            >
+              <td>${this.renderPlayer(client)}</td>
+              ${teams
+                ? html`<td>
+                    ${team ? getTranslatedPlayerTeamLabel(team.team) : ""}
+                  </td>`
+                : null}
+            </tr>`;
+          },
+        )}
+      </tbody>
+    </table>`;
+  }
+
   private renderFreeForAll() {
     return html`${repeat(
       this.activePlayers,
       (c) => c.clientID ?? c.username,
-      (client) => {
-        const displayName = this.getClientDisplayName(client);
-        return html`<span
-          class="player-tag ${this.isCurrentPlayer(client)
-            ? "current-player"
-            : ""}"
-        >
-          <span class="text-white"
-            >${displayName} ${this.renderVerifiedBadge(client)}
-            ${this.renderFriendBadge(client)}</span
-          >
-          ${this.renderRevealToggle(client.clientID)}
-          ${client.clientID === this.lobbyCreatorClientID
-            ? html`<span class="host-badge"
-                >(${translateText("host_modal.host_badge")})</span
-              >`
-            : this.onKickPlayer
-              ? html`<button
-                  class="remove-player-btn"
-                  @click=${() => this.onKickPlayer?.(client.clientID)}
-                  aria-label=${translateText("host_modal.remove_player", {
-                    username: displayName,
-                  })}
-                >
-                  <svg
-                    class="h-2.5 w-2.5 stroke-white"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2.5"
-                    stroke-linecap="round"
-                  >
-                    <line x1="4" y1="4" x2="12" y2="12" />
-                    <line x1="12" y1="4" x2="4" y2="12" />
-                  </svg>
-                </button>`
-              : html``}
-        </span>`;
-      },
-    )} `;
+      (client) => this.renderPlayer(client),
+    )}`;
+  }
+
+  private renderPlayer(client: ClientInfo) {
+    const displayName = this.getClientDisplayName(client);
+    return html`<span
+      class="player-tag ${this.isCurrentPlayer(client) ? "current-player" : ""}"
+    >
+      <span class="text-white"
+        >${displayName} ${this.renderVerifiedBadge(client)}
+        ${this.renderFriendBadge(client)}</span
+      >
+      ${this.renderRevealToggle(client.clientID)}
+      ${client.clientID === this.lobbyCreatorClientID
+        ? html`<span class="host-badge"
+            >(${translateText("host_modal.host_badge")})</span
+          >`
+        : this.onKickPlayer
+          ? html`<button
+              class="remove-player-btn"
+              @click=${() => this.onKickPlayer?.(client.clientID)}
+              aria-label=${translateText("host_modal.remove_player", {
+                username: displayName,
+              })}
+            >
+              <svg
+                class="h-2.5 w-2.5 stroke-white"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+              >
+                <line x1="4" y1="4" x2="12" y2="12" />
+                <line x1="12" y1="4" x2="4" y2="12" />
+              </svg>
+            </button>`
+          : html``}
+    </span>`;
   }
 
   private renderTeamCard(preview: TeamPreviewData, isEmpty: boolean = false) {

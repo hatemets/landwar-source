@@ -16,6 +16,7 @@
     "src/scripts",
     "scripts/replay",
     "scripts/split-packages",
+    "scripts/seed-dummy-accounts.ts",
     "vite.config.ts"
   ],
   "exclude": [

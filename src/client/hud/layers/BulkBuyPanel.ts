@@ -9,6 +9,7 @@ import { customElement, state } from "lit/decorators.js";
 import { Controller } from "../../Controller";
 import { SendMaxUpgradeIntentEvent } from "../../Transport";
 import { GameView } from "../../view";
+import { PanelDrag } from "./lib/PanelDrag";
 
 const POS_KEY = "bulkBuyPanelPos";
 const LABELS: Partial<Record<UnitType, string>> = {
@@ -46,26 +47,16 @@ export class BulkBuyPanel extends LitElement implements Controller {
   @state() private gold = 0n;
   @state() private visible = false;
   @state() private message = "";
-  @state() private pos: { x: number; y: number } | null = null;
 
   private pending: Pending | null = null;
-  private drag: { dx: number; dy: number } | null = null;
   private lastKey = "";
+  private readonly drag = new PanelDrag(this, POS_KEY, ".bulk-buy-panel");
 
   createRenderRoot() {
     return this;
   }
 
-  init() {
-    try {
-      const raw = localStorage.getItem(POS_KEY);
-      const p = raw ? JSON.parse(raw) : null;
-      if (p && Number.isFinite(p.x) && Number.isFinite(p.y)) this.pos = p;
-    } catch {
-      // storage unavailable: keep the default position
-    }
-    window.addEventListener("resize", () => this.clampToViewport());
-  }
+  init() {}
 
   getTickIntervalMs() {
     return 250;
@@ -132,54 +123,12 @@ export class BulkBuyPanel extends LitElement implements Controller {
     this.eventBus.emit(new SendMaxUpgradeIntentEvent(owned));
   }
 
-  private onDragStart(e: PointerEvent) {
-    if (e.button !== 0) return;
-    const box = this.panel()?.getBoundingClientRect();
-    if (!box) return;
-    this.drag = { dx: e.clientX - box.left, dy: e.clientY - box.top };
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    e.preventDefault();
-  }
-
-  private onDragMove(e: PointerEvent) {
-    if (this.drag === null) return;
-    this.pos = this.clamp(e.clientX - this.drag.dx, e.clientY - this.drag.dy);
-  }
-
-  private onDragEnd() {
-    if (this.drag === null) return;
-    this.drag = null;
-    try {
-      localStorage.setItem(POS_KEY, JSON.stringify(this.pos));
-    } catch {
-      // storage unavailable: the position lasts for this game only
-    }
-  }
-
-  private panel(): HTMLElement | null {
-    return this.querySelector(".bulk-buy-panel");
-  }
-
-  private clamp(x: number, y: number) {
-    const box = this.panel()?.getBoundingClientRect();
-    const w = box?.width ?? 220;
-    const h = box?.height ?? 200;
-    return {
-      x: Math.min(Math.max(0, x), Math.max(0, window.innerWidth - w)),
-      y: Math.min(Math.max(0, y), Math.max(0, window.innerHeight - h)),
-    };
-  }
-
-  private clampToViewport() {
-    if (this.pos) this.pos = this.clamp(this.pos.x, this.pos.y);
-  }
-
   render() {
     if (!this.visible) return html``;
     // Default: center of the left edge.
-    const place = this.pos
-      ? `left:${this.pos.x}px;top:${this.pos.y}px;`
-      : "left:12px;top:50%;transform:translateY(-50%);";
+    const place = this.drag.style(
+      "left:12px;top:50%;transform:translateY(-50%);",
+    );
     const anyOwned = this.rows.some((r) => r.enabled && r.count > 0);
     return html`
       <div
@@ -189,10 +138,10 @@ export class BulkBuyPanel extends LitElement implements Controller {
       >
         <div
           class="flex cursor-move items-center justify-between px-4 pt-3 pb-2 font-semibold touch-none"
-          @pointerdown=${this.onDragStart}
-          @pointermove=${this.onDragMove}
-          @pointerup=${this.onDragEnd}
-          @pointercancel=${this.onDragEnd}
+          @pointerdown=${this.drag.handlers.pointerdown}
+          @pointermove=${this.drag.handlers.pointermove}
+          @pointerup=${this.drag.handlers.pointerup}
+          @pointercancel=${this.drag.handlers.pointercancel}
         >
           <span>Bulk buy</span>
           <span class="font-normal tabular-nums text-gray-400"

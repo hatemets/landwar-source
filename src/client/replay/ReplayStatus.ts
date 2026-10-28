@@ -7,6 +7,7 @@
 import { html, LitElement, nothing } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import "../components/baseComponents/Button";
+import "../components/ConquestGlobe";
 import { translateText } from "../Utils";
 import { exitButton } from "./ReplayControls";
 import { classicReplayHref } from "./ReplayEntry";
@@ -106,15 +107,11 @@ export class ReplayStatus extends LitElement {
   }
 }
 
-/** Spinner, same as the lobby's. */
+/** The conquest globe, same as the lobby's loader. */
 function spinner() {
-  return html`
-    <div
-      class="w-14 h-14 rounded-full border border-malibu-blue/40 bg-malibu-blue/10 flex items-center justify-center"
-    >
-      <div
-        class="w-7 h-7 border-[3px] border-white/20 border-t-white rounded-full animate-spin"
-      ></div>
-    </div>
-  `;
+  return html`<conquest-globe
+    class="block size-40 max-w-full"
+    exclusive
+    orbiting
+  ></conquest-globe>`;
 }

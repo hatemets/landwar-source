@@ -980,6 +980,7 @@ export class ClientGameRunner {
     console.log("starting client game");
     const config = this.lobby.gameStartInfo?.config;
     track("match_ready", {
+      game_id: this.lobby.gameID,
       game_type: config?.gameType ?? "unknown",
       ranked: config?.rankedType !== undefined,
     });

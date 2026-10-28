@@ -5,8 +5,8 @@ import { GoldRateTracker } from "../src/client/hud/layers/lib/GoldRateTracker";
 // (600 ticks), not per wall-clock minute — a frozen sim clock must yield 0.
 const TICKS_PER_MIN = 600;
 
-function sample(income: number, trade = 0, train = 0, piracy = 0) {
-  return { income, trade, train, piracy };
+function sample(income: number, trade = 0, train = 0, piracy = 0, reactor = 0) {
+  return { income, trade, train, piracy, reactor };
 }
 
 describe("GoldRateTracker", () => {
@@ -55,13 +55,14 @@ describe("GoldRateTracker", () => {
 
   it("computes independent rates per source and per player", () => {
     const t = new GoldRateTracker();
-    t.record(1, sample(0, 100, 200, 300), 0);
-    t.record(1, sample(0, 400, 200, 900), TICKS_PER_MIN / 2);
+    t.record(1, sample(0, 100, 200, 300, 0), 0);
+    t.record(1, sample(0, 400, 200, 900, 250), TICKS_PER_MIN / 2);
     t.record(2, sample(0, 0, 0, 0), 0);
     t.record(2, sample(0, 50, 0, 0), TICKS_PER_MIN / 2);
     expect(t.shipTradeGoldPerMin(1)).toBeCloseTo(600); // +300 over 0.5 min
     expect(t.trainTradeGoldPerMin(1)).toBe(0); // unchanged
     expect(t.piracyGoldPerMin(1)).toBeCloseTo(1200); // +600 over 0.5 min
+    expect(t.reactorGoldPerMin(1)).toBeCloseTo(500); // +250 over 0.5 min
     expect(t.shipTradeGoldPerMin(2)).toBeCloseTo(100);
     expect(t.piracyGoldPerMin(2)).toBe(0);
   });

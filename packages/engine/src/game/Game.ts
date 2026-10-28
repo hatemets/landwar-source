@@ -379,6 +379,10 @@ export interface Player extends PlayerLike {
   piracyGold(): Gold;
   addPiracyGold(toAdd: Gold): void;
 
+  // Cumulative reactor revenue (ReactorExecution payouts).
+  reactorGold(): Gold;
+  addReactorGold(toAdd: Gold): void;
+
   // Cumulative gold received from ALL sources (workers, trade, trains,
   // piracy, conquest, donations). Incremented inside addGold(); surfaced on
   // the live PlayerUpdate for the leaderboard "Gold Income/min" column.
@@ -605,6 +609,14 @@ export interface Game extends GameLike {
     playerId?: PlayerID,
     includeUnderConstruction?: boolean,
   ): boolean;
+  /** Highest level of the player's finished units of `type` in range, or 0. */
+  maxUnitLevelNearby(
+    tile: TileRef,
+    searchRange: number,
+    type: UnitType,
+    playerId: PlayerID,
+    stopAtLevel?: number,
+  ): number;
   nearbyUnits(
     tile: TileRef,
     searchRange: number,

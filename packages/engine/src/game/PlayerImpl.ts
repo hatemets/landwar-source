@@ -148,6 +148,8 @@ export class PlayerImpl implements Player {
   private _trainGold: bigint = 0n;
   /** Cumulative piracy revenue: payouts for captured trade ships. */
   private _piracyGold: bigint = 0n;
+  /** Cumulative reactor revenue: per-tick payouts from built reactors. */
+  private _reactorGold: bigint = 0n;
   /** Cumulative gold received from all sources (incremented in addGold). */
   private _goldEarned: bigint = 0n;
 
@@ -397,6 +399,7 @@ export class PlayerImpl implements Player {
       tradeGold: this._tradeGold,
       trainGold: this._trainGold,
       piracyGold: this._piracyGold,
+      reactorGold: this._reactorGold,
       goldEarned: this._goldEarned,
       troops: this.troops(),
       allies: allies,
@@ -1340,6 +1343,14 @@ export class PlayerImpl implements Player {
     this._piracyGold += toAdd;
   }
 
+  reactorGold(): Gold {
+    return this._reactorGold;
+  }
+
+  addReactorGold(toAdd: Gold): void {
+    this._reactorGold += toAdd;
+  }
+
   goldEarned(): Gold {
     return this._goldEarned;
   }
@@ -1476,6 +1487,12 @@ export class PlayerImpl implements Player {
     return Boolean(this.mg.config().unitInfo(unitType).upgradable);
   }
 
+  // Levels the unit can still gain before it hits its type's maxLevel.
+  private levelsLeft(unit: Unit): number {
+    const max = this.mg.config().unitInfo(unit.type()).maxLevel;
+    return max === undefined ? Infinity : Math.max(0, max - unit.level());
+  }
+
   private isUnitValidToUpgrade(unit: Unit): boolean {
     if (unit.isUnderConstruction()) {
       return false;
@@ -1497,6 +1514,9 @@ export class PlayerImpl implements Player {
       return false;
     }
     if (!this.isUnitValidToUpgrade(unit)) {
+      return false;
+    }
+    if (this.levelsLeft(unit) <= 0) {
       return false;
     }
     return true;
@@ -1536,6 +1556,7 @@ export class PlayerImpl implements Player {
       for (let i = 0; i < units.length; i++) {
         const t = units[i].type();
         if (tooDear.has(t)) continue;
+        if (perUnit[i] >= this.levelsLeft(units[i])) continue;
         const cost = config.unitInfo(t).cost(mg, this, extra(t));
         if (spent + cost > this._gold) {
           tooDear.add(t);
@@ -1581,6 +1602,7 @@ export class PlayerImpl implements Player {
 
       const cost = config.unitInfo(u).cost(mg, this);
       let canUpgrade: number | false = false;
+      let upgradeLevelsLeft = 0;
       let canBuild: TileRef | false = false;
 
       if (tile !== null && this.canBuildUnitType(u, cost) && !inSpawnPhase) {
@@ -1590,7 +1612,8 @@ export class PlayerImpl implements Player {
             existingUnit !== false &&
             this.isUnitValidToUpgrade(existingUnit)
           ) {
-            canUpgrade = existingUnit.id();
+            upgradeLevelsLeft = this.levelsLeft(existingUnit);
+            if (upgradeLevelsLeft > 0) canUpgrade = existingUnit.id();
           }
         }
         canBuild = this.canSpawnUnitType(u, tile, validTiles);
@@ -1606,9 +1629,15 @@ export class PlayerImpl implements Player {
         canUpgrade !== false ||
         (u === UnitType.Warship && canBuild !== false)
       ) {
-        upgradeCosts = new Array<Gold>(MAX_UPGRADE_AMOUNT);
+        // A capped structure ships only the levels it can still gain, so the
+        // bulk menu never offers more (see maxBulkAmount).
+        const steps =
+          canUpgrade !== false
+            ? Math.min(MAX_UPGRADE_AMOUNT, upgradeLevelsLeft)
+            : MAX_UPGRADE_AMOUNT;
+        upgradeCosts = new Array<Gold>(steps);
         let total = 0n;
-        for (let n = 0; n < MAX_UPGRADE_AMOUNT; n++) {
+        for (let n = 0; n < steps; n++) {
           total += config.unitInfo(u).cost(mg, this, n);
           upgradeCosts[n] = total;
         }
@@ -2039,6 +2068,7 @@ export class PlayerImpl implements Player {
       tradeGold: this._tradeGold,
       trainGold: this._trainGold,
       piracyGold: this._piracyGold,
+      reactorGold: this._reactorGold,
       goldEarned: this._goldEarned,
       markedTraitorTick: this.markedTraitorTick,
       markedDoomsdayClockTick: this.markedDoomsdayClockTick,
@@ -2111,6 +2141,7 @@ export class PlayerImpl implements Player {
     this._tradeGold = s.tradeGold;
     this._trainGold = s.trainGold;
     this._piracyGold = s.piracyGold;
+    this._reactorGold = s.reactorGold;
     this._goldEarned = s.goldEarned;
     this.markedTraitorTick = s.markedTraitorTick;
     this.markedDoomsdayClockTick = s.markedDoomsdayClockTick;
@@ -2173,7 +2204,11 @@ export class PlayerImpl implements Player {
 
 export const PlayerSnapshot = snapshotType({
   name: "Player",
-  version: 1,
+  version: 2,
+  migrations: {
+    // v2 tracks reactor revenue; earlier games start the counter at 0.
+    1: (d) => ({ ...d, reactorGold: 0n }),
+  },
   schema: z.object({
     smallID: zInt(),
     info: PlayerInfoSchema,
@@ -2186,6 +2221,7 @@ export const PlayerSnapshot = snapshotType({
     tradeGold: z.bigint(),
     trainGold: z.bigint(),
     piracyGold: z.bigint(),
+    reactorGold: z.bigint(),
     goldEarned: z.bigint(),
     markedTraitorTick: zInt(),
     markedDoomsdayClockTick: zInt(),

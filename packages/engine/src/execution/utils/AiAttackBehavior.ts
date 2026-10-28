@@ -1892,7 +1892,7 @@ export class AiAttackBehavior {
           isTraitor: bot.isTraitor(),
           isDisconnectedTeammate: false,
         },
-        defenderHasDefensePost: false,
+        defensePostLevel: 0,
         falloutRatio: null,
         borderSize: 1,
       }).attackerTroopLoss;

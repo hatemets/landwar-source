@@ -2,6 +2,7 @@ import type { Db } from "@kleopolis/db/client";
 import { users } from "@kleopolis/db/schema";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import { customAlphabet } from "nanoid";
+import { trackServer } from "../Analytics";
 import type { ProviderProfile } from "./google";
 import type { UserRow } from "./sessions";
 
@@ -109,6 +110,7 @@ export async function upsertProviderUser(
     })
     .returning();
   if (!created) throw new Error("user insert returned no row");
+  trackServer(created.id, "signed_up", { provider: field });
   return { type: "ok", user: created };
 }
 

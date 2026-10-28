@@ -9,11 +9,12 @@ import {
   LobbyInfoEvent,
   PublicGameInfo,
 } from "@openfront/shared/WireSchemas";
-import { html, TemplateResult } from "lit";
+import { html, nothing, TemplateResult } from "lit";
 import { customElement, property, query, state } from "lit/decorators.js";
 import { ClientEnv } from "src/client/ClientEnv";
 import {
   calculateServerTimeOffset,
+  getActiveModifiers,
   getGameModeLabel,
   getMapName,
   getSecondsUntilServerTimestamp,
@@ -32,12 +33,13 @@ import { BaseModal } from "./components/BaseModal";
 import { renderGlobeLoader } from "./components/ConquestGlobe";
 import "./components/CopyButton";
 import { GameStartAlertController } from "./components/GameStartAlertController";
+import { LobbyCardIconTag, lobbyCard } from "./components/LobbyCard";
 import "./components/LobbyPlayerView";
 import { DEFAULT_TITLE_CLASS, modalHeader } from "./components/ui/ModalHeader";
 import { openReplayViewer } from "./replay/ReplayEntry";
 import { nationsConfigToSlider } from "./utilities/GameConfigHelpers";
 import {
-  disabledUnitsBox,
+  disabledUnitsTable,
   hostCheatsBox,
   lobbySettingsTable,
   lobbySettingTagText,
@@ -234,6 +236,7 @@ export class JoinLobbyModal extends BaseModal {
                   ? html`
                       <lobby-player-view
                         class="mt-6"
+                        .tableLayout=${true}
                         .gameMode=${this.gameConfig?.gameMode ?? GameMode.FFA}
                         .clients=${this.players}
                         .lobbyCreatorClientID=${hostClientID}
@@ -306,40 +309,18 @@ export class JoinLobbyModal extends BaseModal {
         class="lobby-experience lobby-experience--join-form custom-scrollbar p-6 space-y-4 mr-1"
       >
         <form @submit=${this.joinLobbyFromInput}>
-          <div class="flex flex-col gap-3">
-            <div class="flex gap-2">
-              <input
-                type="text"
-                id="lobbyIdInput"
-                placeholder=${translateText("private_lobby.enter_id")}
-                @keyup=${this.handleChange}
-                class="field-input flex-1"
-                autocomplete="off"
-                spellcheck="false"
-              />
-              <o-button
-                variant="secondary"
-                size="md"
-                iconPosition="only"
-                .title=${translateText("common.paste")}
-                .icon=${html`<svg
-                  stroke="currentColor"
-                  fill="currentColor"
-                  stroke-width="0"
-                  viewBox="0 0 32 32"
-                  height="18px"
-                  width="18px"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M 15 3 C 13.742188 3 12.847656 3.890625 12.40625 5 L 5 5 L 5 28 L 13 28 L 13 30 L 27 30 L 27 14 L 25 14 L 25 5 L 17.59375 5 C 17.152344 3.890625 16.257813 3 15 3 Z M 15 5 C 15.554688 5 16 5.445313 16 6 L 16 7 L 19 7 L 19 9 L 11 9 L 11 7 L 14 7 L 14 6 C 14 5.445313 14.445313 5 15 5 Z M 7 7 L 9 7 L 9 11 L 21 11 L 21 7 L 23 7 L 23 14 L 13 14 L 13 26 L 7 26 Z M 15 16 L 25 16 L 25 28 L 15 28 Z"
-                  ></path>
-                </svg>`}
-                @click=${this.pasteFromClipboard}
-              ></o-button>
-            </div>
-            <div class="flex gap-2">
-              <div class="flex-[2]">
+          <div class="flex flex-col gap-3 md:flex-row md:gap-2">
+            <input
+              type="text"
+              id="lobbyIdInput"
+              placeholder=${translateText("private_lobby.enter_id")}
+              @keyup=${this.handleChange}
+              class="field-input md:flex-1"
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <div class="flex gap-2 md:flex-1">
+              <div class="flex-[2] md:flex-1">
                 <o-button
                   title=${translateText("private_lobby.join_lobby")}
                   width="block"
@@ -365,19 +346,26 @@ export class JoinLobbyModal extends BaseModal {
   private renderHostedLobbies() {
     let content: TemplateResult;
     if (!this.hostedLobbiesLoaded) {
-      content = html`<div class="flex justify-center py-3">
-        <div
-          class="w-5 h-5 border-2 border-white/15 border-t-[var(--field-accent)] rounded-full animate-spin"
-        ></div>
-      </div>`;
+      content = renderGlobeLoader(undefined, { compact: true });
     } else if (this.hostedLobbies.length === 0) {
-      content = html`<p class="text-sm text-white/50">
-        ${translateText("private_lobby.no_open_lobbies")}
-      </p>`;
-    } else {
       content = html`<div
-        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-6"
+        role="status"
+        aria-live="polite"
+        class="lobby-empty-state lobby-empty-state--large"
       >
+        <img
+          class="lobby-empty-state__art"
+          src=${assetUrl("images/illustrations/FindLobby.webp")}
+          alt=""
+          aria-hidden="true"
+          draggable="false"
+        />
+        <p class="lobby-empty-state__message">
+          ${translateText("private_lobby.no_open_lobbies")}
+        </p>
+      </div>`;
+    } else {
+      content = html`<div class="menu-lobby-list menu-lobby-list--wide">
         ${this.hostedLobbies.map((lobby) => this.renderHostedLobbyRow(lobby))}
       </div>`;
     }
@@ -393,104 +381,59 @@ export class JoinLobbyModal extends BaseModal {
 
   private renderHostedLobbyRow(lobby: PublicGameInfo) {
     const c = lobby.gameConfig;
-    const mapName = c ? (getMapName(c.gameMap) ?? c.gameMap) : "";
-    const thumbnailUrl = c
-      ? assetUrl(
-          `maps/${encodeURIComponent(normaliseMapKey(c.gameMap))}/thumbnail.webp`,
-        )
-      : "";
+    if (!c) return nothing;
+    // The card already tags the lobby's modifiers; a setting they cover
+    // would show twice.
+    const modifiers = getActiveModifiers(
+      c.publicGameModifiers,
+      c.doomsdayClock?.speed,
+    );
+    const covered = new Set(modifiers.map((m) => translateText(m.labelKey)));
+    if (c.publicGameModifiers?.startingGold) {
+      covered.add(translateText("private_lobby.starting_gold"));
+    }
     // Nation count for this map isn't loaded pre-join, so the numeric-nations
-    // default comparison is skipped in the row chips.
-    const settings = c ? notableLobbySettings(c, null) : [];
-    const disabledUnitCount = c?.disabledUnits?.length ?? 0;
-    // A featured lobby names itself; the map drops to the subtitle so nothing
-    // is lost. Interpolated by lit as TEXT, never markup — emoji render because
-    // they are ordinary codepoints, and the accent comes from a closed set so a
-    // label can never restyle the rest of the list.
-    const featuredLabel = lobby.featured ? lobby.label : undefined;
-    const accentClass =
-      featuredLabel === undefined
-        ? "text-white"
-        : {
-            gold: "text-amber-300",
-            blue: "text-sky-300",
-            green: "text-emerald-300",
-            red: "text-rose-300",
-          }[lobby.accent ?? "gold"];
-    const subtitle = c ? getGameModeLabel(c) : "";
-    // The map name only moves down here when a label has taken the title line.
-    const subtitleLine = featuredLabel
-      ? [mapName, subtitle].filter(Boolean).join(" · ")
-      : subtitle;
+    // default comparison is skipped in the tags.
+    const immunity = translateText("private_lobby.pvp_immunity");
+    const tags: (string | LobbyCardIconTag)[] = notableLobbySettings(c, null)
+      .filter((s) => !covered.has(s.label))
+      .map((s) =>
+        s.label === immunity
+          ? { icon: "immunity", text: s.value, label: lobbySettingTagText(s) }
+          : lobbySettingTagText(s),
+      );
+    const disabledUnitCount = c.disabledUnits?.length ?? 0;
+    // A struck-out modifier ("Nukes") already says which units are off.
+    const unitsTagged = modifiers.some(
+      (m) =>
+        m.turnsOff &&
+        m.labelKey !== "public_game_modifier.disable_alliances_label",
+    );
+    if (disabledUnitCount > 0 && !unitsTagged) {
+      tags.push(
+        `${translateText("private_lobby.disabled_units")}: ${disabledUnitCount}`,
+      );
+    }
     // The host's Start countdown once armed, otherwise the listing deadline.
     const startAt = lobby.startsAt ?? lobby.autoStartAt;
     const secondsToStart =
       startAt === undefined
         ? undefined
         : getSecondsUntilServerTimestamp(startAt, this.hostedServerTimeOffset);
-    // Settings read as one quiet line of text under the map, not a row of
-    // chips: the map is what a player picks a lobby by.
-    const details = [
-      subtitleLine,
-      ...settings.map((s) => lobbySettingTagText(s)),
-      ...(disabledUnitCount > 0
-        ? [
-            `${translateText("private_lobby.disabled_units")}: ${disabledUnitCount}`,
-          ]
-        : []),
-    ]
-      .filter(Boolean)
-      .join(" · ");
-    return html`
-      <button
-        type="button"
-        @click=${() => this.joinHostedLobby(lobby)}
-        class="group flex flex-col items-stretch! gap-2 min-w-0 text-left! rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--field-accent)]"
-      >
-        <div
-          class="relative w-full aspect-[16/10] rounded-lg overflow-hidden bg-[var(--field-raised)]"
-        >
-          <img
-            src=${thumbnailUrl}
-            alt=${mapName}
-            class="absolute inset-0 w-full h-full object-cover transition-opacity duration-150 group-hover:opacity-80"
-            @error=${(e: Event) => {
-              (e.target as HTMLImageElement).style.display = "none";
-            }}
-          />
-        </div>
-        <div class="flex items-baseline gap-3 min-w-0">
-          <span class="text-base font-semibold truncate ${accentClass}"
-            >${featuredLabel ?? mapName}</span
-          >
-          ${lobby.custom
-            ? html`<span class="text-xs text-[var(--field-warning)] shrink-0"
-                >${translateText("public_lobby.custom")}</span
-              >`
-            : ""}
-          <span
-            class="ml-auto flex items-center gap-1 text-sm text-[var(--field-muted)] tabular-nums shrink-0"
-          >
-            ${lobby.numClients}${c?.maxPlayers ? `/${c.maxPlayers}` : ""}
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.972 0 004 15v3H1v-3a3 3 0 013.75-2.906z"
-              ></path>
-            </svg>
-          </span>
-          ${secondsToStart === undefined
-            ? ""
-            : html`<span
-                class="text-sm text-[var(--field-warning)] tabular-nums shrink-0"
-                title=${translateText("host_modal.auto_start_timer")}
-                >${secondsToStart > 0
-                  ? renderDuration(secondsToStart)
-                  : translateText("public_lobby.starting_game")}</span
-              >`}
-        </div>
-        <p class="-mt-1 text-sm text-[var(--field-muted)]">${details}</p>
-      </button>
-    `;
+    // The same card as the homepage's upcoming list: the map fills it and
+    // the details sit on the map.
+    return lobbyCard({
+      lobby,
+      subtitle: getGameModeLabel(c),
+      timeDisplay:
+        secondsToStart === undefined
+          ? ""
+          : secondsToStart > 0
+            ? renderDuration(secondsToStart)
+            : translateText("public_lobby.starting_game"),
+      tags,
+      onClick: () => void this.joinHostedLobby(lobby),
+    });
   }
 
   private async joinHostedLobby(lobby: PublicGameInfo) {
@@ -696,41 +639,30 @@ export class JoinLobbyModal extends BaseModal {
 
     const settings = notableLobbySettings(c, this.nationCount);
 
-    // object-contain, not object-cover: the preview is here to be studied
-    // while waiting, so a wide or tall map must show whole rather than cropped
-    // to the box. max-h keeps a tall map from pushing the player list away.
-    // The frame stretches to the height of the settings beside it and centres
-    // the map, so a long list of settings leaves no gap under the preview.
-    // With no settings to show, the preview takes the whole row.
+    // Size the frame to the image, so tall maps do not leave wide gutters.
+
     return html`
       <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-3">
         <span class="text-lg font-bold text-white">${mapName}</span>
         <span class="text-sm text-white/60">${modeSubtitle}</span>
       </div>
-      <div class="flex flex-col sm:flex-row gap-4 mb-6">
-        <div
-          data-test-map-preview
-          class="flex items-center justify-center w-full ${settings.length > 0
-            ? "sm:w-3/5"
-            : ""} shrink-0 rounded-lg border border-white/10 bg-black/20 overflow-hidden"
-        >
+      <div class="lobby-briefing">
+        <div data-test-map-preview class="lobby-briefing__map">
           <img
             src=${thumbnailUrl}
             alt=${mapName ?? c.gameMap}
-            class="block w-full max-h-60 object-contain"
+            class="block object-contain"
             @error=${(e: Event) => {
               const frame = (e.target as HTMLElement).parentElement;
               if (frame) frame.style.display = "none";
             }}
           />
         </div>
-        ${settings.length > 0
-          ? html`<div data-test-lobby-settings class="min-w-0 flex-1">
-              ${lobbySettingsTable(settings)}
-            </div>`
-          : html``}
+        <div data-test-lobby-settings class="lobby-briefing__details">
+          ${settings.length > 0 ? lobbySettingsTable(settings) : nothing}
+          ${disabledUnitsTable(c)} ${hostCheatsBox(c, "mt-4")}
+        </div>
       </div>
-      ${disabledUnitsBox(c, "mt-4 mb-6")} ${hostCheatsBox(c, "mt-4 mb-6")}
     `;
   }
 
@@ -890,15 +822,6 @@ export class JoinLobbyModal extends BaseModal {
   private handleChange(e: Event) {
     const value = (e.target as HTMLInputElement).value.trim();
     this.setLobbyId(value);
-  }
-
-  private async pasteFromClipboard() {
-    try {
-      const clipText = await navigator.clipboard.readText();
-      this.setLobbyId(clipText);
-    } catch (err) {
-      console.warn("Failed to read clipboard contents: ", err);
-    }
   }
 
   private joinLobbyFromInput(e: SubmitEvent): Promise<void> {

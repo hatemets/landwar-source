@@ -4,6 +4,7 @@ import { modalRouter } from "../ModalRouter";
 import "./baseComponents/Modal";
 import type { OModal, OModalTab } from "./baseComponents/Modal";
 import "./ConfirmDialog";
+import { renderGlobeLoader } from "./ConquestGlobe";
 
 /**
  * Static-ish configuration for the <o-modal> shell.
@@ -314,43 +315,18 @@ export abstract class BaseModal extends LitElement {
     window.removeEventListener("keydown", this.handleKeyDown);
   }
 
-  protected renderLoadingSpinner(
-    message?: string,
-    spinnerColor: "blue" | "green" | "yellow" | "white" = "blue",
-  ): TemplateResult {
-    return renderLoadingSpinner(message, spinnerColor);
+  protected renderLoadingSpinner(message?: string): TemplateResult {
+    return renderLoadingSpinner(message);
   }
 }
 
-const spinnerColorClasses: Record<string, string> = {
-  blue: "border-blue-500/30 border-t-blue-500",
-  green: "border-green-500/30 border-t-green-500",
-  yellow: "border-yellow-500/30 border-t-yellow-500",
-  white: "border-white/20 border-t-white",
-};
-
 /**
- * Renders a standardized loading spinner with optional custom message.
- * Use this for consistent loading states across all modals.
+ * Renders the standard loading state: the conquest globe with an optional
+ * message. Use this for consistent loading states across all modals.
  */
 export function renderLoadingSpinner(
   message?: string,
-  spinnerColor: "blue" | "green" | "yellow" | "white" = "blue",
+  options?: { compact?: boolean },
 ): TemplateResult {
-  return html`
-    <div
-      class="flex flex-col items-center justify-center p-12 text-white h-full min-h-[400px]"
-    >
-      <div
-        class="w-12 h-12 border-4 ${spinnerColorClasses[
-          spinnerColor
-        ]} rounded-full animate-spin mb-4"
-      ></div>
-      ${message
-        ? html`<p class="text-white/60 font-medium tracking-wide animate-pulse">
-            ${message}
-          </p>`
-        : ""}
-    </div>
-  `;
+  return renderGlobeLoader(message, options);
 }

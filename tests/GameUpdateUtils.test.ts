@@ -25,6 +25,7 @@ function makePlayerState(overrides: Partial<PlayerState> = {}): PlayerState {
     tradeGold: 0,
     trainGold: 0,
     piracyGold: 0,
+    reactorGold: 0,
     goldEarned: 0,
     troops: 100,
     isTraitor: false,
@@ -116,6 +117,7 @@ describe("diffPlayerUpdate", () => {
       tradeGold: 100n,
       trainGold: 50n,
       piracyGold: 10n,
+      reactorGold: 7n,
       goldEarned: 500n,
     });
     expect(
@@ -125,6 +127,7 @@ describe("diffPlayerUpdate", () => {
           tradeGold: 100n,
           trainGold: 50n,
           piracyGold: 10n,
+          reactorGold: 7n,
           goldEarned: 500n,
         }),
       ),
@@ -135,11 +138,13 @@ describe("diffPlayerUpdate", () => {
         tradeGold: 150n,
         trainGold: 50n,
         piracyGold: 25n,
+        reactorGold: 9n,
         goldEarned: 800n,
       }),
     )!;
     expect(diff.tradeGold).toBe(150n);
     expect(diff.piracyGold).toBe(25n);
+    expect(diff.reactorGold).toBe(9n);
     expect(diff.trainGold).toBeUndefined();
     // goldEarned is packed-channel only — ignored by the object diff.
     expect(diff.goldEarned).toBeUndefined();

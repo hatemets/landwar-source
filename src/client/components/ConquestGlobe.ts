@@ -25,14 +25,24 @@ const CLICK_SLOP = 6;
 /** Fired when the player clicks a region pin. */
 export type GlobeRegionSelectEvent = CustomEvent<{ region: MapRegion }>;
 
-/** A small globe with a status line, in place of a loading spinner. */
-export function renderGlobeLoader(message?: string): TemplateResult {
+/**
+ * A small globe with a status line, in place of a loading spinner. A
+ * `compact` one fits a list footer or a section still loading.
+ */
+export function renderGlobeLoader(
+  message?: string,
+  { compact = false }: { compact?: boolean } = {},
+): TemplateResult {
   return html`
     <div
-      class="flex flex-col items-center justify-center gap-4 p-6 h-full min-h-[320px] text-[var(--field-paper)]"
+      class="flex flex-col items-center justify-center text-[var(--field-paper)] ${compact
+        ? "gap-2 py-3"
+        : "gap-4 p-6 h-full min-h-[320px]"}"
       role="status"
     >
-      <conquest-globe class="block size-56 max-w-full"></conquest-globe>
+      <conquest-globe
+        class="block max-w-full ${compact ? "size-20" : "size-56"}"
+      ></conquest-globe>
       ${message
         ? html`<p class="text-sm text-[var(--field-muted)]">${message}</p>`
         : nothing}

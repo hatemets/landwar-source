@@ -27,6 +27,7 @@ import { AlertFrame } from "./layers/AlertFrame";
 import { AttacksDisplay } from "./layers/AttacksDisplay";
 import { BuildMenu } from "./layers/BuildMenu";
 import { BulkBuyPanel } from "./layers/BulkBuyPanel";
+import { IncomePanel } from "./layers/IncomePanel";
 import { ChatDisplay } from "./layers/ChatDisplay";
 import { ChatModal } from "./layers/ChatModal";
 import { ControlPanel } from "./layers/ControlPanel";
@@ -310,6 +311,13 @@ export function createRenderer(
   bulkBuyPanel.game = game;
   bulkBuyPanel.eventBus = eventBus;
 
+  const incomePanel = (document.querySelector("income-panel") ??
+    document.body.appendChild(new IncomePanel())) as IncomePanel;
+  if (!(incomePanel instanceof IncomePanel)) {
+    console.error("income panel not found");
+  }
+  incomePanel.game = game;
+
   const layers: Controller[] = [
     new WarshipSelectionController(game, eventBus, transformHandler, view),
     new BuildPreviewController(
@@ -349,6 +357,7 @@ export function createRenderer(
     gameRightSidebar,
     controlPanel,
     bulkBuyPanel,
+    incomePanel,
     playerInfo,
     winModal,
     newLobbyPrompt,

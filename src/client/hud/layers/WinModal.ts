@@ -202,6 +202,7 @@ export class WinModal extends LitElement implements Controller {
     if (!this.endTracked) {
       this.endTracked = true;
       track("match_ended", {
+        game_id: this.game.gameID(),
         result: this.art ?? (this.isWin ? "win" : "none"),
         ranked: this.isRankedGame,
         game_type: this.game.config().gameConfig().gameType,

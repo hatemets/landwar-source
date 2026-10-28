@@ -91,7 +91,7 @@
     "desc": {
       "atom_bomb": "Small explosion",
       "city": "Increases max population",
-      "defense_post": "Increases defenses of nearby borders",
+      "defense_post": "Increases defenses of nearby borders. Build on it to upgrade, up to level 3",
       "factory": "Creates railroads and spawns trains",
       "hydrogen_bomb": "Large explosion",
       "mirv": "Huge explosion, only targets selected player",
@@ -286,7 +286,6 @@
     "month_sep": "September",
     "none": "None",
     "not_logged_in": "Not logged in",
-    "paste": "Paste",
     "preset_max": "Max",
     "send": "Send",
     "slider_tooltip": "{percent}% • {amount}",
@@ -841,6 +840,18 @@
     "visibility_private": "Private",
     "visibility_public": "Public",
     "waiting": "Waiting for players..."
+  },
+  "income_panel": {
+    "other": "Workers & other",
+    "per_min": "/min",
+    "per_min_hint": "Gold per minute, averaged over the last 2 minutes",
+    "piracy": "Piracy",
+    "ports": "Ports",
+    "reactors": "Reactors",
+    "title": "Income",
+    "total": "All income",
+    "total_made": "Total",
+    "trains": "Trains"
   },
   "inventory": {
     "equipped": "Equipped",
@@ -1503,6 +1514,15 @@
     "purchase_failed": "Purchase failed. Please try again.",
     "purchase_success": "Purchase succeeded: {name}",
     "title": "Store"
+  },
+  "structure_income": {
+    "factory": "Earns nothing itself. Its trains pay at each city and port they stop at.",
+    "heading": "{type}, level {level}",
+    "no_ships": "No trade ship arrived here in the last 2 minutes.",
+    "no_trains": "No train stopped here in the last 2 minutes.",
+    "rate": "{rate} gold/min here, last 2 minutes",
+    "reactor": "Pays a fixed {rate} gold/min.",
+    "total": "{total} gold here this game"
   },
   "team_colors": {
     "blue": "Blue",

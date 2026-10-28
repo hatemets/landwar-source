@@ -32,6 +32,7 @@ import {
 import { ClientEnv } from "../../src/client/ClientEnv";
 import { JoinLobbyModal } from "../../src/client/JoinLobbyModal";
 import { UserSettings } from "../../src/client/UserSettings";
+import { translateText } from "../../src/client/Utils";
 
 function resetUserSettingsState() {
   localStorage.clear();
@@ -304,6 +305,22 @@ describe("JoinLobbyModal map preview", () => {
     preview.querySelector("img")!.dispatchEvent(new Event("error"));
 
     expect(preview.style.display).toBe("none");
+  });
+
+  it("keeps disabled units beside settings when no other settings are notable", () => {
+    const container = renderConfig({
+      disabledUnits: ["Missile Silo", "MIRV"],
+      bots: 400,
+    });
+    const table = container.querySelector(
+      `${SETTINGS} table[data-disabled-units]`,
+    );
+    expect(table?.querySelectorAll("tbody tr")).toHaveLength(2);
+    expect(table?.textContent).toContain(
+      translateText("unit_type.missile_silo"),
+    );
+    expect(container.querySelectorAll(`${SETTINGS} table`)).toHaveLength(1);
+    expect(container.querySelectorAll("[data-disabled-units]")).toHaveLength(1);
   });
 
   it("lists each notable setting as one table row next to the preview", () => {

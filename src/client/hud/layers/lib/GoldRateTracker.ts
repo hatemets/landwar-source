@@ -25,6 +25,8 @@ export interface GoldSample {
   train: number;
   /** Cumulative gold earned from captured trade ships. */
   piracy: number;
+  /** Cumulative gold earned from reactors. */
+  reactor: number;
 }
 
 interface Sample extends GoldSample {
@@ -107,6 +109,11 @@ export class GoldRateTracker {
   /** Piracy-gold-per-minute rate (cumulative delta). */
   piracyGoldPerMin(smallID: number): number {
     return this.rate(smallID, (s) => s.piracy);
+  }
+
+  /** Reactor-gold-per-minute rate (cumulative delta). */
+  reactorGoldPerMin(smallID: number): number {
+    return this.rate(smallID, (s) => s.reactor);
   }
 
   private rate(smallID: number, pick: (s: Sample) => number): number {

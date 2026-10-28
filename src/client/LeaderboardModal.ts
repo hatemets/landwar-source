@@ -8,6 +8,7 @@ import type {
   PlayerLadder,
 } from "./components/leaderboard/LeaderboardPlayerList";
 import { DEFAULT_TITLE_CLASS, modalHeader } from "./components/ui/ModalHeader";
+import { OFFERED_MATCHMAKING_MODES } from "./MatchmakingModes";
 import { translateText } from "./Utils";
 
 // Tab key -> ladder. "players" stays the 1v1 tab so existing
@@ -41,14 +42,23 @@ export class LeaderboardModal extends BaseModal {
           key: "playersFfa",
           label: translateText("leaderboard_modal.ranked_ffa_tab"),
         },
-        {
-          key: "players3v3",
-          label: translateText("leaderboard_modal.ranked_3v3_tab"),
-        },
-        {
-          key: "players5v5",
-          label: translateText("leaderboard_modal.ranked_5v5_tab"),
-        },
+        // A team ladder shows only while its queue is offered.
+        ...(OFFERED_MATCHMAKING_MODES.includes("3v3")
+          ? [
+              {
+                key: "players3v3",
+                label: translateText("leaderboard_modal.ranked_3v3_tab"),
+              },
+            ]
+          : []),
+        ...(OFFERED_MATCHMAKING_MODES.includes("5v5")
+          ? [
+              {
+                key: "players5v5",
+                label: translateText("leaderboard_modal.ranked_5v5_tab"),
+              },
+            ]
+          : []),
       ],
     };
   }

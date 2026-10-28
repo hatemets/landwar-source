@@ -343,6 +343,10 @@ export class MapPlaylist {
       ),
       disabledUnits: isNukesDisabled ? [...MISSILE_UNITS] : [],
       disableClanTags: mode === GameMode.FFA ? true : undefined,
+      // Public FFA is solo: each player sees other humans under a fake name
+      // of their own (NameVisibility), so friends cannot find each other to
+      // team. Real names stay in the record and show in the replay.
+      anonymizeNames: mode === GameMode.FFA ? true : undefined,
       // Overtime (the win threshold sinking after 30 minutes) is the default
       // for every public FFA game, so it carries no lobby modifier badge.
       overtime: mode === GameMode.FFA ? { enabled: true } : undefined,
@@ -385,6 +389,7 @@ export class MapPlaylist {
       spawnImmunityDuration: this.getSpawnImmunityDuration(),
       disabledUnits: [],
       disableClanTags: true,
+      anonymizeNames: true,
       overtime: { enabled: true },
     } satisfies GameConfig;
   }
@@ -435,6 +440,7 @@ export class MapPlaylist {
       ),
       disabledUnits: noMissiles ? [...MISSILE_UNITS] : [],
       disableClanTags: true,
+      anonymizeNames: true,
       overtime: { enabled: true },
     } satisfies GameConfig;
   }
@@ -483,6 +489,7 @@ export class MapPlaylist {
       ),
       disabledUnits: noMissiles ? [...MISSILE_UNITS] : [],
       disableClanTags: true,
+      anonymizeNames: true,
       overtime: { enabled: true },
     } satisfies GameConfig;
   }
@@ -742,6 +749,7 @@ export class MapPlaylist {
       disabledUnits,
       waterNukes: isWaterNukes ? true : undefined,
       disableClanTags: mode === GameMode.FFA ? true : undefined,
+      anonymizeNames: mode === GameMode.FFA ? true : undefined,
     } satisfies GameConfig;
   }
 

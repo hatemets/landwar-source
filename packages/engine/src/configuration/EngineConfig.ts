@@ -13,9 +13,8 @@ import { TeamCountConfig } from "@openfront/engine-api/Schemas";
 import { NukeType } from "@openfront/engine-api/StatsSchemas";
 import {
   Config,
-  DEFAULT_GOLD_MULTIPLIER,
   DEFAULT_STARTING_GOLD,
-  REACTOR_GOLD_PER_TICK,
+  DEFENSE_POST_MAX_LEVEL,
 } from "@openfront/engine-lib/configuration/Config";
 import { exp, log, pow2 } from "@openfront/engine-lib/DetMath";
 import {
@@ -39,8 +38,11 @@ export interface AttackLogicInput {
     /** Defender is disconnected and on the attacker's team. */
     isDisconnectedTeammate: boolean;
   } | null;
-  /** A defense post owned by the defender is in range of the tile. */
-  defenderHasDefensePost: boolean;
+  /**
+   * Highest level of the defender's defense posts in range of the tile,
+   * or 0 when none is in range.
+   */
+  defensePostLevel: number;
   /** Fraction of land tiles with fallout, or null if the tile has no fallout. */
   falloutRatio: number | null;
   /** Tiles on the attack front this tick (plus jitter); fixed for the tick. */
@@ -92,6 +94,11 @@ const LARGE_ATTACKER_SPEED_DEPTH = 0.73;
  * Logistic in log(tiles): ~1 for small territories, easing down to
  * 1 - depth for huge ones, halfway at LARGE_TERRITORY_MIDPOINT.
  */
+/** Defense post level clamped to 1..DEFENSE_POST_MAX_LEVEL. */
+function clampDefensePostLevel(level: number): number {
+  return Math.max(1, Math.min(DEFENSE_POST_MAX_LEVEL, Math.floor(level)));
+}
+
 function largeTerritoryBonus(numTiles: number, depth: number): number {
   return (
     1 -
@@ -143,12 +150,14 @@ export class EngineConfig extends Config {
     return 5 - falloutRatio * 2;
   }
 
-  defensePostDefenseBonus(): number {
-    return 5;
+  // Each level past the first adds +2 to the loss multiplier and +1 to the
+  // slow-down multiplier: x5/x3 at level 1, x7/x4 at 2, x9/x5 at 3.
+  defensePostDefenseBonus(level: number = 1): number {
+    return 3 + 2 * clampDefensePostLevel(level);
   }
 
-  defensePostSpeedBonus(): number {
-    return 3;
+  defensePostSpeedBonus(level: number = 1): number {
+    return 2 + clampDefensePostLevel(level);
   }
 
   playerTeams(): TeamCountConfig {
@@ -173,9 +182,6 @@ export class EngineConfig extends Config {
   }
   donateGold(): boolean {
     return this._gameConfig.donateGold;
-  }
-  goldMultiplier(): number {
-    return this._gameConfig.goldMultiplier ?? DEFAULT_GOLD_MULTIPLIER;
   }
   startingGold(playerInfo: PlayerInfo): Gold {
     if (playerInfo.playerType === PlayerType.Bot) {
@@ -422,15 +428,6 @@ export class EngineConfig extends Config {
     );
   }
 
-  private goldMultiplierFor(player: PlayerLike): number {
-    const base = this.goldMultiplier();
-    const hc = this._gameConfig.hostCheats;
-    if (hc?.goldMultiplier && player.isLobbyCreator()) {
-      return hc.goldMultiplier;
-    }
-    return base;
-  }
-
   public conquerGoldAmount(captured: PlayerLike): Gold {
     if (
       captured.type() === PlayerType.Bot ||
@@ -540,9 +537,9 @@ export class EngineConfig extends Config {
     const { attackTroops, attacker, defender } = input;
     let { mag, tileCost } = terrainAttackBase(input.terrain);
 
-    if (defender !== null && input.defenderHasDefensePost) {
-      mag *= this.defensePostDefenseBonus();
-      tileCost *= this.defensePostSpeedBonus();
+    if (defender !== null && input.defensePostLevel > 0) {
+      mag *= this.defensePostDefenseBonus(input.defensePostLevel);
+      tileCost *= this.defensePostSpeedBonus(input.defensePostLevel);
     }
     if (input.falloutRatio !== null) {
       const fallout = this.falloutDefenseModifier(input.falloutRatio);
@@ -690,12 +687,6 @@ export class EngineConfig extends Config {
       baseRate = 100n;
     }
     return BigInt(Math.floor(Number(baseRate) * multiplier));
-  }
-
-  reactorGoldRate(player: PlayerLike): Gold {
-    return BigInt(
-      Math.floor(REACTOR_GOLD_PER_TICK * this.goldMultiplierFor(player)),
-    );
   }
 
   nukeSpeed(unitType: UnitType): number {

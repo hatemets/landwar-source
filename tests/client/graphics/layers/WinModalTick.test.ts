@@ -42,6 +42,7 @@ function makeGame(opts: {
     inSpawnPhase: () => false,
     updatesSinceLastTick: () => ({ [GameUpdateType.Win]: [winUpdate] }),
     playerByClientID: () => opts.winnerPlayer,
+    gameID: () => "game-1",
     config: () => ({ gameConfig: () => ({ rankedType: undefined }) }),
   } as unknown as GameView;
 }

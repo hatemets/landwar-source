@@ -29,6 +29,32 @@ describe("EngineConfig.unitInfo", () => {
   });
 });
 
+describe("reactorGoldRate", () => {
+  const player = (creator: boolean) =>
+    ({ isLobbyCreator: () => creator }) as unknown as Parameters<
+      Config["reactorGoldRate"]
+    >[0];
+
+  it("is the same on the shared config the client reads", () => {
+    const gameConfig = { goldMultiplier: 2 } as GameConfig;
+    expect(new Config(gameConfig, false).reactorGoldRate(player(false))).toBe(
+      800n,
+    );
+    expect(
+      new EngineConfig(gameConfig, false).reactorGoldRate(player(false)),
+    ).toBe(800n);
+  });
+
+  it("uses the host's gold cheat for the lobby creator only", () => {
+    const config = new Config(
+      { goldMultiplier: 1, hostCheats: { goldMultiplier: 10 } } as GameConfig,
+      false,
+    );
+    expect(config.reactorGoldRate(player(true))).toBe(4000n);
+    expect(config.reactorGoldRate(player(false))).toBe(400n);
+  });
+});
+
 describe("Kleopolis defaults", () => {
   it("uses 3x gold and preserves an explicit multiplier", () => {
     expect(new EngineConfig({} as GameConfig, false).goldMultiplier()).toBe(3);

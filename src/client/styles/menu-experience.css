@@ -367,9 +367,10 @@ body:not(.in-game) #sidebar-menu .nav-menu-item.active {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  border: 0;
+  /* A faint blue-grey outline marks each tile without a fill. */
+  border: 1px solid rgb(148 168 204 / 0.14);
   border-radius: var(--field-radius-lg);
-  background: var(--field-raised);
+  background: transparent;
   padding: 20px 12px 18px;
   color: var(--field-paper);
   font: 600 16px/1.2 var(--field-font);
@@ -405,7 +406,18 @@ body:not(.in-game) #sidebar-menu .nav-menu-item.active {
 }
 .menu-lobby-list {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+}
+@media (min-width: 1024px) {
+  .menu-lobby-list--wide {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 480px) {
+  .menu-lobby-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 /* Homepage cards: the map fills the card and the text sits on it. Status
    and tags go top left, the player count top right, the name bottom. Its
@@ -428,43 +440,79 @@ body:not(.in-game) #sidebar-menu .nav-menu-item.active {
   height: 100% !important;
   border-radius: 0;
   background: #3b6585;
-  object-fit: cover;
+  /* The map fills the card. Only an extreme ratio shows whole, on the
+     ocean backdrop. */
+  object-fit: cover !important;
   transition: filter 0.15s ease;
+}
+.menu-lobby-list .menu-lobby-card__image--contain {
+  object-fit: contain !important;
 }
 .menu-lobby-list .menu-lobby-card:hover:not(:disabled) .menu-lobby-card__image {
   filter: brightness(1.08);
 }
-/* A dark band under the name and details keeps them legible on any map. */
-.menu-lobby-list .menu-lobby-card::after {
-  position: absolute;
-  inset: auto 0 0;
-  height: 64px;
-  background: linear-gradient(to top, rgb(10 13 20 / 0.88), transparent);
-  content: "";
-  pointer-events: none;
-}
+/* Name and details sit on flat chips, like the tags, so they stay legible
+   on any map without a shadow band. */
 .menu-lobby-list .menu-lobby-card__name,
 .menu-lobby-list .menu-lobby-card__details {
   position: absolute;
   z-index: 1;
-  left: 14px;
-  right: 14px;
-  max-width: calc(100% - 28px);
+  left: 10px;
+  max-width: calc(100% - 20px);
+  border-radius: var(--field-radius-sm);
+  background: rgb(10 13 20 / 0.72);
+  padding: 0 7px;
+  line-height: 24px;
 }
 .menu-lobby-list .menu-lobby-card__name {
-  bottom: 28px;
+  bottom: 38px;
 }
 .menu-lobby-list .menu-lobby-card__details {
   bottom: 10px;
-  color: var(--field-paper);
-  opacity: 0.75;
+  /* Clear of the countdown in the bottom-right corner. */
+  max-width: calc(100% - 110px);
+  color: var(--field-muted);
 }
 .menu-lobby-list .menu-lobby-card__count,
-.menu-lobby-list .menu-lobby-card__time,
+.menu-lobby-list .menu-lobby-card__clock,
 .menu-lobby-list .menu-lobby-card__tag {
+  min-height: 24px;
   border-radius: var(--field-radius-sm);
   background: rgb(10 13 20 / 0.72) !important;
   color: var(--field-paper);
+  font-size: 14px;
+  line-height: 24px;
+}
+.menu-lobby-card__gold {
+  gap: 4px;
+  color: #ffd95a !important;
+  font-weight: 600;
+}
+.menu-lobby-card__gold-icon,
+.menu-lobby-card__tag-icon {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+.menu-lobby-card__icon-tag {
+  gap: 4px;
+}
+/* On the map cards the countdown sits bottom right; the rows keep it in
+   the status line. */
+.menu-lobby-card__clock {
+  display: none;
+}
+.menu-lobby-list .menu-lobby-card__time {
+  display: none;
+}
+.menu-lobby-list .menu-lobby-card__clock {
+  position: absolute;
+  z-index: 1;
+  right: 10px;
+  bottom: 10px;
+  display: block;
+  padding: 0 7px;
+  font-variant-numeric: tabular-nums;
 }
 .menu-lobby-list .menu-lobby-card__count {
   position: absolute;
@@ -478,15 +526,18 @@ body:not(.in-game) #sidebar-menu .nav-menu-item.active {
 }
 .menu-lobby-list .menu-lobby-card__count-icon {
   display: block;
+  width: 16px;
+  height: 16px;
 }
-/* Tags keep to one line, clear of the count. */
+/* Tags take at most two lines, clear of the count. A tag that does not fit
+   wraps out of sight whole. */
 .menu-lobby-list .menu-lobby-card__status {
   position: absolute;
   z-index: 1;
   top: 10px;
   left: 10px;
-  right: 96px;
-  max-height: 20px;
+  right: 84px;
+  max-height: 54px;
   overflow: hidden;
   gap: 6px;
 }
@@ -570,6 +621,18 @@ body:not(.in-game) #sidebar-menu .nav-menu-item.active {
   color: var(--field-paper);
   font-size: 14px;
   font-weight: 500;
+}
+/* Centered, full-size art: the Join lobby list when nothing is open. */
+.lobby-empty-state--large {
+  grid-template-columns: 1fr;
+  justify-items: center;
+  row-gap: 8px;
+  text-align: center;
+}
+.lobby-empty-state--large .lobby-empty-state__art {
+  width: 192px;
+  height: 192px;
+  grid-row: auto;
 }
 .lobby-empty-state .menu-empty-hint {
   grid-column: 2;
@@ -1000,6 +1063,104 @@ body:not(.in-game) #sidebar-menu .nav-menu-item.active {
   --color-malibu-blue: var(--field-accent);
   --color-aquarius: var(--field-accent-text);
   --color-surface: var(--field-surface);
+}
+.lobby-briefing {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 1fr);
+  align-items: start;
+  gap: 28px;
+  margin-bottom: 28px;
+}
+.lobby-briefing__map {
+  width: fit-content;
+  max-width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--field-line);
+  border-radius: var(--field-radius);
+  background: #060d16;
+}
+.lobby-briefing__map img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: clamp(240px, 45vh, 440px);
+}
+.lobby-briefing__details {
+  min-width: 0;
+}
+.lobby-briefing__details th,
+.lobby-briefing__details td {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  vertical-align: top;
+}
+.lobby-briefing__details td {
+  font-variant-numeric: tabular-nums;
+}
+.lobby-briefing__units {
+  margin-top: 20px;
+  border-collapse: collapse;
+}
+.lobby-briefing__units caption {
+  padding: 0 0 10px;
+  text-align: left;
+  color: var(--field-paper);
+}
+.lobby-briefing__units caption span {
+  margin-left: 8px;
+  color: var(--field-muted);
+  font-variant-numeric: tabular-nums;
+}
+.lobby-briefing__units tr,
+.lobby-roster-table tr {
+  border-bottom: 1px solid var(--field-line);
+}
+.lobby-briefing__units th {
+  text-align: left;
+  font-weight: 400;
+  padding-right: 16px;
+}
+.lobby-briefing__units td {
+  text-align: right;
+  color: var(--field-danger);
+}
+.lobby-roster-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.lobby-roster-table th {
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 400;
+  color: var(--field-muted);
+}
+.lobby-roster-table td {
+  padding: 12px;
+  overflow-wrap: anywhere;
+}
+.lobby-roster-table__self {
+  background: var(--field-accent-soft);
+}
+.lobby-experience .players-list .lobby-roster-table .player-tag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  font-weight: 400;
+}
+@media (max-width: 640px) {
+  .lobby-briefing {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+  .lobby-briefing__map img {
+    max-height: 360px;
+  }
 }
 .lobby-experience h1,
 .lobby-experience h2,

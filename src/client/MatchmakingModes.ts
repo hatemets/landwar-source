@@ -11,6 +11,12 @@ export const MATCHMAKING_MODES: readonly MatchmakingMode[] = [
   "5v5",
 ];
 
+// The queues the matchmaking modal offers. The server keeps every queue, but
+// while the player base is small a team queue would split the few ranked
+// players and leave each queue empty, so only 1v1 is shown. Add a mode back
+// here once 1v1 fills quickly.
+export const OFFERED_MATCHMAKING_MODES: readonly MatchmakingMode[] = ["1v1"];
+
 export function isMatchmakingMode(value: unknown): value is MatchmakingMode {
   return MATCHMAKING_MODES.includes(value as MatchmakingMode);
 }

@@ -113,6 +113,11 @@ export interface ModifierInfo {
   value?: number;
   /** Pre-formatted display string (used instead of renderNumber when provided) */
   formattedValue?: string;
+  /**
+   * The modifier turns a feature off. Its labelKey names that feature, so a
+   * compact badge can show the name struck through.
+   */
+  turnsOff?: boolean;
 }
 
 /**
@@ -177,6 +182,7 @@ export function getActiveModifiers(
     result.push({
       labelKey: "public_game_modifier.disable_alliances_label",
       badgeKey: "public_game_modifier.disable_alliances",
+      turnsOff: true,
       formattedValue: translateText("common.disabled"),
     });
   }
@@ -184,18 +190,21 @@ export function getActiveModifiers(
     result.push({
       labelKey: "public_game_modifier.ports_disabled_label",
       badgeKey: "public_game_modifier.ports_disabled",
+      turnsOff: true,
     });
   }
   if (modifiers.isNukesDisabled) {
     result.push({
       labelKey: "public_game_modifier.nukes_disabled_label",
       badgeKey: "public_game_modifier.nukes_disabled",
+      turnsOff: true,
     });
   }
   if (modifiers.isSAMsDisabled) {
     result.push({
       labelKey: "public_game_modifier.sams_disabled_label",
       badgeKey: "public_game_modifier.sams_disabled",
+      turnsOff: true,
     });
   }
   if (modifiers.isPeaceTime) {

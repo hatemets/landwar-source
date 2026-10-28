@@ -76,6 +76,22 @@ function euclideanDistWorld(
   return Math.sqrt(dx * dx + dy * dy);
 }
 
+// Structures whose gold the hover panel shows: trade ships pay at ports,
+// trains at cities, ports and factories, and reactors pay a fixed rate.
+const INCOME_STRUCTURES = [
+  UnitType.Port,
+  UnitType.Factory,
+  UnitType.City,
+  UnitType.Reactor,
+] as const;
+const STRUCTURE_HOVER_RADIUS = 4;
+const STRUCTURE_KEYS: Partial<Record<UnitType, string>> = {
+  [UnitType.Port]: "port",
+  [UnitType.Factory]: "factory",
+  [UnitType.City]: "city",
+  [UnitType.Reactor]: "reactor",
+};
+
 function distSortUnitWorld(coord: { x: number; y: number }, game: GameView) {
   return (a: UnitLike, b: UnitLike) => {
     const distA = euclideanDistWorld(coord, a.tile(), game);
@@ -117,6 +133,10 @@ export class PlayerInfoOverlay extends LitElement implements Controller {
 
   @state()
   private unit: UnitView | null = null;
+
+  /** My structure under the cursor, for its income line. */
+  @state()
+  private structure: UnitView | null = null;
 
   @state()
   private _isInfoVisible: boolean = false;
@@ -216,6 +236,7 @@ export class PlayerInfoOverlay extends LitElement implements Controller {
     this.setVisible(false);
     this.unit = null;
     this.player = null;
+    this.structure = null;
   }
 
   public maybeShow(x: number, y: number) {
@@ -237,6 +258,12 @@ export class PlayerInfoOverlay extends LitElement implements Controller {
         this.playerProfile = p;
       });
       this.refreshPlayerActions(this.player, tile);
+      if (owner === this.game.myPlayer()) {
+        this.structure = this.findIncomeStructure(
+          owner as PlayerView,
+          worldCoord,
+        );
+      }
       this.setVisible(true);
     } else if (!this.game.isLand(tile)) {
       const units = this.game
@@ -249,6 +276,24 @@ export class PlayerInfoOverlay extends LitElement implements Controller {
         this.setVisible(true);
       }
     }
+  }
+
+  // My finished income structure nearest the cursor, within a few tiles so
+  // the cursor only has to be on its icon.
+  private findIncomeStructure(
+    me: PlayerView,
+    coord: { x: number; y: number },
+  ): UnitView | null {
+    const nearest = me
+      .units(...INCOME_STRUCTURES)
+      .filter(
+        (u) =>
+          !u.isUnderConstruction() &&
+          euclideanDistWorld(coord, u.tile(), this.game) <=
+            STRUCTURE_HOVER_RADIUS,
+      )
+      .sort(distSortUnitWorld(coord, this.game));
+    return nearest[0] ?? null;
   }
 
   // Asks what I can do to the hovered player when it changes, and at most
@@ -880,6 +925,71 @@ export class PlayerInfoOverlay extends LitElement implements Controller {
     `;
   }
 
+  // What my hovered structure earns, from what it really paid in the last
+  // two in-game minutes (trade and trains are random, so no promise), or the
+  // fixed rate for a reactor.
+  private renderStructureIncome(unit: UnitView) {
+    const me = this.game.myPlayer();
+    if (!me) return "";
+    const type = unit.type();
+    const ticksPerMin = 600;
+    let lines: string[];
+    if (type === UnitType.Reactor) {
+      const rate = Number(this.game.config().reactorGoldRate(me)) * ticksPerMin;
+      lines = [
+        translateText("structure_income.reactor", {
+          rate: renderNumber(rate),
+        }),
+      ];
+    } else if (type === UnitType.Factory) {
+      lines = [translateText("structure_income.factory")];
+    } else {
+      const income = this.game.structureIncome;
+      const rate = income.perMin(unit.tile(), this.game.ticks());
+      const total = income.total(unit.tile());
+      lines =
+        rate > 0
+          ? [
+              translateText("structure_income.rate", {
+                rate: renderNumber(rate),
+              }),
+              translateText("structure_income.total", {
+                total: renderNumber(total),
+              }),
+            ]
+          : [
+              translateText(
+                type === UnitType.Port
+                  ? "structure_income.no_ships"
+                  : "structure_income.no_trains",
+              ),
+            ];
+    }
+    return html`
+      <div class="flex items-start gap-2 px-2 pb-2 text-xs" translate="no">
+        <img
+          src=${goldCoinIcon}
+          alt=""
+          aria-hidden="true"
+          width="14"
+          height="14"
+          class="mt-0.5 shrink-0"
+        />
+        <div class="flex flex-col gap-0.5">
+          <span class="text-gray-300">
+            ${translateText("structure_income.heading", {
+              type: translateText(`unit_type.${STRUCTURE_KEYS[type]}`),
+              level: unit.level(),
+            })}
+          </span>
+          ${lines.map(
+            (line) => html`<span class="text-gray-400">${line}</span>`,
+          )}
+        </div>
+      </div>
+    `;
+  }
+
   render() {
     if (!this._isActive) {
       return html``;
@@ -904,6 +1014,7 @@ export class PlayerInfoOverlay extends LitElement implements Controller {
           @mouseleave=${this.onPanelLeave}
         >
           ${this.player ? this.renderPlayerInfo(this.player) : ""}
+          ${this.structure ? this.renderStructureIncome(this.structure) : ""}
           ${this.unit ? this.renderUnitInfo(this.unit) : ""}
         </div>
       </div>

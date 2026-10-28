@@ -42,8 +42,13 @@ import { lobbyCard, mapAspectRatios } from "./LobbyCard";
 import { modalHeader } from "./ui/ModalHeader";
 import { styledSelect } from "./ui/StyledSelect";
 
-/** The scheduled buckets, in the order their panes are laid out. */
-const SCHEDULED_PANES = ["ffa", "team", "special", "goldrush"] as const;
+/**
+ * The scheduled buckets, in the order their panes are laid out. A type the
+ * master does not schedule (queue depth 0) gets no pane and no tab.
+ */
+const SCHEDULED_PANES = (
+  ["ffa", "team", "special", "goldrush"] as const
+).filter((type) => QUEUED_LOBBIES_PER_TYPE[type] > 0);
 
 /**
  * Slots a pane always renders when its type has no QUEUED_LOBBIES_PER_TYPE
@@ -76,19 +81,19 @@ type BoundKey =
   | "maxTeamSize";
 
 const CHIP_BASE =
-  "px-2.5 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider " +
+  "px-2.5 py-1 rounded-lg text-[13px] font-bold uppercase tracking-wider " +
   "border transition-colors";
 const CHIP_ON = "bg-malibu-blue text-white border-malibu-blue";
 const CHIP_OFF =
   "bg-white/5 text-white/60 border-white/10 hover:bg-white/10 hover:text-white";
 const PANE_HEADING = "block text-sm font-medium text-[var(--field-paper)]";
 const SECTION_LABEL =
-  "block text-[10px] font-bold uppercase tracking-widest text-white/40 mb-1.5";
+  "block text-[12px] font-bold uppercase tracking-widest text-white/40 mb-1.5";
 const FIELD_CLASS =
   "px-2 py-1.5 rounded-lg bg-black/30 border border-white/10 text-white " +
-  "text-xs focus:outline-none focus:border-malibu-blue";
+  "text-sm focus:outline-none focus:border-malibu-blue";
 const BUTTON_CLASS =
-  "px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider " +
+  "px-3 py-1.5 rounded-lg text-[13px] font-bold uppercase tracking-wider " +
   "border border-white/10 bg-white/5 text-white/80 hover:bg-white/10 " +
   "hover:text-white transition-colors";
 
@@ -281,7 +286,10 @@ export class DetailedGameViewModal extends BaseModal {
                   : nothing}
                 <!-- One pane per scheduled bucket, cards stacked within it. -->
                 <div
-                  class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 items-start"
+                  class="grid grid-cols-1 gap-6 items-start ${SCHEDULED_PANES.length >
+                  1
+                    ? "sm:grid-cols-2 xl:grid-cols-4"
+                    : ""}"
                 >
                   ${SCHEDULED_PANES.map((type) =>
                     this.renderPane(
@@ -538,7 +546,7 @@ export class DetailedGameViewModal extends BaseModal {
 
         <div class="flex items-center justify-between gap-3 flex-wrap">
           <label
-            class="flex items-center gap-2 text-xs text-white/70 cursor-pointer"
+            class="flex items-center gap-2 text-sm text-white/70 cursor-pointer"
           >
             <input
               type="checkbox"
@@ -599,7 +607,7 @@ export class DetailedGameViewModal extends BaseModal {
             .value=${boundValue(this.filters[minKey])}
             @change=${(e: Event) => this.setBound(minKey, e)}
           />
-          <span class="text-xs text-white/30">–</span>
+          <span class="text-sm text-white/30">–</span>
           <input
             type="number"
             min="0"

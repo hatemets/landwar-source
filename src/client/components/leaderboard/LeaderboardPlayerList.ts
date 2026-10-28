@@ -8,6 +8,7 @@ import { customElement, property, query, state } from "lit/decorators.js";
 import { fetchPlayerLeaderboard, getUserMe } from "../../Api";
 import { loadModal } from "../../LazyModals";
 import { translateText } from "../../Utils";
+import { renderGlobeLoader } from "../ConquestGlobe";
 import "../PlayerName";
 
 /** One ranked ladder's loaded rows. */
@@ -458,14 +459,9 @@ export class LeaderboardPlayerList extends LitElement {
 
   private renderPlayerFooter() {
     if (this.isLoadingMore) {
-      return html`
-        <div class="flex items-center justify-center py-4 text-white/50">
-          <div
-            class="w-4 h-4 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mr-2"
-          ></div>
-          <span class="text-xs"> ${translateText("common.loading")} </span>
-        </div>
-      `;
+      return renderGlobeLoader(translateText("common.loading"), {
+        compact: true,
+      });
     }
 
     if (this.loadMoreError) {
@@ -485,16 +481,7 @@ export class LeaderboardPlayerList extends LitElement {
   }
 
   private renderLoading() {
-    return html`
-      <div
-        class="flex flex-col items-center justify-center p-12 text-white h-full"
-      >
-        <div
-          class="w-6 h-6 border-2 border-white/15 border-t-[var(--field-accent)] rounded-full animate-spin mb-3"
-        ></div>
-        <p class="text-white/50 text-sm">${translateText("common.loading")}</p>
-      </div>
-    `;
+    return renderGlobeLoader(translateText("common.loading"));
   }
 
   private renderError() {

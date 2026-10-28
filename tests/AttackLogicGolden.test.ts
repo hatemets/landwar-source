@@ -41,7 +41,7 @@ function run(o: Partial<AttackLogicInput> & { attackTroops: number }) {
     terrain: TerrainType.Plains,
     attacker: { type: PlayerType.Human, numTiles: 20_000 },
     defender: null,
-    defenderHasDefensePost: false,
+    defensePostLevel: 0,
     falloutRatio: null,
     borderSize: 100,
     ...o,
@@ -89,7 +89,7 @@ describe("attackLogic golden values", () => {
       run({ attackTroops: 100_000, defender: defender(base), ...o });
     const cases: Record<string, ReturnType<typeof run>> = {
       baseline: pvp(),
-      "defender has defense post": pvp({ defenderHasDefensePost: true }),
+      "defender has defense post": pvp({ defensePostLevel: 1 }),
       "no fallout": pvp({ falloutRatio: null }),
       "fallout 10%": pvp({ falloutRatio: 0.1 }),
       "fallout 100%": pvp({ falloutRatio: 1 }),
@@ -115,12 +115,39 @@ describe("attackLogic golden values", () => {
       }),
       "defense post + fallout + traitor (stacking)": pvp({
         terrain: TerrainType.Mountain,
-        defenderHasDefensePost: true,
+        defensePostLevel: 1,
         falloutRatio: 0.5,
         defender: defender({ ...base, isTraitor: true }),
       }),
     };
     expect(cases).toMatchSnapshot();
+  });
+
+  test("defense post protection grows with level", () => {
+    const at = (level: number) =>
+      run({
+        attackTroops: 100_000,
+        defender: defender({ numTiles: 20_000, troops: 100_000 }),
+        defensePostLevel: level,
+      });
+    const [l0, l1, l2, l3] = [0, 1, 2, 3].map(at);
+    for (const [weak, strong] of [
+      [l0, l1],
+      [l1, l2],
+      [l2, l3],
+    ]) {
+      expect(strong.attackerLoss).toBeGreaterThan(weak.attackerLoss);
+      expect(strong.tickFraction).toBeGreaterThan(weak.tickFraction);
+    }
+    // Multipliers: x5/x3 at level 1, x7/x4 at 2, x9/x5 at 3.
+    expect(config.defensePostDefenseBonus(1)).toBe(5);
+    expect(config.defensePostDefenseBonus(2)).toBe(7);
+    expect(config.defensePostDefenseBonus(3)).toBe(9);
+    expect(config.defensePostSpeedBonus(1)).toBe(3);
+    expect(config.defensePostSpeedBonus(2)).toBe(4);
+    expect(config.defensePostSpeedBonus(3)).toBe(5);
+    // Levels past the cap give no more.
+    expect(config.defensePostDefenseBonus(4)).toBe(9);
   });
 
   test("player vs player: troop ratio clamps", () => {

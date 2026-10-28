@@ -13,6 +13,8 @@ import {
   LobbyLabelSchema,
   MAX_HOSTED_LOBBIES,
   MIN_OPEN_LOBBIES,
+  QUEUED_LOBBIES_PER_TYPE,
+  SCHEDULED_PUBLIC_GAME_TYPES,
 } from "@openfront/shared/WireSchemas";
 import EventEmitter from "events";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -738,21 +740,23 @@ describe("MasterLobbyService hosted lobbies", () => {
         }
       }
     }
-    // The scheduled types get their queues, one create per call, and the
-    // open lobbies top the list up to MIN_OPEN_LOBBIES.
+    // The scheduled types that run get their queues, one create per call,
+    // and the open lobbies top the list up to MIN_OPEN_LOBBIES.
     const created = workers.flatMap((w) =>
       sentMessages(w).filter((m) => m.type === "createGame"),
     );
-    expect(created.map((m) => m.publicGameType).sort()).toEqual([
-      "ffa",
-      "goldrush",
-      ...Array<string>(MIN_OPEN_LOBBIES - 1).fill("hosted"),
-      "special",
-      "team",
-    ]);
+    const running = SCHEDULED_PUBLIC_GAME_TYPES.filter(
+      (type) => QUEUED_LOBBIES_PER_TYPE[type] > 0,
+    );
+    expect(created.map((m) => m.publicGameType).sort()).toEqual(
+      [
+        ...running,
+        ...Array<string>(MIN_OPEN_LOBBIES - 1).fill("hosted"),
+      ].sort(),
+    );
   });
 
-  it("opens lobbies with a countdown of at most two minutes", async () => {
+  it("opens lobbies with a countdown of at most four minutes", async () => {
     vi.useFakeTimers({ now: 1_000_000 });
     try {
       const { service, workers } = createService();
@@ -771,7 +775,7 @@ describe("MasterLobbyService hosted lobbies", () => {
           HOSTED_LOBBY_AUTO_START_MS,
         );
       }
-      expect(HOSTED_LOBBY_AUTO_START_MS).toBe(2 * 60 * 1000);
+      expect(HOSTED_LOBBY_AUTO_START_MS).toBe(4 * 60 * 1000);
 
       // The next pass does not ask again while the workers have not
       // reported them yet.

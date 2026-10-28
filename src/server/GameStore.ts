@@ -21,6 +21,7 @@ import { replacer } from "@openfront/shared/SharedUtil";
 import { GameRecord, GameRecordSchema } from "@openfront/shared/WireSchemas";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
+import { trackServer } from "./Analytics";
 import { isQueueMode, MODE_SIZE } from "./matchmaking/matcher";
 import { award, coinsEarned } from "./shop/wallet";
 import { eloDeltas, START_ELO, teamEloDeltas } from "./stats/elo";
@@ -227,7 +228,7 @@ export async function saveGameRecord(
           .where(inArray(users.id, candidateIds));
   const summary = summarizeRecord(record, new Set(known.map((u) => u.id)));
 
-  return db.transaction(async (tx) => {
+  const stored = await db.transaction(async (tx) => {
     const inserted = await tx
       .insert(games)
       .values({
@@ -337,6 +338,18 @@ export async function saveGameRecord(
     if (kind !== null) await rateGame(tx, summary, kind);
     return true;
   });
+  if (stored) {
+    trackServer("server", "match_ended", {
+      game_id: summary.id,
+      game_type: summary.gameType,
+      mode: summary.mode,
+      ranked: summary.rankedType !== null,
+      player_count: summary.playerCount,
+      duration_ms: summary.durationMs,
+      $process_person_profile: false,
+    });
+  }
+  return stored;
 }
 
 // Moves the Elo of every account in a rated game. A guest has no rating, so a

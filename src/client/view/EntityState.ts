@@ -170,6 +170,7 @@ export function playerStateFromUpdate(pu: PlayerUpdate): PlayerState {
     tradeGold: Number(pu.tradeGold ?? 0n),
     trainGold: Number(pu.trainGold ?? 0n),
     piracyGold: Number(pu.piracyGold ?? 0n),
+    reactorGold: Number(pu.reactorGold ?? 0n),
     goldEarned: Number(pu.goldEarned ?? 0n),
     troops: pu.troops!,
     isTraitor: pu.isTraitor!,

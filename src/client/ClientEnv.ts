@@ -241,7 +241,7 @@ export class ClientEnv {
     return DEFAULT_TURN_INTERVAL_MS;
   }
   static gameCreationRate(): number {
-    return ClientEnv.env() === GameEnv.Dev ? 5 * 1000 : 2 * 60 * 1000;
+    return ClientEnv.env() === GameEnv.Dev ? 5 * 1000 : 4 * 60 * 1000;
   }
   static workerIndex(gameID: GameID): number {
     return simpleHash(gameID) % ClientEnv.numWorkers();

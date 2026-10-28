@@ -1,7 +1,7 @@
 import { CloseCode, isTerminalClose } from "@openfront/shared/CloseCodes";
 import { isCommitLike } from "@openfront/shared/ServerList";
 import type { UserMeResponse } from "@openfront/shared/ApiSchemas";
-import { html } from "lit";
+import { html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { ClientEnv } from "src/client/ClientEnv";
 import { responseHasLinkedIdentity } from "./AccountIdentity";
@@ -15,7 +15,11 @@ import "./components/Difficulties";
 import { GameStartAlertController } from "./components/GameStartAlertController";
 import { DEFAULT_TITLE_CLASS, modalHeader } from "./components/ui/ModalHeader";
 import { whenModalLoaded } from "./LazyModals";
-import { MATCHMAKING_MODES, type MatchmakingMode } from "./MatchmakingModes";
+import {
+  MATCHMAKING_MODES,
+  OFFERED_MATCHMAKING_MODES,
+  type MatchmakingMode,
+} from "./MatchmakingModes";
 import type { JoinLobbyEvent } from "./Main";
 import {
   ensureServerList,
@@ -115,6 +119,14 @@ export class MatchmakingModal extends BaseModal {
   // One queue at a time. Switching leaves the old queue and joins the new
   // one. A matched player keeps the queue they were matched in.
   private renderModeSwitch() {
+    // One queue offered: nothing to switch to. A player who came back
+    // through a 3v3 or 5v5 requeue link still sees which queue they are in.
+    if (
+      OFFERED_MATCHMAKING_MODES.length < 2 &&
+      OFFERED_MATCHMAKING_MODES.includes(this.mode)
+    ) {
+      return nothing;
+    }
     const locked = this.gameID !== null;
     return html`
       <div
@@ -122,7 +134,10 @@ export class MatchmakingModal extends BaseModal {
         aria-label=${translateText("matchmaking_modal.mode")}
         class="flex w-72 max-w-full gap-1 p-1 bg-white/5 border border-white/10 rounded-xl"
       >
-        ${MATCHMAKING_MODES.map((mode) => {
+        ${MATCHMAKING_MODES.filter(
+          (mode) =>
+            OFFERED_MATCHMAKING_MODES.includes(mode) || mode === this.mode,
+        ).map((mode) => {
           const active = mode === this.mode;
           return html`
             <button

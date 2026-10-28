@@ -3,6 +3,7 @@ import {
   PlayerType,
   UnitType,
 } from "@openfront/engine-api/game/GameTypes";
+import { UpgradeStructureExecution } from "@openfront/engine/execution/UpgradeStructureExecution";
 import { Game, Player } from "@openfront/engine/game/Game";
 import { setup } from "./util/Setup";
 
@@ -36,13 +37,57 @@ describe("PlayerImpl", () => {
     expect(buCity!.canUpgrade).toBe(city.id());
   });
 
-  test("DefensePost cannot be upgraded", () => {
-    player.buildUnit(UnitType.DefensePost, game.ref(0, 0), {});
-    const buDefensePost = player
-      .buildableUnits(game.ref(0, 0))
-      .find((bu) => bu.type === UnitType.DefensePost);
-    expect(buDefensePost).toBeDefined();
-    expect(buDefensePost!.canUpgrade).toBeFalsy();
+  describe("DefensePost levels", () => {
+    const buPost = (tile = game.ref(0, 0)) =>
+      player
+        .buildableUnits(tile)
+        .find((bu) => bu.type === UnitType.DefensePost)!;
+
+    test("can be upgraded up to level 3", () => {
+      const post = player.buildUnit(UnitType.DefensePost, game.ref(0, 0), {});
+      expect(post.level()).toBe(1);
+      expect(buPost().canUpgrade).toBe(post.id());
+      expect(buPost().upgradeCosts).toHaveLength(2);
+      expect(player.canUpgradeUnit(post)).toBe(true);
+
+      player.upgradeUnit(post);
+      expect(post.level()).toBe(2);
+      expect(buPost().canUpgrade).toBe(post.id());
+      expect(buPost().upgradeCosts).toHaveLength(1);
+
+      player.upgradeUnit(post);
+      expect(post.level()).toBe(3);
+      expect(player.canUpgradeUnit(post)).toBe(false);
+      expect(buPost().canUpgrade).toBe(false);
+      expect(
+        player.findUnitToUpgrade(UnitType.DefensePost, game.ref(0, 0)),
+      ).toBe(false);
+    });
+
+    test("UpgradeStructureExecution stops at level 3", () => {
+      const post = player.buildUnit(UnitType.DefensePost, game.ref(0, 0), {});
+      game.endSpawnPhase();
+      const goldBefore = player.gold();
+      game.addExecution(new UpgradeStructureExecution(player, post.id(), 5));
+      game.executeNextTick();
+      expect(post.level()).toBe(3);
+      // Only two levels were paid for.
+      const spent = goldBefore - player.gold();
+      expect(spent).toBeGreaterThan(0n);
+      game.addExecution(new UpgradeStructureExecution(player, post.id(), 1));
+      const goldAtMax = player.gold();
+      game.executeNextTick();
+      expect(post.level()).toBe(3);
+      expect(player.gold()).toBeGreaterThanOrEqual(goldAtMax);
+    });
+
+    test("maxUpgradeUnits does not push a post past level 3", () => {
+      player.addGold(100_000_000n);
+      const post = player.buildUnit(UnitType.DefensePost, game.ref(0, 0), {});
+      expect(player.maxUpgradeUnits([UnitType.DefensePost])).toBe(2);
+      expect(post.level()).toBe(3);
+      expect(player.maxUpgradeUnits([UnitType.DefensePost])).toBe(0);
+    });
   });
 
   test("City can be upgraded from another city", () => {

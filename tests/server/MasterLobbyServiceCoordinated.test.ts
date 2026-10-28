@@ -231,12 +231,12 @@ describe("MasterLobbyService with a lobby coordinator", () => {
 
     coordinator.coordinated = false;
     await scheduler()();
-    // Local: countdown for own front lobby, creates to fill the queues, and
-    // the open lobbies.
+    // Local: countdown for own front lobby, one create for each queue that
+    // runs (free for all only, QUEUED_LOBBIES_PER_TYPE), and the open lobbies.
     expect(sent(worker, "updateLobby")).toHaveLength(1);
     expect(
       sent(worker, "createGame").filter((m) => m.publicGameType !== "hosted"),
-    ).toHaveLength(4);
+    ).toHaveLength(1);
     expect(
       sent(worker, "createGame").filter((m) => m.publicGameType === "hosted"),
     ).toHaveLength(MIN_OPEN_LOBBIES);

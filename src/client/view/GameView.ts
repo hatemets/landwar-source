@@ -50,6 +50,7 @@ import {
   type PlannedUnits,
 } from "./MotionPlanResolver";
 import { PlayerView } from "./PlayerView";
+import { StructureIncome } from "./StructureIncome";
 import { UnitView } from "./UnitView";
 
 function readCosmeticVisibility(): CosmeticVisibility {
@@ -104,6 +105,9 @@ export class GameView implements GameLike {
   private _firstPopulate = true;
 
   private _myPlayer: PlayerView | null = null;
+
+  /** Gold my structures earned, for the hover panel. */
+  public readonly structureIncome = new StructureIncome();
 
   // ── populateFrame dirty flags ──────────────────────────────────────────
   // The derived structures below only depend on rarely-changing player
@@ -616,6 +620,9 @@ export class GameView implements GameLike {
     for (const b of gu.updates[GameUpdateType.BonusEvent] ?? []) {
       const player = this._players.get(b.player);
       if (player === undefined) continue;
+      if (b.player === myID && b.gold > 0) {
+        this.structureIncome.record(b.tile, Number(b.gold), gu.tick);
+      }
       ev.bonusEvents.push({
         playerID: b.player,
         smallID: player.smallID(),

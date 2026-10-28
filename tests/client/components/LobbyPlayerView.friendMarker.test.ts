@@ -1,6 +1,6 @@
 import { GameMode } from "@openfront/engine-api/game/GameTypes";
 import type { ClientInfo } from "@openfront/shared/WireSchemas";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import "../../../src/client/components/LobbyPlayerView";
 import type { LobbyTeamView } from "../../../src/client/components/LobbyPlayerView";
 import { UserSettings } from "../../../src/client/UserSettings";
@@ -82,6 +82,33 @@ describe("lobby friend marker", () => {
 
     expect(view.querySelectorAll(".lobby-friend-badge").length).toBe(2);
     expect(markedPlayers(view)).toEqual(["pal", "pal"]);
+  });
+
+  it("keeps team assignments, friend marks and spectators in separate tables", async () => {
+    const onKickPlayer = vi.fn();
+    const view = await mount({
+      tableLayout: true,
+      gameMode: GameMode.Team,
+      teamCount: 2,
+      currentClientID: "me",
+      onKickPlayer,
+      clients: [
+        client("me", { friends: ["pal"] }),
+        client("pal"),
+        client("watcher", { spectator: true }),
+      ],
+    });
+    const tables = view.querySelectorAll("table");
+    expect(tables).toHaveLength(2);
+    expect(tables[0].querySelectorAll("tbody tr")).toHaveLength(2);
+    expect(tables[0].querySelectorAll("tbody td")).toHaveLength(4);
+    expect(tables[0].textContent).not.toContain("watcher");
+    expect(tables[1].textContent).toContain("watcher");
+    expect(markedPlayers(view)).toEqual(["pal"]);
+    tables[0]
+      .querySelector<HTMLButtonElement>("tbody tr:nth-child(2) button")!
+      .click();
+    expect(onKickPlayer).toHaveBeenCalledWith("pal");
   });
 
   it("never reads another client's friends list", async () => {

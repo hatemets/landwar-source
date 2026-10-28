@@ -165,12 +165,16 @@ export type ScheduledPublicGameType = z.infer<
 // Lobbies the master keeps open per scheduled type: the one counting down
 // plus the queue behind it. The whole queue is advertised, so the Detailed
 // View can show what's coming. Free for all gets the most slots.
+//
+// 0 turns a type off. While the player base is small, every extra queue
+// empties the others, so only free for all runs (with prime time and the
+// open lobbies beside it). Raise these again once lobbies fill.
 export const QUEUED_LOBBIES_PER_TYPE: Record<ScheduledPublicGameType, number> =
   {
     ffa: 3,
-    team: 1,
-    special: 2,
-    goldrush: 2,
+    team: 0,
+    special: 0,
+    goldrush: 0,
   };
 
 // Server-run lobbies the master keeps in the Join Lobby list. They are
@@ -186,7 +190,7 @@ export const MAX_HOSTED_LOBBIES = 10;
 // How long a lobby may stay publicly listed before it starts automatically,
 // so hosts can't sit on a listing indefinitely. Unlisting cancels the
 // deadline; relisting starts a fresh one.
-export const HOSTED_LOBBY_AUTO_START_MS = 2 * 60 * 1000;
+export const HOSTED_LOBBY_AUTO_START_MS = 4 * 60 * 1000;
 
 // The host picks the start time (up to HOSTED_LOBBY_AUTO_START_MS) and the
 // player cap when listing; filling to the cap starts the game early.

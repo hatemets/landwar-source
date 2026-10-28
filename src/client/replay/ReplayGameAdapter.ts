@@ -224,6 +224,9 @@ export class ReplayPlayerView {
   piracyGold(): number {
     return this.state?.piracyGold ?? 0;
   }
+  reactorGold(): number {
+    return this.state?.reactorGold ?? 0;
+  }
   troops(): number {
     return this.state?.troops ?? 0;
   }

@@ -470,6 +470,11 @@ export class PlayerView implements PlayerLike {
     return this.state.piracyGold;
   }
 
+  /** Cumulative reactor revenue. */
+  reactorGold(): number {
+    return this.state.reactorGold ?? 0;
+  }
+
   /** Cumulative gold received from all sources. */
   goldEarned(): number {
     return this.state.goldEarned;

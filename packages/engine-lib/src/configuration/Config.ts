@@ -1,6 +1,7 @@
 import {
   Difficulty,
   GameType,
+  Gold,
   PlayerType,
   Tick,
   UnitInfo,
@@ -32,6 +33,9 @@ const DEFAULT_SPAWN_IMMUNITY_TICKS = 5 * 10;
 
 /** SAM launcher construction duration in ticks (non-instant-build). */
 export const SAM_CONSTRUCTION_TICKS = 30 * 10;
+
+/** A defense post can be built on itself up to this level. */
+export const DEFENSE_POST_MAX_LEVEL = 3;
 
 // Doomsday Clock tunables (anti-stall). Off unless enabled in GameConfig.
 // Times in seconds. The required map share rises in waves (levels + times in
@@ -170,6 +174,26 @@ export class Config {
     return this._gameConfig;
   }
 
+  goldMultiplier(): number {
+    return this._gameConfig.goldMultiplier ?? DEFAULT_GOLD_MULTIPLIER;
+  }
+
+  /** The gold multiplier for one player: the host's cheat, if any, wins. */
+  goldMultiplierFor(player: PlayerLike): number {
+    const hc = this._gameConfig.hostCheats;
+    if (hc?.goldMultiplier && player.isLobbyCreator()) {
+      return hc.goldMultiplier;
+    }
+    return this.goldMultiplier();
+  }
+
+  /** Gold one finished reactor pays its owner each tick. */
+  reactorGoldRate(player: PlayerLike): Gold {
+    return BigInt(
+      Math.floor(REACTOR_GOLD_PER_TICK * this.goldMultiplierFor(player)),
+    );
+  }
+
   cityTroopIncrease(): number {
     return 250_000;
   }
@@ -241,7 +265,11 @@ export class Config {
         };
         break;
       case UnitType.DefensePost:
-        info = { constructionDuration: this.instantBuild() ? 0 : 5 * 10 };
+        info = {
+          constructionDuration: this.instantBuild() ? 0 : 5 * 10,
+          upgradable: true,
+          maxLevel: DEFENSE_POST_MAX_LEVEL,
+        };
         break;
       case UnitType.SAMLauncher:
         info = {

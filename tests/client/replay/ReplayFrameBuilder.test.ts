@@ -98,7 +98,8 @@ function comparable(fd: FrameData) {
     // Live keeps a unit that died this tick (inactive) until the next one;
     // the renderer skips inactive units.
     units: [...fd.units].filter(([, u]) => u.isActive),
-    players: [...fd.players],
+    // Replays do not record reactorGold (it would change the file format).
+    players: [...fd.players].map(([id, { reactorGold: _, ...p }]) => [id, p]),
     // The file stores placements rounded to whole tiles.
     names: [...fd.names].map(([id, n]) => [
       id,

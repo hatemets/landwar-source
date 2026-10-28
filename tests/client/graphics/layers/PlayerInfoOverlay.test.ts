@@ -89,6 +89,7 @@ describe("PlayerInfoOverlay", () => {
     cosmetics: {},
     id: () => "bob",
     smallID: () => 2,
+    units: () => [],
   };
 
   const makeGame = (myPlayer: unknown) => ({
@@ -431,6 +432,56 @@ describe("PlayerInfoOverlay", () => {
       overlay.maybeShow(10, 10);
       expect(me.actions).not.toHaveBeenCalled();
       expect(flatten(overlay.render())).not.toContain("player_panel.target");
+    });
+  });
+
+  describe("structure income", () => {
+    const port = (tile: number) => ({
+      type: () => UnitType.Port,
+      tile: () => tile,
+      level: () => 1,
+      isUnderConstruction: () => false,
+    });
+
+    function hoverMyLand(units: unknown[], perMin: number): string {
+      Object.defineProperty(window, "innerWidth", {
+        value: 1000,
+        configurable: true,
+      });
+      const me = {
+        ...hovered,
+        isFriendly: () => true,
+        isAlliedWith: () => false,
+        units: () => units,
+      };
+      const game = {
+        ...makeGame(me),
+        owner: () => me,
+        // Tile n sits at (n, 5); the cursor is at (5, 5).
+        x: (tile: number) => tile,
+        y: () => 5,
+        ticks: () => 1000,
+        structureIncome: { perMin: () => perMin, total: () => 0 },
+      };
+      overlay.game = game as never;
+      overlay.maybeShow(10, 10);
+      return flatten(overlay.render());
+    }
+
+    it("shows what my port under the cursor earned", () => {
+      const out = hoverMyLand([port(5)], 1000);
+      expect(out).toContain("structure_income.heading");
+      expect(out).toContain("structure_income.rate");
+    });
+
+    it("says when my port earned nothing lately", () => {
+      const out = hoverMyLand([port(5)], 0);
+      expect(out).toContain("structure_income.no_ships");
+    });
+
+    it("shows nothing when no structure of mine is under the cursor", () => {
+      const out = hoverMyLand([port(50)], 1000);
+      expect(out).not.toContain("structure_income");
     });
   });
 });

@@ -278,6 +278,41 @@ export class UnitGrid<U extends UnitLike = UnitLike> {
     return false;
   }
 
+  /**
+   * Highest level among the active, finished units of `type` owned by
+   * `playerId` within range of `tile`, or 0 when there is none. Stops early
+   * once a unit at `stopAtLevel` is found.
+   */
+  maxUnitLevelNearby(
+    tile: TileRef,
+    searchRange: number,
+    type: UnitType,
+    playerId: PlayerID,
+    stopAtLevel: number = Infinity,
+  ): number {
+    const { startGridX, endGridX, startGridY, endGridY } = this.getCellsInRange(
+      tile,
+      searchRange,
+    );
+    const rangeSquared = searchRange * searchRange;
+    let best = 0;
+    for (let cy = startGridY; cy <= endGridY; cy++) {
+      for (let cx = startGridX; cx <= endGridX; cx++) {
+        const unitSet = this.grid[cy][cx].get(type);
+        if (unitSet === undefined) continue;
+        for (const unit of unitSet) {
+          if (unit.level() <= best) continue;
+          if (!this.unitIsInRange(unit, tile, rangeSquared, playerId)) {
+            continue;
+          }
+          best = unit.level();
+          if (best >= stopAtLevel) return best;
+        }
+      }
+    }
+    return best;
+  }
+
   // Return true if any unit of the given types matches the predicate
   anyUnitNearby(
     tile: TileRef,

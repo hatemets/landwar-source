@@ -543,7 +543,8 @@ export class GameModeSelector extends LitElement {
         (l) =>
           region === null || mapRegions(l.gameConfig?.gameMap).includes(region),
       )
-      .slice(0, 5);
+      // An even count fills the two-column grid.
+      .slice(0, 6);
     const showNoLobbies = this.lobbies !== null && featuredLobbies.length === 0;
     const heroHeight = "menu-lobby-slot";
 
@@ -847,7 +848,7 @@ export class GameModeSelector extends LitElement {
         ${title}
         ${badge
           ? html`<span
-              class="absolute -top-1.5 -right-1.5 min-w-5 h-5 px-1.5 flex items-center justify-center rounded-full bg-red-500 text-white text-xs font-bold"
+              class="absolute -top-2 -right-2 min-w-6 h-6 px-1.5 flex items-center justify-center rounded-full bg-red-500 text-white text-sm font-bold"
               >${badge}</span
             >`
           : nothing}
@@ -873,9 +874,7 @@ export class GameModeSelector extends LitElement {
       // No countdown yet: an empty pill says nothing a 0/N count doesn't.
       timeDisplay = "";
     } else if (timeRemaining > 0) {
-      timeDisplay = translateText("public_lobby.starting_in", {
-        time: renderDuration(timeRemaining),
-      });
+      timeDisplay = renderDuration(timeRemaining);
     } else {
       timeDisplay = translateText("public_lobby.starting_game");
       timeDisplayUppercase = true;

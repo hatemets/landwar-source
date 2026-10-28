@@ -29,6 +29,7 @@ export class ReactorExecution implements Execution {
     const owner = this.reactor.owner();
     const gold = this.mg.config().reactorGoldRate(owner);
     owner.addGold(gold);
+    owner.addReactorGold(gold);
     this.mg.stats().goldWork(owner, gold);
   }
 

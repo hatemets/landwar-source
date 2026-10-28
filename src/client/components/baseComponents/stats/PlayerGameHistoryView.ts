@@ -432,7 +432,9 @@ export class PlayerGameHistoryView extends LitElement {
     return html`
       <div class="py-3">
         <div data-scroll-sentinel aria-hidden="true" class="h-px"></div>
-        ${this.loadingMore ? renderLoadingSpinner() : ""}
+        ${this.loadingMore
+          ? renderLoadingSpinner(undefined, { compact: true })
+          : ""}
       </div>
     `;
   }

@@ -88,7 +88,7 @@ export class ServerEnv {
     return DEFAULT_TURN_INTERVAL_MS;
   }
   static gameCreationRate(): number {
-    return ServerEnv.gameEnv === GameEnv.Dev ? 5 * 1000 : 2 * 60 * 1000;
+    return ServerEnv.gameEnv === GameEnv.Dev ? 5 * 1000 : 4 * 60 * 1000;
   }
   static workerIndex(gameID: GameID): number {
     return simpleHash(gameID) % ServerEnv.numWorkers();
@@ -99,8 +99,20 @@ export class ServerEnv {
   static workerPort(gameID: GameID): number {
     return ServerEnv.workerPortByIndex(ServerEnv.workerIndex(gameID));
   }
+  // The master listens on SERVER_PORT (default 3000) and worker i on the
+  // port i + 1 above it. Dev sets it when another app holds 3000;
+  // vite.config.ts reads the same variable for its proxy.
+  static masterPort(): number {
+    const raw = process.env.SERVER_PORT;
+    if (raw === undefined || raw.length === 0) return 3000;
+    const n = Number(raw);
+    if (!Number.isInteger(n) || n < 1 || n > 65535) {
+      throw new Error(`Invalid SERVER_PORT: ${JSON.stringify(raw)}`);
+    }
+    return n;
+  }
   static workerPortByIndex(index: number): number {
-    return 3001 + index;
+    return ServerEnv.masterPort() + 1 + index;
   }
   // Mint a game id under this deployment's instance letter.
   static generateGameId(): GameID {

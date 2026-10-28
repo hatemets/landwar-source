@@ -31,7 +31,7 @@ import { ServerEnv } from "./ServerEnv";
 
 // An open lobby counts down from a random time in this range, so the lobbies
 // in the list do not all start at once.
-export const OPEN_LOBBY_MIN_COUNTDOWN_MS = 75 * 1000;
+export const OPEN_LOBBY_MIN_COUNTDOWN_MS = 3 * 60 * 1000;
 export const OPEN_LOBBY_MAX_COUNTDOWN_MS = HOSTED_LOBBY_AUTO_START_MS;
 // How long an open lobby the master asked for counts as open before a
 // worker reports it.

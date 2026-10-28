@@ -72,6 +72,8 @@ export interface PlayerState {
   trainGold: number;
   /** Cumulative piracy revenue: captured-ship payouts (live). */
   piracyGold: number;
+  /** Cumulative reactor revenue (live; replays do not record it). */
+  reactorGold?: number;
   /** Cumulative gold received from all sources (live). */
   goldEarned: number;
   troops: number;

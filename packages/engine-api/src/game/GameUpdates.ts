@@ -264,6 +264,8 @@ export interface PlayerUpdate {
   trainGold?: Gold;
   /** Cumulative piracy revenue: captured-ship payouts. */
   piracyGold?: Gold;
+  /** Cumulative reactor revenue: per-tick payouts from built reactors. */
+  reactorGold?: Gold;
   /** Cumulative gold received from all sources (workers, trade, ...). */
   goldEarned?: Gold;
   troops?: number;

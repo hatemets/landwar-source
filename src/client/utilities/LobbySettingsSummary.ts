@@ -226,6 +226,34 @@ export function lobbySettingsTable(
   `;
 }
 
+/** Disabled units in the join view, beside the game settings. */
+export function disabledUnitsTable(c: GameConfig): TemplateResult | null {
+  if (!c.disabledUnits?.length) return null;
+  return html`
+    <table data-disabled-units class="lobby-briefing__units w-full text-sm">
+      <caption>
+        ${translateText("private_lobby.disabled_units")}<span
+          >${c.disabledUnits.length}</span
+        >
+      </caption>
+      <tbody>
+        ${c.disabledUnits.map(
+          (unit) => html`
+            <tr>
+              <th scope="row">
+                ${DISABLED_UNIT_KEYS[unit]
+                  ? translateText(DISABLED_UNIT_KEYS[unit])
+                  : unit}
+              </th>
+              <td>${translateText("common.disabled")}</td>
+            </tr>
+          `,
+        )}
+      </tbody>
+    </table>
+  `;
+}
+
 /** The units the lobby turned off, as a red box; null when none are. */
 export function disabledUnitsBox(
   c: GameConfig,
