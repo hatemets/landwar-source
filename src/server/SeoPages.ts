@@ -275,6 +275,10 @@ const FAQ: readonly [string, string][] = [
     "Can I play alone?",
     "Yes. Solo games put you against AI nations on any map.",
   ],
+  [
+    "Are all players in public games real people?",
+    "Not always. When few players are online, public games also include AI players.",
+  ],
 ];
 
 export function openfrontAlternativePage(ctx: PageContext): string {
