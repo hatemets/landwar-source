@@ -35,10 +35,15 @@ jobs:
         with:
           path: out/index.html
           retention-days: 1
+  # Private-repo runners have 2 vCPUs, so the suite runs in 4 shards.
   test:
-    name: 🔬 Test
+    name: 🔬 Test (${{ matrix.shard }}/4)
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -50,7 +55,7 @@ jobs:
           runtime: node@24.15.0
           cache: true
           require-lockfile: true
-      - run: pnpm test
+      - run: pnpm test --shard=${{ matrix.shard }}/4
 
   lint:
     name: 🔍 Lint

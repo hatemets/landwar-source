@@ -12,7 +12,6 @@ import type {
   GlobeRegionPin,
   MapRegion,
 } from "../globe/MapRegions";
-import { whenPageIdle } from "../WhenPageIdle";
 
 /** Purple, black and orange, in the order they win. */
 export const CONQUEST_NATION_COLORS = ["#8b5cf6", "#34343f", "#f2862e"];
@@ -248,9 +247,15 @@ export class ConquestGlobe extends LitElement {
         .catch((e) => console.warn("conquest globe unavailable:", e))
         .finally(() => (this.loading = false));
     };
-    // A loader needs it now; the homepage can wait for the page to settle.
+    // A loader needs it now. The homepage globe is also the lobby list's
+    // loading indicator, so it must not wait for the "load" event, which
+    // fires only after every lobby map image has loaded.
     if (this.exclusive) run();
-    else whenPageIdle(run);
+    else if ("requestIdleCallback" in window) {
+      requestIdleCallback(run, { timeout: 500 });
+    } else {
+      setTimeout(run, 0);
+    }
   }
 
   private resize() {
