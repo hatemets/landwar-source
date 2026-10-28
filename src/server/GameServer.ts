@@ -61,7 +61,14 @@ import {
   IntentOutcome,
 } from "./IntentAuthorization";
 import { ListingState } from "./ListingState";
-import { LobbyFiller, pickFillers, seatedFillers } from "./LobbyFillers";
+import {
+  churnFillers,
+  fillsSeats,
+  LobbyFiller,
+  nextChurnDelay,
+  pickFillers,
+  seatedFillers,
+} from "./LobbyFillers";
 import { identityFor, MatchTelemetryRecorder } from "./MatchTelemetryRecorder";
 import { friendsLookup, NameVisibility } from "./NameVisibility";
 import { poolTargetFor } from "./PoolRouting";
@@ -253,7 +260,10 @@ export class GameServer {
 
   // Seats the server fills in a scheduled public lobby (see LobbyFillers.ts).
   // Real players push them out as the lobby fills.
-  private readonly fillers: LobbyFiller[];
+  private fillers: LobbyFiller[];
+  // When a filler next leaves or joins. Null for a lobby that never has
+  // fillers.
+  private nextFillerChurnAt: number | null = null;
 
   // The end-of-game winner vote and the running live-stats vote: both
   // IP-weighted majorities among the players (see Consensus.ts).
@@ -316,6 +326,10 @@ export class GameServer {
     this.publicGameType = opts.publicGameType;
     this.matchmakingTeams = opts.matchmakingTeams;
     this.fillers = pickFillers(opts.gameConfig, opts.publicGameType);
+    // An open lobby that starts empty still gets fillers over time.
+    if (fillsSeats(opts.gameConfig, opts.publicGameType)) {
+      this.nextFillerChurnAt = Date.now() + nextChurnDelay();
+    }
     this.deps = { ...defaultGameServerDeps(), ...deps };
     this.groupToken = this.deps.mintGroupToken();
     this.telemetry = new MatchTelemetryRecorder(
@@ -372,11 +386,13 @@ export class GameServer {
 
   // Filling up starts host-less games (public, matchmade, admin bot) and
   // listed lobbies. An unlisted lobby's player limit only turns players
-  // away: its host still starts it.
+  // away: its host still starts it. Seated fillers count: a lobby that shows
+  // every seat taken starts, it does not wait on a full roster.
   private markFullIfAutoStarting(): void {
     if (
       (this.creatorPersistentID === undefined || this.isListed()) &&
-      this.playerCount() >= (this.gameConfig.maxPlayers ?? Infinity)
+      this.playerCount() + this.seatedFillers().length >=
+        (this.gameConfig.maxPlayers ?? Infinity)
     ) {
       this.hasReachedMaxPlayerCount = true;
     }
@@ -1199,6 +1215,25 @@ export class GameServer {
 
   public numSeatedFillers(): number {
     return this.seatedFillers().length;
+  }
+
+  // A filler leaves or a new one joins when its time comes. GameManager
+  // calls this each tick while the lobby waits. Once the game starts, the
+  // fillers are fixed in the start info.
+  public churnFillers(now: number): void {
+    if (
+      this.nextFillerChurnAt === null ||
+      now < this.nextFillerChurnAt ||
+      this.stage !== "lobby" ||
+      this.ended
+    ) {
+      return;
+    }
+    this.fillers = churnFillers(this.fillers, this.gameConfig.maxPlayers);
+    this.nextFillerChurnAt = now + nextChurnDelay();
+    // A filler that takes the last free seat fills the lobby. Fillers alone
+    // never do: churn always leaves one seat for a real player.
+    this.markFullIfAutoStarting();
   }
 
   // ONE definition of who the allowlist admits, shared by every path that can

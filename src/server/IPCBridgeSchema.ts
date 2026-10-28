@@ -57,6 +57,9 @@ const WorkerLobbyListSchema = z.object({
   // when a draining server is empty. Optional for a worker build that
   // predates it; absent counts as zero.
   liveGames: z.number().int().min(0).optional(),
+  // Started games with a player connected (GameManager.runningGames). The
+  // deploy waits for the sum to reach 0. Absent counts as zero.
+  runningGames: z.number().int().min(0).optional(),
 });
 
 const WorkerReadySchema = z.object({

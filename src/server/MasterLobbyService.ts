@@ -1,6 +1,9 @@
 import {
+  HOSTED_LOBBY_AUTO_START_MS,
   MAX_HOSTED_LOBBIES,
+  MIN_OPEN_LOBBIES,
   PublicGameType,
+  QUEUED_LOBBIES_PER_TYPE,
   SCHEDULED_PUBLIC_GAME_TYPES,
 } from "@openfront/shared/WireSchemas";
 import { nextPrimeTime, PRIME_TIME_LEAD_MS } from "@openfront/shared/PrimeTime";
@@ -26,12 +29,13 @@ import { MapPlaylist } from "./MapPlaylist";
 import { startPolling } from "./PollingLoop";
 import { ServerEnv } from "./ServerEnv";
 
-/**
- * Lobbies the master keeps open per scheduled type: the one counting down
- * plus the queue behind it. The whole queue is advertised, so the Detailed
- * View can show what's coming, not just the lobby about to start.
- */
-export const QUEUED_LOBBIES_PER_TYPE = 2;
+// An open lobby counts down from a random time in this range, so the lobbies
+// in the list do not all start at once.
+export const OPEN_LOBBY_MIN_COUNTDOWN_MS = 75 * 1000;
+export const OPEN_LOBBY_MAX_COUNTDOWN_MS = HOSTED_LOBBY_AUTO_START_MS;
+// How long an open lobby the master asked for counts as open before a
+// worker reports it.
+const OPEN_LOBBY_PENDING_MS = 5 * 1000;
 
 // Keep a small public queue open for players. Empty games stay in the lobby
 // phase; the start timer begins only after a human joins.
@@ -43,6 +47,7 @@ export class MasterLobbyService {
   private readonly workerLobbies = new Map<number, InternalGameInfo[]>();
   // Worker id => games it last reported running (lobbies included).
   private readonly workerLiveGames = new Map<number, number>();
+  private readonly workerRunningGames = new Map<number, number>();
   private readonly readyWorkers = new Set<number>();
   // gameID => consecutive broadcast cycles a hosted lobby has lost the
   // per-creator dedup or overflowed the cluster-wide cap. Losing once can be
@@ -110,6 +115,7 @@ export class MasterLobbyService {
         case "lobbyList":
           this.workerLobbies.set(workerId, this.validLobbies(msg.lobbies));
           this.workerLiveGames.set(workerId, msg.liveGames ?? 0);
+          this.workerRunningGames.set(workerId, msg.runningGames ?? 0);
           // The client coalesces: at most one report a second, plus a
           // heartbeat. Every change is offered so a numClients-only change
           // still reaches the site roster within a second.
@@ -141,6 +147,7 @@ export class MasterLobbyService {
     this.workers.delete(workerId);
     this.workerLobbies.delete(workerId);
     this.workerLiveGames.delete(workerId);
+    this.workerRunningGames.delete(workerId);
     this.readyWorkers.delete(workerId);
   }
 
@@ -149,6 +156,14 @@ export class MasterLobbyService {
   liveGames(): number {
     let total = 0;
     for (const n of this.workerLiveGames.values()) total += n;
+    return total;
+  }
+
+  // Started games with a player connected, summed over the workers' last
+  // reports. Served at /api/running_games for infra/vm/deploy.sh.
+  runningGames(): number {
+    let total = 0;
+    for (const n of this.workerRunningGames.values()) total += n;
     return total;
   }
 
@@ -465,7 +480,7 @@ export class MasterLobbyService {
 
       // An inactive deployment still starts what it already queued (the
       // countdown above), it just stops adding to the queue.
-      if (!this.active || lobbies.length >= QUEUED_LOBBIES_PER_TYPE) {
+      if (!this.active || lobbies.length >= QUEUED_LOBBIES_PER_TYPE[type]) {
         continue;
       }
 
@@ -477,7 +492,46 @@ export class MasterLobbyService {
       } satisfies MasterCreateGame);
     }
 
+    await this.maybeScheduleOpenLobbies(lobbiesByType.hosted);
     await this.maybeSchedulePrimeTime(lobbiesByType.primetime);
+  }
+
+  // Open lobbies the master asked for, by id => when. The lobby list lags
+  // one worker report, so without them each tick would ask again.
+  private readonly pendingOpenLobbies = new Map<string, number>();
+
+  /**
+   * Keeps at least MIN_OPEN_LOBBIES in the Join Lobby list. Each one has its
+   * countdown from the start, and fillers in it count as players. A lobby
+   * nobody joined leaves the list when its time is up, and a new one opens.
+   */
+  private async maybeScheduleOpenLobbies(hosted: InternalGameInfo[]) {
+    if (!this.active) return;
+    const now = Date.now();
+    const reported = new Set(hosted.map((l) => l.gameID));
+    for (const [gameID, at] of this.pendingOpenLobbies) {
+      if (reported.has(gameID) || now - at > OPEN_LOBBY_PENDING_MS) {
+        this.pendingOpenLobbies.delete(gameID);
+      }
+    }
+    const open = hosted.filter(
+      (l) => l.startsAt === undefined || l.startsAt > now,
+    ).length;
+    for (
+      let i = open + this.pendingOpenLobbies.size;
+      i < MIN_OPEN_LOBBIES;
+      i++
+    ) {
+      const gameID = ServerEnv.generateGameId();
+      this.pendingOpenLobbies.set(gameID, now);
+      this.sendMessageToWorker({
+        type: "createGame",
+        gameID,
+        gameConfig: await this.playlist.openLobbyConfig(),
+        publicGameType: "hosted",
+        startsAt: now + openLobbyCountdown(),
+      } satisfies MasterCreateGame);
+    }
   }
 
   // The start the last prime-time lobby was created for. The lobby list
@@ -533,4 +587,13 @@ export class MasterLobbyService {
       }
     });
   }
+}
+
+export function openLobbyCountdown(random: () => number = Math.random): number {
+  return (
+    OPEN_LOBBY_MIN_COUNTDOWN_MS +
+    Math.floor(
+      random() * (OPEN_LOBBY_MAX_COUNTDOWN_MS - OPEN_LOBBY_MIN_COUNTDOWN_MS),
+    )
+  );
 }

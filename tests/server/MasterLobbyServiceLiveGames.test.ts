@@ -26,7 +26,10 @@ describe("MasterLobbyService.liveGames", () => {
   beforeEach(() => {
     vi.stubEnv("DOMAIN", "localhost");
     vi.spyOn(ServerEnv, "numWorkers").mockReturnValue(2);
-    const playlist = { gameConfig: vi.fn(async () => ({})) };
+    const playlist = {
+      gameConfig: vi.fn(async () => ({})),
+      openLobbyConfig: vi.fn(async () => ({})),
+    };
     const log = { info: vi.fn(), error: vi.fn() } as any;
     service = new MasterLobbyService(playlist as any, log);
   });
@@ -60,5 +63,17 @@ describe("MasterLobbyService.liveGames", () => {
     expect(service.liveGames()).toBe(5);
     service.removeWorker(0);
     expect(service.liveGames()).toBe(0);
+  });
+
+  it("sums the running-game counts, which deploy.sh waits on", () => {
+    const w0 = createMockWorker();
+    const w1 = createMockWorker();
+    service.registerWorker(0, w0 as any);
+    service.registerWorker(1, w1 as any);
+    w0.emit("message", { type: "lobbyList", lobbies: [], runningGames: 2 });
+    w1.emit("message", { type: "lobbyList", lobbies: [] });
+    expect(service.runningGames()).toBe(2);
+    service.removeWorker(0);
+    expect(service.runningGames()).toBe(0);
   });
 });

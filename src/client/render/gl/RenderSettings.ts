@@ -405,9 +405,9 @@ export interface RenderSettings {
   spawnOverlay: {
     highlightRadius: number; // tile highlight radius (squared internally)
     highlightAlpha: number; // tile highlight opacity (0–1)
-    selfOrbitRadius: number; // self marker: orbit radius of the swirling dot (tiles)
-    selfDotRadius: number; // self marker: radius of the swirling dot (tiles)
-    selfOrbitSpeed: number; // self marker: orbit speed (radians per second)
+    selfRingRadius: number; // self marker: radius of the glowing ring (tiles)
+    selfGlowWidth: number; // self marker: width of the ring's glow (tiles)
+    selfPulseSpeed: number; // self marker: glow pulse speed (radians per second)
     mateMinRad: number; // teammate ring inner radius
     mateMaxRad: number; // teammate ring outer radius
     animSpeed: number; // breathing animation speed

@@ -1,6 +1,10 @@
 import { GameMapType } from "@openfront/engine-api/game/GameTypes";
 import { assetUrl } from "@openfront/shared/AssetUrls";
-import { PublicGameInfo, PublicGames } from "@openfront/shared/WireSchemas";
+import {
+  PublicGameInfo,
+  PublicGames,
+  QUEUED_LOBBIES_PER_TYPE,
+} from "@openfront/shared/WireSchemas";
 import { html, nothing, TemplateResult } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { repeat } from "lit/directives/repeat.js";
@@ -42,10 +46,17 @@ import { styledSelect } from "./ui/StyledSelect";
 const SCHEDULED_PANES = ["ffa", "team", "special", "goldrush"] as const;
 
 /**
- * Slots a pane always renders, matching QUEUED_LOBBIES_PER_TYPE on the master.
- * Holding the slot count fixed keeps its height steady as a lobby starts.
+ * Slots a pane always renders when its type has no QUEUED_LOBBIES_PER_TYPE
+ * entry. Holding the slot count fixed keeps its height steady as a lobby
+ * starts.
  */
 const PANE_SLOTS = 2;
+
+function paneSlots(type: string): number {
+  return (
+    (QUEUED_LOBBIES_PER_TYPE as Record<string, number>)[type] ?? PANE_SLOTS
+  );
+}
 
 /** Tab key for the overview: every bucket at once, as three panes. */
 const ALL_TAB = "all";
@@ -277,12 +288,17 @@ export class DetailedGameViewModal extends BaseModal {
                       translateText(`detailed_view.pane_${type}`),
                       ofType(shown, type),
                       ofType(all, type).length,
+                      paneSlots(type),
                     ),
                   )}
                 </div>
                 ${this.renderHostedPane(ofType(shown, "hosted"))}
               `
-            : this.renderTypeTab(ofType(shown, tab), ofType(all, tab).length)}
+            : this.renderTypeTab(
+                ofType(shown, tab),
+                ofType(all, tab).length,
+                paneSlots(tab),
+              )}
       </div>
     `;
   }
@@ -291,8 +307,12 @@ export class DetailedGameViewModal extends BaseModal {
    * A single bucket's tab: the same slots as its pane in the overview, two
    * across instead of the one narrow column it gets there.
    */
-  private renderTypeTab(lobbies: PublicGameInfo[], bucketTotal: number) {
-    const placeholders = Math.max(0, PANE_SLOTS - bucketTotal);
+  private renderTypeTab(
+    lobbies: PublicGameInfo[],
+    bucketTotal: number,
+    slots: number,
+  ) {
+    const placeholders = Math.max(0, slots - bucketTotal);
     if (lobbies.length === 0 && placeholders === 0) {
       return html`<p class="py-12 text-center text-sm text-white/50">
         ${translateText("detailed_view.pane_empty")}
@@ -313,7 +333,7 @@ export class DetailedGameViewModal extends BaseModal {
   }
 
   /**
-   * A pane always fills PANE_SLOTS, so its height never changes as lobbies
+   * A pane always fills its slots, so its height never changes as lobbies
    * come and go: the queued lobby slides up into the started one's slot and a
    * "spawning" placeholder holds the slot until the master creates its
    * replacement. `bucketTotal` is the unfiltered count, so hiding a lobby with
@@ -323,8 +343,9 @@ export class DetailedGameViewModal extends BaseModal {
     name: string,
     lobbies: PublicGameInfo[],
     bucketTotal: number,
+    slots = PANE_SLOTS,
   ) {
-    const placeholders = Math.max(0, PANE_SLOTS - bucketTotal);
+    const placeholders = Math.max(0, slots - bucketTotal);
     return html`
       <section class="flex flex-col gap-2 min-w-0">
         <h3 class="${PANE_HEADING}">

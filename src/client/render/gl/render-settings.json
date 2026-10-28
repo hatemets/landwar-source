@@ -336,9 +336,9 @@
   "spawnOverlay": {
     "highlightRadius": 9,
     "highlightAlpha": 1.0,
-    "selfOrbitRadius": 6,
-    "selfDotRadius": 1.1,
-    "selfOrbitSpeed": 2.4,
+    "selfRingRadius": 18,
+    "selfGlowWidth": 3.5,
+    "selfPulseSpeed": 2.4,
     "mateMinRad": 5,
     "mateMaxRad": 14,
     "animSpeed": 0.008,

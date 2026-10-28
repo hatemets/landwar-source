@@ -263,6 +263,17 @@ app.get("/api/health", (_req, res) => {
   }
 });
 
+// For infra/vm/deploy.sh, which waits for 0 before it restarts the server.
+// It calls the master directly from inside the container. nginx sets
+// X-Forwarded-For on every request it proxies, so public requests get a 404.
+app.get("/api/running_games", (req, res) => {
+  if (req.headers["x-forwarded-for"] !== undefined) {
+    res.status(404).end();
+    return;
+  }
+  res.json({ running: lobbyService?.runningGames() ?? 0 });
+});
+
 // SPA fallback route
 app.get("/{*splat}", async function (req, res) {
   try {

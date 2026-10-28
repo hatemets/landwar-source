@@ -145,6 +145,29 @@ describe("JoinLobbyModal server time offset", () => {
     expect((modal as any).lobbyStartAt).toBe(230_000);
   });
 
+  it("counts down to a listed lobby's auto-start when it has no countdown", () => {
+    const modal = new JoinLobbyModal();
+    (modal as any).syncCountdownTimer = vi.fn();
+    nowMs = 220_000;
+    (modal as any).updateFromLobby({
+      gameID: "g1",
+      serverTime: 220_000,
+      autoStartAt: 300_000,
+      clients: [],
+    });
+    expect((modal as any).lobbyStartAt).toBe(300_000);
+
+    // An armed countdown wins over the listing deadline.
+    (modal as any).updateFromLobby({
+      gameID: "g1",
+      serverTime: 220_000,
+      startsAt: 250_000,
+      autoStartAt: 300_000,
+      clients: [],
+    });
+    expect((modal as any).lobbyStartAt).toBe(250_000);
+  });
+
   it("does not trigger join timeout early when local clock is ahead", () => {
     const modal = new JoinLobbyModal();
     const closeSpy = vi

@@ -1,4 +1,7 @@
-import { HumansVsNations } from "@openfront/engine-api/game/GameTypes";
+import {
+  GameType,
+  HumansVsNations,
+} from "@openfront/engine-api/game/GameTypes";
 import { GameConfig, MAX_LOBBY_FILLERS } from "@openfront/engine-api/Schemas";
 import { PublicGameType } from "@openfront/shared/WireSchemas";
 import { generateID } from "@openfront/shared/SharedUtil";
@@ -14,24 +17,48 @@ export interface LobbyFiller {
 const MIN_FILLERS = 4;
 const MAX_FILLERS = 5;
 
-// Fillers for a new lobby: only for the lobbies the server schedules. Hosted,
-// matchmade and ranked games keep their real roster, and Humans vs Nations
-// would put the fillers on the nations' side.
+// While the lobby waits, one filler leaves or a new one joins every 18 to 30
+// seconds (two or three times a minute), so the roster looks like real
+// players coming and going. The count stays in this range.
+export const FILLER_CHURN_MIN_MS = 18_000;
+export const FILLER_CHURN_MAX_MS = 30_000;
+const CHURN_MIN_FILLERS = 2;
+const CHURN_MAX_FILLERS = 7;
+
+// Open lobbies (public games the master lists as "hosted") start with one
+// of these filler counts, so some look empty and some have players waiting.
+const OPEN_LOBBY_FILLER_COUNTS = [0, 0, 2, 3, 4, 5];
+
+// Whether a lobby gets fillers: only the lobbies the server opens. Private
+// and player-hosted lobbies, matchmade and ranked games keep their real
+// roster, and Humans vs Nations would put the fillers on the nations' side.
+export function fillsSeats(
+  config: GameConfig,
+  publicGameType: PublicGameType | undefined,
+): boolean {
+  return (
+    publicGameType !== undefined &&
+    (publicGameType !== "hosted" || config.gameType === GameType.Public) &&
+    config.rankedType === undefined &&
+    config.playerTeams !== HumansVsNations
+  );
+}
+
+// Fillers for a new lobby.
 export function pickFillers(
   config: GameConfig,
   publicGameType: PublicGameType | undefined,
   random: () => number = Math.random,
 ): LobbyFiller[] {
-  if (
-    publicGameType === undefined ||
-    publicGameType === "hosted" ||
-    config.rankedType !== undefined ||
-    config.playerTeams === HumansVsNations
-  ) {
+  if (!fillsSeats(config, publicGameType)) {
     return [];
   }
   const wanted =
-    MIN_FILLERS + Math.floor(random() * (MAX_FILLERS - MIN_FILLERS + 1));
+    publicGameType === "hosted"
+      ? OPEN_LOBBY_FILLER_COUNTS[
+          Math.floor(random() * OPEN_LOBBY_FILLER_COUNTS.length)
+        ]!
+      : MIN_FILLERS + Math.floor(random() * (MAX_FILLERS - MIN_FILLERS + 1));
   // At least one seat stays free for a real player.
   const count = Math.max(
     0,
@@ -48,6 +75,44 @@ export function pickFillers(
     fillers.push({ clientID: generateID(), username });
   }
   return fillers;
+}
+
+// The wait until the next filler leaves or joins.
+export function nextChurnDelay(random: () => number = Math.random): number {
+  return (
+    FILLER_CHURN_MIN_MS +
+    Math.floor(random() * (FILLER_CHURN_MAX_MS - FILLER_CHURN_MIN_MS + 1))
+  );
+}
+
+// One filler leaves, or a new one joins. A join adds to the end, so the
+// fillers already seated keep their seats (see seatedFillers).
+export function churnFillers(
+  fillers: readonly LobbyFiller[],
+  maxPlayers: number | undefined,
+  random: () => number = Math.random,
+): LobbyFiller[] {
+  const most = Math.min(
+    CHURN_MAX_FILLERS,
+    MAX_LOBBY_FILLERS,
+    (maxPlayers ?? Infinity) - 1,
+  );
+  const join =
+    fillers.length < most &&
+    (fillers.length <= CHURN_MIN_FILLERS || random() < 0.5);
+  if (!join) {
+    if (fillers.length === 0) return [];
+    const leaver = Math.floor(random() * fillers.length);
+    return fillers.filter((_, i) => i !== leaver);
+  }
+  const used = new Set(fillers.map((f) => f.username));
+  for (let attempt = 0; attempt < 100; attempt++) {
+    const username = fillerName(random);
+    if (!used.has(username)) {
+      return [...fillers, { clientID: generateID(), username }];
+    }
+  }
+  return [...fillers];
 }
 
 // The fillers that still have a seat. Real players take precedence: each one

@@ -56,7 +56,10 @@ describe("MasterLobbyService active/inactive deployment", () => {
     // through DOMAIN against the dev-default cluster map.
     vi.stubEnv("DOMAIN", "localhost");
     vi.spyOn(ServerEnv, "numWorkers").mockReturnValue(1);
-    const playlist = { gameConfig: vi.fn(async () => ({})) };
+    const playlist = {
+      gameConfig: vi.fn(async () => ({})),
+      openLobbyConfig: vi.fn(async () => ({})),
+    };
     const log = { info: vi.fn(), error: vi.fn() } as any;
     service = new MasterLobbyService(playlist as any, log);
     worker = createMockWorker();
@@ -114,7 +117,10 @@ describe("MasterLobbyService leaves empty queued lobbies idle", () => {
   it("does not assign a countdown when no human has joined", async () => {
     vi.stubEnv("DOMAIN", "localhost");
     vi.spyOn(ServerEnv, "numWorkers").mockReturnValue(1);
-    const playlist = { gameConfig: vi.fn(async () => ({})) };
+    const playlist = {
+      gameConfig: vi.fn(async () => ({})),
+      openLobbyConfig: vi.fn(async () => ({})),
+    };
     const log = { info: vi.fn(), error: vi.fn() } as any;
     const service = new MasterLobbyService(playlist as any, log);
     const worker = createMockWorker();
@@ -154,7 +160,10 @@ describe("MasterLobbyService awaiting the API's first answer", () => {
     vi.mocked(startPolling).mockClear();
     vi.stubEnv("DOMAIN", "localhost");
     vi.spyOn(ServerEnv, "numWorkers").mockReturnValue(1);
-    const playlist = { gameConfig: vi.fn(async () => ({})) };
+    const playlist = {
+      gameConfig: vi.fn(async () => ({})),
+      openLobbyConfig: vi.fn(async () => ({})),
+    };
     const log = { info: vi.fn(), error: vi.fn() } as any;
     service = new MasterLobbyService(playlist as any, log, true);
     worker = createMockWorker();

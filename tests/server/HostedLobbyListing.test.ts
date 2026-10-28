@@ -12,6 +12,7 @@ import {
   HOSTED_LOBBY_AUTO_START_MS,
   LobbyLabelSchema,
   MAX_HOSTED_LOBBIES,
+  MIN_OPEN_LOBBIES,
 } from "@openfront/shared/WireSchemas";
 import EventEmitter from "events";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -26,7 +27,10 @@ import {
   InternalGameInfo,
   InternalPublicGames,
 } from "../../src/server/IPCBridgeSchema";
-import { MasterLobbyService } from "../../src/server/MasterLobbyService";
+import {
+  MasterLobbyService,
+  OPEN_LOBBY_MIN_COUNTDOWN_MS,
+} from "../../src/server/MasterLobbyService";
 import { ServerEnv } from "../../src/server/ServerEnv";
 import { WorkerLobbyService } from "../../src/server/WorkerLobbyService";
 import {
@@ -543,6 +547,7 @@ describe("MasterLobbyService hosted lobbies", () => {
     vi.spyOn(ServerEnv, "gameCreationRate").mockReturnValue(60_000);
     const playlist = {
       gameConfig: vi.fn().mockResolvedValue({ gameType: GameType.Public }),
+      openLobbyConfig: vi.fn().mockResolvedValue({ gameType: GameType.Public }),
     };
     const log = { info: vi.fn(), error: vi.fn() } as any;
     const service = new MasterLobbyService(playlist as any, log);
@@ -717,7 +722,7 @@ describe("MasterLobbyService hosted lobbies", () => {
     }
   });
 
-  it("never schedules or sets countdowns on hosted lobbies", async () => {
+  it("never sets countdowns on player-hosted lobbies", async () => {
     const { service, workers } = createService();
     workers[0].emit("message", {
       type: "lobbyList",
@@ -731,21 +736,86 @@ describe("MasterLobbyService hosted lobbies", () => {
         if (msg.type === "updateLobby") {
           expect(msg.gameID).not.toBe("hosted1");
         }
-        if (msg.type === "createGame") {
-          expect(msg.publicGameType).not.toBe("hosted");
-        }
       }
     }
-    // The scheduled types still get their replacement lobbies.
+    // The scheduled types get their queues, one create per call, and the
+    // open lobbies top the list up to MIN_OPEN_LOBBIES.
     const created = workers.flatMap((w) =>
       sentMessages(w).filter((m) => m.type === "createGame"),
     );
     expect(created.map((m) => m.publicGameType).sort()).toEqual([
       "ffa",
       "goldrush",
+      ...Array<string>(MIN_OPEN_LOBBIES - 1).fill("hosted"),
       "special",
       "team",
     ]);
+  });
+
+  it("opens lobbies with a countdown of at most two minutes", async () => {
+    vi.useFakeTimers({ now: 1_000_000 });
+    try {
+      const { service, workers } = createService();
+      await (service as any).maybeScheduleLobby();
+      const open = workers
+        .flatMap((w) => sentMessages(w))
+        .filter(
+          (m) => m.type === "createGame" && m.publicGameType === "hosted",
+        );
+      expect(open).toHaveLength(MIN_OPEN_LOBBIES);
+      for (const msg of open) {
+        expect(msg.startsAt - Date.now()).toBeGreaterThanOrEqual(
+          OPEN_LOBBY_MIN_COUNTDOWN_MS,
+        );
+        expect(msg.startsAt - Date.now()).toBeLessThanOrEqual(
+          HOSTED_LOBBY_AUTO_START_MS,
+        );
+      }
+      expect(HOSTED_LOBBY_AUTO_START_MS).toBe(2 * 60 * 1000);
+
+      // The next pass does not ask again while the workers have not
+      // reported them yet.
+      await (service as any).maybeScheduleLobby();
+      const again = workers
+        .flatMap((w) => sentMessages(w))
+        .filter(
+          (m) => m.type === "createGame" && m.publicGameType === "hosted",
+        );
+      expect(again).toHaveLength(MIN_OPEN_LOBBIES);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("replaces an open lobby once its countdown is over", async () => {
+    vi.useFakeTimers({ now: 1_000_000 });
+    try {
+      const { service, workers } = createService();
+      workers[0].emit("message", {
+        type: "lobbyList",
+        lobbies: [1, 2, 3].map((i) => ({
+          gameID: `open000${i}`,
+          publicGameType: "hosted",
+          numClients: 0,
+          startsAt: Date.now() + 60_000 * i,
+          createdAt: 1,
+        })),
+      });
+      await (service as any).maybeScheduleLobby();
+      const openCreates = () =>
+        workers
+          .flatMap((w) => sentMessages(w))
+          .filter(
+            (m) => m.type === "createGame" && m.publicGameType === "hosted",
+          );
+      expect(openCreates()).toHaveLength(0);
+
+      vi.setSystemTime(Date.now() + 61_000);
+      await (service as any).maybeScheduleLobby();
+      expect(openCreates()).toHaveLength(1);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 
@@ -760,6 +830,7 @@ describe("WorkerLobbyService hosted lobbies", () => {
       listedLobbies: vi.fn().mockReturnValue([]),
       game: vi.fn().mockReturnValue(null),
       activeGames: vi.fn().mockReturnValue(0),
+      runningGames: vi.fn().mockReturnValue(0),
     };
     const server = new EventEmitter();
     service = new WorkerLobbyService(
@@ -859,6 +930,7 @@ describe("WorkerLobbyService hosted lobbies", () => {
 
   it("reports the game manager's live game count to the master", () => {
     gm.activeGames.mockReturnValue(7);
+    gm.runningGames.mockReturnValue(2);
     // Drop the stub so the real sendToMaster runs: assert on the message that
     // actually leaves the worker. Anything that is not ours is forwarded
     // untouched, since vitest's fork pool talks to its parent on this channel.
@@ -881,6 +953,7 @@ describe("WorkerLobbyService hosted lobbies", () => {
     const lobbyList = sent.find((m) => m.type === "lobbyList");
     expect(lobbyList).toBeDefined();
     expect(lobbyList.liveGames).toBe(7);
+    expect(lobbyList.runningGames).toBe(2);
   });
 
   it("strips creatorID from broadcasts and primed snapshots sent to clients", () => {

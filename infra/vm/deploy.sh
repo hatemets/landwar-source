@@ -63,6 +63,27 @@ cd "$DIR"
 # pull fails with "no space left on device". Rollback pulls from the registry.
 docker image prune -af > /dev/null
 docker compose pull --quiet
+
+# Games live in memory, so a restart ends them. Wait until no game is
+# running, for at most DRAIN_MAX_SECONDS. New games can still start while
+# we wait. A server build without /api/running_games gives no count, so
+# the wait ends at once.
+DRAIN_MAX_SECONDS="${DRAIN_MAX_SECONDS:-1800}"
+app="$(docker compose ps -q app 2>/dev/null || true)"
+if [ -n "$app" ] && [ "$(docker inspect -f '{{.Config.Image}}' "$app")" != "$IMAGE:$TAG" ]; then
+    waited=0
+    while [ "$waited" -lt "$DRAIN_MAX_SECONDS" ]; do
+        running="$(docker exec "$app" curl -fsS http://127.0.0.1:3000/api/running_games 2>/dev/null \
+            | sed -n 's/.*"running":\([0-9]*\).*/\1/p' || true)"
+        if [ -z "$running" ] || [ "$running" -eq 0 ]; then
+            break
+        fi
+        echo "Waiting for $running running game(s) to end (${waited}s of ${DRAIN_MAX_SECONDS}s)"
+        sleep 30
+        waited=$((waited + 30))
+    done
+fi
+
 docker compose up -d --remove-orphans
 
 # Wait for the app health check. Keep the old tag on failure.

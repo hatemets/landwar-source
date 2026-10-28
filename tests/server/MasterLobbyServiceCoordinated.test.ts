@@ -1,4 +1,7 @@
-import { PublicGameType } from "@openfront/shared/WireSchemas";
+import {
+  MIN_OPEN_LOBBIES,
+  PublicGameType,
+} from "@openfront/shared/WireSchemas";
 import EventEmitter from "events";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { InternalGameInfo } from "../../src/server/IPCBridgeSchema";
@@ -64,12 +67,18 @@ describe("MasterLobbyService with a lobby coordinator", () => {
   let worker: ReturnType<typeof createMockWorker>;
   let service: MasterLobbyService;
   let coordinator: ReturnType<typeof fakeCoordinator>;
-  let playlist: { gameConfig: ReturnType<typeof vi.fn> };
+  let playlist: {
+    gameConfig: ReturnType<typeof vi.fn>;
+    openLobbyConfig: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(() => {
     vi.stubEnv("DOMAIN", "localhost");
     vi.spyOn(ServerEnv, "numWorkers").mockReturnValue(1);
-    playlist = { gameConfig: vi.fn(async () => ({})) };
+    playlist = {
+      gameConfig: vi.fn(async () => ({})),
+      openLobbyConfig: vi.fn(async () => ({})),
+    };
     const log = { info: vi.fn(), error: vi.fn(), warn: vi.fn() } as any;
     service = new MasterLobbyService(playlist as any, log);
     coordinator = fakeCoordinator(true);
@@ -222,9 +231,15 @@ describe("MasterLobbyService with a lobby coordinator", () => {
 
     coordinator.coordinated = false;
     await scheduler()();
-    // Local: countdown for own front lobby, and creates to fill the queue.
+    // Local: countdown for own front lobby, creates to fill the queues, and
+    // the open lobbies.
     expect(sent(worker, "updateLobby")).toHaveLength(1);
-    expect(sent(worker, "createGame")).toHaveLength(4);
+    expect(
+      sent(worker, "createGame").filter((m) => m.publicGameType !== "hosted"),
+    ).toHaveLength(4);
+    expect(
+      sent(worker, "createGame").filter((m) => m.publicGameType === "hosted"),
+    ).toHaveLength(MIN_OPEN_LOBBIES);
     await broadcaster()();
     const [b] = sent(worker, "lobbiesBroadcast");
     // Foreign lobbies are dropped from the feed: the coordinator that

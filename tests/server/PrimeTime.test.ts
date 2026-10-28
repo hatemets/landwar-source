@@ -107,6 +107,7 @@ describe("MasterLobbyService prime time", () => {
     const playlist = {
       gameConfig: vi.fn(async () => ({})),
       primeTimeConfig: vi.fn(async () => ({})),
+      openLobbyConfig: vi.fn(async () => ({})),
     };
     service = new MasterLobbyService(
       playlist as any,

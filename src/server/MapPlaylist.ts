@@ -76,7 +76,8 @@ type ModifierKey =
 const SPECIAL_MODIFIER_POOL: ModifierKey[] = [
   ...Array<ModifierKey>(3).fill("isRandomSpawn"),
   ...Array<ModifierKey>(3).fill("isCompact"),
-  ...Array<ModifierKey>(2).fill("isCrowded"),
+  // No "isCrowded": it would force 60 or 125 players, and lobbies stay small
+  // (LOBBY_SIZES).
   ...Array<ModifierKey>(1).fill("isHardNations"),
   ...Array<ModifierKey>(12).fill("startingGold5M"),
   ...Array<ModifierKey>(3).fill("startingGold25M"),
@@ -177,6 +178,24 @@ export const GOLD_RUSH_ECONOMIES: readonly {
   { startingGold: 30_000_000, goldMultiplier: 5 },
   { startingGold: 10_000_000, goldMultiplier: 10 },
 ];
+// Server-run lobbies in the Join Lobby list (MIN_OPEN_LOBBIES): free for all
+// on a real-world map, x5 or x10 gold and a start of 5M or more. Half have
+// no missiles.
+export const OPEN_LOBBY_ECONOMIES: readonly {
+  startingGold: number;
+  goldMultiplier: number;
+  noMissiles?: boolean;
+}[] = [
+  { startingGold: 5_000_000, goldMultiplier: 5, noMissiles: true },
+  { startingGold: 10_000_000, goldMultiplier: 10 },
+  { startingGold: 10_000_000, goldMultiplier: 5, noMissiles: true },
+  { startingGold: 25_000_000, goldMultiplier: 5 },
+  { startingGold: 5_000_000, goldMultiplier: 10, noMissiles: true },
+  { startingGold: 25_000_000, goldMultiplier: 10 },
+];
+// Scheduled and open lobbies are small, so a game fills fast and every
+// player counts. A small map's own cap can make a lobby smaller still.
+export const LOBBY_SIZES: readonly number[] = [10, 12, 15, 16, 20];
 // The share of ffa, team and special games played on a real-world map
 // (PRIME_TIME_MAPS). By ticket weight alone it would be about a fifth.
 export const REAL_WORLD_MAP_SHARE = 0.65;
@@ -203,7 +222,8 @@ type PlaylistKey =
   | "specialFfa"
   | "specialTeam"
   | "goldRush"
-  | "primeTime";
+  | "primeTime"
+  | "open";
 
 export class MapPlaylist {
   // Real-world map rounds per queue (see nextRealWorldMap).
@@ -217,11 +237,15 @@ export class MapPlaylist {
     specialTeam: [],
     goldRush: [],
     primeTime: [],
+    open: [],
   };
 
   // Gold rush games handed out so far: even is no missiles, odd has missiles
   // and a nation difficulty roll.
   private goldRushScheduled = 0;
+
+  // Open lobbies handed out so far: the position in OPEN_LOBBY_ECONOMIES.
+  private openLobbiesScheduled = 0;
 
   // Position of each queue in ECONOMY_ROTATION.
   private economyScheduled = { ffa: 0, team: 0 };
@@ -267,11 +291,7 @@ export class MapPlaylist {
       isCompact = undefined;
     }
 
-    const unadjustedMaxPlayers = await this.lobbyMaxPlayers(
-      map,
-      mode,
-      isCompact,
-    );
+    const unadjustedMaxPlayers = await this.lobbyMaxPlayers(map, isCompact);
     playerTeams = this.adjustTeamCountForPlayerCapacity(
       playerTeams,
       unadjustedMaxPlayers,
@@ -369,6 +389,56 @@ export class MapPlaylist {
     } satisfies GameConfig;
   }
 
+  /**
+   * A server-run lobby for the Join Lobby list. The master opens it with a
+   * countdown that runs with or without players, and fillers come and go in
+   * it like in the scheduled lobbies.
+   */
+  public async openLobbyConfig(): Promise<GameConfig> {
+    const playlist = this.playlists.open;
+    if (playlist.length === 0) {
+      playlist.push(
+        ...new PseudoRandom(Date.now()).shuffleArray([...PRIME_TIME_MAPS]),
+      );
+    }
+    const map = playlist.shift()!;
+    const { startingGold, goldMultiplier, noMissiles } =
+      OPEN_LOBBY_ECONOMIES[
+        this.openLobbiesScheduled++ % OPEN_LOBBY_ECONOMIES.length
+      ]!;
+    return {
+      donateGold: false,
+      donateTroops: false,
+      gameMap: map,
+      maxPlayers: await this.lobbyMaxPlayers(map),
+      gameType: GameType.Public,
+      gameMapSize: GameMapSize.Normal,
+      publicGameModifiers: {
+        startingGold,
+        goldMultiplier,
+        isNukesDisabled: noMissiles,
+      },
+      startingGold,
+      goldMultiplier,
+      difficulty: Difficulty.Medium,
+      infiniteGold: false,
+      infiniteTroops: false,
+      maxTimerValue: undefined,
+      instantBuild: false,
+      randomSpawn: false,
+      nations: "default",
+      gameMode: GameMode.FFA,
+      bots: 400,
+      spawnImmunityDuration: this.getSpawnImmunityDuration(
+        undefined,
+        startingGold,
+      ),
+      disabledUnits: noMissiles ? [...MISSILE_UNITS] : [],
+      disableClanTags: true,
+      overtime: { enabled: true },
+    } satisfies GameConfig;
+  }
+
   private async getGoldRushConfig(): Promise<GameConfig> {
     const map = this.getNextMap("goldrush");
     const { startingGold, goldMultiplier } =
@@ -385,7 +455,7 @@ export class MapPlaylist {
       donateGold: false,
       donateTroops: false,
       gameMap: map,
-      maxPlayers: await this.lobbyMaxPlayers(map, GameMode.FFA),
+      maxPlayers: await this.lobbyMaxPlayers(map),
       gameType: GameType.Public,
       gameMapSize: GameMapSize.Normal,
       publicGameModifiers: {
@@ -424,7 +494,9 @@ export class MapPlaylist {
     let playerTeams =
       mode === GameMode.Team ? this.getTeamCount(map) : undefined;
 
-    const excludedModifiers: ModifierKey[] = [];
+    // Crowded would force 60 or 125 players, and lobbies stay small
+    // (LOBBY_SIZES), also on maps that force it in info.json.
+    const excludedModifiers: ModifierKey[] = ["isCrowded"];
 
     // Check if compact map would leave every team with at least 2 players
     const supportsCompact =
@@ -587,7 +659,7 @@ export class MapPlaylist {
     }
 
     const unadjustedMaxPlayers =
-      crowdedMaxPlayers ?? (await this.lobbyMaxPlayers(map, mode, isCompact));
+      crowdedMaxPlayers ?? (await this.lobbyMaxPlayers(map, isCompact));
     playerTeams = this.adjustTeamCountForPlayerCapacity(
       playerTeams,
       unadjustedMaxPlayers,
@@ -1011,19 +1083,14 @@ export class MapPlaylist {
 
   private async lobbyMaxPlayers(
     map: GameMapType,
-    mode: GameMode,
     isCompactMap?: boolean,
   ): Promise<number> {
     const landTiles = await getMapLandTiles(map);
-    const [l, m, s] = this.calculateMapPlayerCounts(landTiles);
-    const r = Math.random();
-    const base = r < 0.3 ? l : r < 0.6 ? m : s;
-    let p = Math.min(mode === GameMode.Team ? Math.ceil(base * 1.5) : base, l);
-    // Apply compact map 75% player reduction
-    if (isCompactMap) {
-      p = Math.max(3, Math.floor(p * 0.25));
-    }
-    return p;
+    const [l] = this.calculateMapPlayerCounts(landTiles);
+    const size = LOBBY_SIZES[Math.floor(Math.random() * LOBBY_SIZES.length)]!;
+    // A compact map has a quarter of the land.
+    const cap = isCompactMap ? Math.max(3, Math.floor(l * 0.25)) : l;
+    return Math.min(size, cap);
   }
 
   // Numeric team modes specify a number of teams, so ensure every team can

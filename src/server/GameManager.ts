@@ -120,6 +120,22 @@ export class GameManager {
     return this.games.size;
   }
 
+  // Started games with a player still connected. A deploy restarts the
+  // server and ends these, so infra/vm/deploy.sh waits for this to reach 0.
+  runningGames(): number {
+    let running = 0;
+    for (const game of this.games.values()) {
+      if (
+        game.phase() === GamePhase.Active &&
+        game.hasStarted() &&
+        game.numClients() > 0
+      ) {
+        running++;
+      }
+    }
+    return running;
+  }
+
   activeClients(): number {
     let totalClients = 0;
     this.games.forEach((game: GameServer) => {
@@ -155,6 +171,7 @@ export class GameManager {
       game.pruneStaleClients();
       const phase = game.phase();
       if (phase === GamePhase.Lobby) {
+        game.churnFillers(Date.now());
         game.maybeAutoStartListed();
       }
       if (phase === GamePhase.Active) {

@@ -9,7 +9,15 @@ import {
 } from "@openfront/engine-api/game/GameTypes";
 import { GameConfig, UsernameSchema } from "@openfront/engine-api/Schemas";
 import { describe, expect, it } from "vitest";
-import { pickFillers, seatedFillers } from "../../src/server/LobbyFillers";
+import {
+  churnFillers,
+  fillsSeats,
+  FILLER_CHURN_MAX_MS,
+  FILLER_CHURN_MIN_MS,
+  nextChurnDelay,
+  pickFillers,
+  seatedFillers,
+} from "../../src/server/LobbyFillers";
 
 function config(overrides: Partial<GameConfig> = {}): GameConfig {
   return {
@@ -47,8 +55,25 @@ describe("pickFillers", () => {
     }
   });
 
-  it("never fills hosted, private, ranked or Humans vs Nations games", () => {
-    expect(pickFillers(config(), "hosted")).toEqual([]);
+  it("gives open lobbies 0 to 5 fillers, often none", () => {
+    const counts = new Set<number>();
+    for (let i = 0; i < 200; i++) {
+      const fillers = pickFillers(config(), "hosted");
+      expect(fillers.length).toBeLessThanOrEqual(5);
+      counts.add(fillers.length);
+    }
+    expect(counts.has(0)).toBe(true);
+    expect(counts.has(4)).toBe(true);
+    expect(fillsSeats(config(), "hosted")).toBe(true);
+  });
+
+  it("never fills player-hosted, private, ranked or Humans vs Nations games", () => {
+    expect(
+      pickFillers(config({ gameType: GameType.Private }), "hosted"),
+    ).toEqual([]);
+    expect(fillsSeats(config({ gameType: GameType.Private }), "hosted")).toBe(
+      false,
+    );
     expect(pickFillers(config(), undefined)).toEqual([]);
     expect(
       pickFillers(config({ rankedType: RankedType.OneVOne }), "ffa"),
@@ -79,5 +104,52 @@ describe("seatedFillers", () => {
       fillers.slice(0, Math.min(fillers.length, 3)),
     );
     expect(seatedFillers(fillers, 15, 15)).toEqual([]);
+  });
+});
+
+describe("churnFillers", () => {
+  it("waits 18 to 30 seconds between changes, two or three a minute", () => {
+    expect(nextChurnDelay(() => 0)).toBe(FILLER_CHURN_MIN_MS);
+    expect(nextChurnDelay(() => 0.999999)).toBe(FILLER_CHURN_MAX_MS);
+    const meanMs = (FILLER_CHURN_MIN_MS + FILLER_CHURN_MAX_MS) / 2;
+    expect(60_000 / meanMs).toBeGreaterThanOrEqual(2);
+    expect(60_000 / meanMs).toBeLessThanOrEqual(3);
+  });
+
+  it("changes the roster by exactly one filler", () => {
+    let fillers = pickFillers(config(), "ffa");
+    for (let i = 0; i < 200; i++) {
+      const next = churnFillers(fillers, 15);
+      expect(Math.abs(next.length - fillers.length)).toBe(1);
+      const names = next.map((f) => f.username);
+      expect(new Set(names).size).toBe(names.length);
+      fillers = next;
+    }
+  });
+
+  it("keeps the seated fillers in place when one joins", () => {
+    const fillers = pickFillers(config(), "ffa");
+    // 0.1 < 0.5 picks a join.
+    const next = churnFillers(fillers.slice(0, 3), 15, () => 0.1);
+    expect(next.slice(0, 3)).toEqual(fillers.slice(0, 3));
+    expect(next).toHaveLength(4);
+    expect(UsernameSchema.safeParse(next[3]!.username).success).toBe(true);
+  });
+
+  it("stays between 2 and 7 fillers", () => {
+    let fillers = pickFillers(config({ maxPlayers: 50 }), "ffa");
+    for (let i = 0; i < 1000; i++) {
+      fillers = churnFillers(fillers, 50);
+      expect(fillers.length).toBeGreaterThanOrEqual(2);
+      expect(fillers.length).toBeLessThanOrEqual(7);
+    }
+  });
+
+  it("leaves a seat free for a real player in a small lobby", () => {
+    let fillers = pickFillers(config({ maxPlayers: 4 }), "ffa");
+    for (let i = 0; i < 100; i++) {
+      fillers = churnFillers(fillers, 4);
+      expect(fillers.length).toBeLessThanOrEqual(3);
+    }
   });
 });

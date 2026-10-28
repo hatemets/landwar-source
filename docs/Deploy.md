@@ -54,7 +54,7 @@ The master applies database migrations when it starts.
 
 ## Day to day
 
-- **Deploy**: merge to `main`. CI runs, then the deploy workflow. A deploy restarts the app container, which ends games in progress. Deploy when few players are online.
+- **Deploy**: merge to `main`. CI runs, then the deploy workflow. A deploy restarts the app container, which ends games in progress. So `deploy.sh` first waits until `/api/running_games` reports 0, for at most `DRAIN_MAX_SECONDS` (default 1800). New games can start during the wait, so on a busy server the wait can time out and end games. The workflow copies `infra/vm/deploy.sh` to the VM on each deploy.
 - **Config change**: edit `terraform.tfvars` (or `extra_env`) and run `terraform apply`. The VM reads the new values at the next deploy. Re-run the workflow to apply them now.
 - **Rotate a secret**: change the variable and apply. The session secret is random; `terraform apply -replace=random_password.session_secret` rotates it and signs everyone out.
 - **Logs**: Cloud Logging, resource "VM Instance", log name `gcplogs-docker-driver`.

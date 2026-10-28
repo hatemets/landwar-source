@@ -1537,6 +1537,7 @@
     "warship": "Warship"
   },
   "update_available": {
+    "game_ended": "Kleopolis was updated, so this game has ended. The page will now refresh.",
     "message": "A new version of Kleopolis is available. The page will now refresh to update."
   },
   "user_setting": {

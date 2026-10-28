@@ -1,12 +1,12 @@
 /**
  * SpawnOverlayPass — spawn phase tile highlights, the local player's
- * swirling marker and teammates' breathing rings.
+ * glowing ring and teammates' breathing rings.
  *
  * Active during spawn phase. Renders:
  *   1. Colored highlights on unowned tiles within radius of each enemy human
  *      player's spawn center.
- *   2. A glowing dot that orbits the local player's spawn, with a fading
- *      trail, and breathing rings around teammates.
+ *   2. A large pulsing glow ring around the local player's spawn, and
+ *      breathing rings around teammates.
  *
  * One instanced quad is drawn per spawn center (sized to that center's
  * influence radius), so cost scales with the number of spawns rather than
@@ -61,7 +61,7 @@ export class SpawnOverlayPass {
   private uBreathRadius: WebGLUniformLocation;
   private uHighlightRadiusSq: WebGLUniformLocation;
   private uHighlightAlpha: WebGLUniformLocation;
-  private uSelfOrbit: WebGLUniformLocation;
+  private uSelfRing: WebGLUniformLocation;
   private uMateRadii: WebGLUniformLocation;
   private uGradientStops: WebGLUniformLocation;
 
@@ -106,7 +106,7 @@ export class SpawnOverlayPass {
       this.program,
       "uHighlightAlpha",
     )!;
-    this.uSelfOrbit = gl.getUniformLocation(this.program, "uSelfOrbit")!;
+    this.uSelfRing = gl.getUniformLocation(this.program, "uSelfRing")!;
     this.uMateRadii = gl.getUniformLocation(this.program, "uMateRadii")!;
     this.uGradientStops = gl.getUniformLocation(
       this.program,
@@ -164,8 +164,8 @@ export class SpawnOverlayPass {
     }
 
     const s = this.settings;
-    // The swirling dot plus its glow (4 dot radii) must fit in the quad.
-    const selfRadius = s.selfOrbitRadius + s.selfDotRadius * 4 + RADIUS_MARGIN;
+    // The ring plus its glow (3 glow widths) must fit in the quad.
+    const selfRadius = s.selfRingRadius + s.selfGlowWidth * 3 + RADIUS_MARGIN;
     const mateRadius = s.mateMaxRad * MAX_BREATH_SCALE + RADIUS_MARGIN;
     const enemyRadius = s.highlightRadius + RADIUS_MARGIN;
 
@@ -224,7 +224,8 @@ export class SpawnOverlayPass {
     this.lastTime = now;
 
     const breathRadius = 0.5 + 0.5 * Math.sin(this.animTime);
-    const orbitAngle = ((now / 1000) * s.selfOrbitSpeed) % (Math.PI * 2);
+    const selfPulse =
+      0.5 + 0.5 * Math.sin(((now / 1000) * s.selfPulseSpeed) % (Math.PI * 2));
 
     gl.useProgram(this.program);
     gl.uniformMatrix3fv(this.uCamera, false, cameraMatrix);
@@ -238,10 +239,10 @@ export class SpawnOverlayPass {
     );
     gl.uniform1f(this.uHighlightAlpha, s.highlightAlpha);
     gl.uniform4f(
-      this.uSelfOrbit,
-      s.selfOrbitRadius,
-      s.selfDotRadius,
-      orbitAngle,
+      this.uSelfRing,
+      s.selfRingRadius,
+      s.selfGlowWidth,
+      selfPulse,
       0,
     );
     gl.uniform4f(this.uMateRadii, s.mateMinRad, s.mateMaxRad, 0, 0);

@@ -1136,7 +1136,17 @@ export class ClientGameRunner {
           "error_modal.desync_notice",
         );
       }
-      if (message.type === "error") {
+      if (message.type === "error" && message.error === "version_mismatch") {
+        // A rejoin reached a server running a newer build: a deploy restarted
+        // it, and games live in memory, so this game is gone. Say so and go
+        // home on the new build instead of a raw connection error.
+        void showInGameAlert(translateText("update_available.game_ended")).then(
+          () => {
+            history.replaceState(null, "", "/");
+            reloadForUpdate();
+          },
+        );
+      } else if (message.type === "error") {
         showErrorModal(
           message.error,
           message.message,

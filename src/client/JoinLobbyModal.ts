@@ -265,7 +265,14 @@ export class JoinLobbyModal extends BaseModal {
                   class="text-[10px] font-bold uppercase tracking-widest text-white/40"
                   >${translateText("public_lobby.status")}</span
                 >
-                <span class="text-sm font-bold text-white">${statusLabel}</span>
+                <span
+                  data-test-lobby-status
+                  class="text-sm font-bold tabular-nums ${secondsRemaining !==
+                    null && secondsRemaining > 0
+                    ? "text-amber-300"
+                    : "text-white"}"
+                  >${statusLabel}</span
+                >
               </div>
               ${this.renderSpectateToggle()}
               ${maxPlayers > 0
@@ -735,7 +742,9 @@ export class JoinLobbyModal extends BaseModal {
     if ("serverTime" in lobby && typeof lobby.serverTime === "number") {
       this.serverTimeOffset = calculateServerTimeOffset(lobby.serverTime);
     }
-    this.lobbyStartAt = lobby.startsAt ?? null;
+    // The start countdown once armed, otherwise a listed lobby's deadline,
+    // so a player in any lobby that will start sees when.
+    this.lobbyStartAt = lobby.startsAt ?? lobby.autoStartAt ?? null;
     this.syncCountdownTimer();
     if (lobby.gameConfig) {
       const mapChanged = this.gameConfig?.gameMap !== lobby.gameConfig.gameMap;
