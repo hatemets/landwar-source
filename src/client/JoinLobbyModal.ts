@@ -375,7 +375,9 @@ export class JoinLobbyModal extends BaseModal {
         ${translateText("private_lobby.no_open_lobbies")}
       </p>`;
     } else {
-      content = html`<div class="flex flex-col gap-2">
+      content = html`<div
+        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-6"
+      >
         ${this.hostedLobbies.map((lobby) => this.renderHostedLobbyRow(lobby))}
       </div>`;
     }
@@ -426,70 +428,67 @@ export class JoinLobbyModal extends BaseModal {
       startAt === undefined
         ? undefined
         : getSecondsUntilServerTimestamp(startAt, this.hostedServerTimeOffset);
+    // Settings read as one quiet line of text under the map, not a row of
+    // chips: the map is what a player picks a lobby by.
+    const details = [
+      subtitleLine,
+      ...settings.map((s) => lobbySettingTagText(s)),
+      ...(disabledUnitCount > 0
+        ? [
+            `${translateText("private_lobby.disabled_units")}: ${disabledUnitCount}`,
+          ]
+        : []),
+    ]
+      .filter(Boolean)
+      .join(" · ");
     return html`
       <button
         type="button"
         @click=${() => this.joinHostedLobby(lobby)}
-        class="w-full px-3 py-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 active:bg-white/15 transition-all flex items-center gap-3 text-left"
+        class="group flex flex-col items-stretch! gap-2 min-w-0 text-left! rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--field-accent)]"
       >
-        <img
-          src=${thumbnailUrl}
-          alt=${mapName}
-          class="w-12 h-12 rounded-lg object-cover border border-white/10 shrink-0"
-          @error=${(e: Event) => {
-            (e.target as HTMLImageElement).style.display = "none";
-          }}
-        />
-        <div class="flex flex-col flex-1 min-w-0">
-          <div class="flex items-center gap-2 min-w-0">
-            <span class="text-sm font-bold truncate ${accentClass}"
-              >${featuredLabel ?? mapName}</span
-            >
-            ${lobby.custom
-              ? html`<span
-                  class="px-1.5 py-0.5 bg-orange-500 text-white text-[10px] rounded font-bold uppercase tracking-wider shrink-0"
-                  >${translateText("public_lobby.custom")}</span
-                >`
-              : ""}
-          </div>
-          <span class="text-xs text-white/60">${subtitleLine}</span>
-          ${settings.length > 0 || disabledUnitCount > 0
-            ? html`<div class="flex flex-wrap gap-1 mt-1">
-                ${settings.map((s) => {
-                  return html`<span
-                    class="px-1.5 py-0.5 bg-white/10 text-white/70 text-[10px] rounded font-bold"
-                    >${lobbySettingTagText(s)}</span
-                  >`;
-                })}
-                ${disabledUnitCount > 0
-                  ? html`<span
-                      class="px-1.5 py-0.5 bg-red-500/20 text-red-200 text-[10px] rounded font-bold border border-red-500/30"
-                      >${translateText("private_lobby.disabled_units")}:
-                      ${disabledUnitCount}</span
-                    >`
-                  : ""}
-              </div>`
-            : ""}
+        <div
+          class="relative w-full aspect-[16/10] rounded-lg overflow-hidden bg-[var(--field-raised)]"
+        >
+          <img
+            src=${thumbnailUrl}
+            alt=${mapName}
+            class="absolute inset-0 w-full h-full object-cover transition-opacity duration-150 group-hover:opacity-80"
+            @error=${(e: Event) => {
+              (e.target as HTMLImageElement).style.display = "none";
+            }}
+          />
         </div>
-        <div class="flex flex-col items-end gap-1 shrink-0">
-          <div class="flex items-center gap-1 text-white/80 text-xs font-bold">
+        <div class="flex items-baseline gap-3 min-w-0">
+          <span class="text-base font-semibold truncate ${accentClass}"
+            >${featuredLabel ?? mapName}</span
+          >
+          ${lobby.custom
+            ? html`<span class="text-xs text-[var(--field-warning)] shrink-0"
+                >${translateText("public_lobby.custom")}</span
+              >`
+            : ""}
+          <span
+            class="ml-auto flex items-center gap-1 text-sm text-[var(--field-muted)] tabular-nums shrink-0"
+          >
             ${lobby.numClients}${c?.maxPlayers ? `/${c.maxPlayers}` : ""}
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path
                 d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.972 0 004 15v3H1v-3a3 3 0 013.75-2.906z"
               ></path>
             </svg>
-          </div>
+          </span>
           ${secondsToStart === undefined
             ? ""
             : html`<span
-                class="text-amber-300 text-xs font-bold tabular-nums"
+                class="text-sm text-[var(--field-warning)] tabular-nums shrink-0"
                 title=${translateText("host_modal.auto_start_timer")}
                 >${secondsToStart > 0
                   ? renderDuration(secondsToStart)
                   : translateText("public_lobby.starting_game")}</span
               >`}
         </div>
+        <p class="-mt-1 text-sm text-[var(--field-muted)]">${details}</p>
       </button>
     `;
   }
