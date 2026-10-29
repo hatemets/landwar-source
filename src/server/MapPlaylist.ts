@@ -7,6 +7,7 @@ import {
   GameMode,
   GameType,
   HumansVsNations,
+  MapCategory,
   PublicGameModifiers,
   Quads,
   Trios,
@@ -167,6 +168,14 @@ export const PRIME_TIME_MAPS: readonly GameMapType[] = [
   GameMapType.EastAsia,
   GameMapType.Scandinavia,
   GameMapType.Britannia,
+];
+// Map categories public queues never play: arcade, space, made-up and
+// tournament maps. Players want real places.
+const NON_REAL_CATEGORIES: readonly MapCategory[] = [
+  "arcade",
+  "cosmic",
+  "fictional",
+  "tournament",
 ];
 // Gold rush economies. Each runs twice in a row, once without missiles and
 // once with them.
@@ -887,6 +896,9 @@ export class MapPlaylist {
     overrides: MapWeightOverrides,
   ): number {
     const buildInfo = allMaps.find((m) => m.type === map)!;
+    if (buildInfo.categories.some((c) => NON_REAL_CATEGORIES.includes(c))) {
+      return 0;
+    }
     const mapInfo = { ...buildInfo, ...overrides[map] };
     // Use per-mode frequency if set (>= 0), otherwise fall back to multiplayerFrequency.
     switch (type) {

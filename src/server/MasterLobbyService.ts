@@ -5,6 +5,7 @@ import {
   PublicGameType,
   QUEUED_LOBBIES_PER_TYPE,
   SCHEDULED_PUBLIC_GAME_TYPES,
+  ScheduledPublicGameType,
 } from "@openfront/shared/WireSchemas";
 import { nextPrimeTime, PRIME_TIME_LEAD_MS } from "@openfront/shared/PrimeTime";
 import { Worker } from "cluster";
@@ -37,8 +38,9 @@ export const OPEN_LOBBY_MAX_COUNTDOWN_MS = HOSTED_LOBBY_AUTO_START_MS;
 // worker reports it.
 const OPEN_LOBBY_PENDING_MS = 5 * 1000;
 
-// Keep a small public queue open for players. Empty games stay in the lobby
-// phase; the start timer begins only after a human joins.
+// Keep a small public queue open for players. Every queued lobby counts down
+// with or without players, one start every gameCreationRate. A lobby nobody
+// joined ends when its time is up, and a new one joins the back.
 const SCHEDULE_PUBLIC_LOBBIES = true;
 
 export class MasterLobbyService {
@@ -453,48 +455,82 @@ export class MasterLobbyService {
     if (this.isCoordinated()) return;
 
     const lobbiesByType = this.getAllLobbies().games;
+    const now = Date.now();
 
     // Scheduled types only: hosted lobbies are started by their host, never
     // given a countdown or replaced by the master.
     for (const type of SCHEDULED_PUBLIC_GAME_TYPES) {
       const lobbies = lobbiesByType[type];
 
-      // Arm one lobby at a time, and only after a human has joined. An empty
-      // queue should stay joinable without pretending that a game is starting.
-      const hasStartingLobby = lobbies.some(
-        (lobby) => lobby.startsAt !== undefined,
+      // The lobby list lags one worker report, so a start the master sent
+      // counts until a worker reports it.
+      const reported = new Map(lobbies.map((l) => [l.gameID, l]));
+      for (const [gameID, pending] of this.pendingQueuedStarts) {
+        if (pending.type !== type) continue;
+        const lobby = reported.get(gameID);
+        const stale =
+          lobby === undefined && now - pending.sentAt > OPEN_LOBBY_PENDING_MS;
+        if (lobby?.startsAt !== undefined || stale) {
+          this.pendingQueuedStarts.delete(gameID);
+        }
+      }
+      const unreported = [...this.pendingQueuedStarts].filter(
+        ([gameID, p]) => p.type === type && !reported.has(gameID),
       );
-      const nextLobby = hasStartingLobby
-        ? undefined
-        : lobbies.find(
-            (lobby) =>
-              lobby.startsAt === undefined && (lobby.numClients ?? 0) > 0,
-          );
-      if (nextLobby) {
+      const startOf = (lobby: InternalGameInfo) =>
+        lobby.startsAt ?? this.pendingQueuedStarts.get(lobby.gameID)?.startsAt;
+
+      let lastStart = Math.max(
+        now,
+        ...lobbies.map((l) => startOf(l) ?? 0),
+        ...unreported.map(([, p]) => p.startsAt),
+      );
+      const queueStart = (gameID: string): number => {
+        lastStart += ServerEnv.gameCreationRate();
+        this.pendingQueuedStarts.set(gameID, {
+          type,
+          startsAt: lastStart,
+          sentAt: now,
+        });
+        return lastStart;
+      };
+
+      // In queue order, each lobby without a start takes the next free slot.
+      for (const lobby of lobbies) {
+        if (startOf(lobby) !== undefined) continue;
         this.sendMessageToWorker({
           type: "updateLobby",
-          gameID: nextLobby.gameID,
-          startsAt: Date.now() + ServerEnv.gameCreationRate(),
+          gameID: lobby.gameID,
+          startsAt: queueStart(lobby.gameID),
         });
       }
 
       // An inactive deployment still starts what it already queued (the
-      // countdown above), it just stops adding to the queue.
-      if (!this.active || lobbies.length >= QUEUED_LOBBIES_PER_TYPE[type]) {
+      // countdowns above), it just stops adding to the queue.
+      const queued = lobbies.length + unreported.length;
+      if (!this.active || queued >= QUEUED_LOBBIES_PER_TYPE[type]) {
         continue;
       }
 
+      const gameID = ServerEnv.generateGameId();
       this.sendMessageToWorker({
         type: "createGame",
-        gameID: ServerEnv.generateGameId(),
+        gameID,
         gameConfig: await this.playlist.gameConfig(type),
         publicGameType: type,
+        startsAt: queueStart(gameID),
       } satisfies MasterCreateGame);
     }
 
     await this.maybeScheduleOpenLobbies(lobbiesByType.hosted);
     await this.maybeSchedulePrimeTime(lobbiesByType.primetime);
   }
+
+  // Queued lobby starts the master sent, by id, until a worker reports them.
+  private readonly pendingQueuedStarts = new Map<
+    string,
+    { type: ScheduledPublicGameType; startsAt: number; sentAt: number }
+  >();
 
   // Open lobbies the master asked for, by id => when. The lobby list lags
   // one worker report, so without them each tick would ask again.

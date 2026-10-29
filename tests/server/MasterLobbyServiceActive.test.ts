@@ -113,10 +113,18 @@ describe("MasterLobbyService active/inactive deployment", () => {
   });
 });
 
-describe("MasterLobbyService leaves empty queued lobbies idle", () => {
-  it("does not assign a countdown when no human has joined", async () => {
+describe("MasterLobbyService counts down every queued lobby", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllEnvs();
+    vi.mocked(startPolling).mockClear();
+  });
+
+  it("gives each queued lobby its own start, with or without players", async () => {
     vi.stubEnv("DOMAIN", "localhost");
     vi.spyOn(ServerEnv, "numWorkers").mockReturnValue(1);
+    vi.spyOn(Date, "now").mockReturnValue(1_000_000);
+    const rate = ServerEnv.gameCreationRate();
     const playlist = {
       gameConfig: vi.fn(async () => ({})),
       openLobbyConfig: vi.fn(async () => ({})),
@@ -127,7 +135,7 @@ describe("MasterLobbyService leaves empty queued lobbies idle", () => {
     service.registerWorker(0, worker as any);
     worker.emit("message", { type: "workerReady", workerId: 0 });
 
-    // Worker reports one queued ffa lobby with no startsAt yet.
+    // One lobby counts down; two empty ones wait behind it.
     worker.emit("message", {
       type: "lobbyList",
       lobbies: [
@@ -136,17 +144,72 @@ describe("MasterLobbyService leaves empty queued lobbies idle", () => {
           publicGameType: "ffa",
           numClients: 0,
           createdAt: 1,
+          startsAt: 1_000_000 + 1000,
+        },
+        {
+          gameID: "QUEUED02",
+          publicGameType: "ffa",
+          numClients: 0,
+          createdAt: 2,
+        },
+        {
+          gameID: "QUEUED03",
+          publicGameType: "ffa",
+          numClients: 0,
+          createdAt: 3,
         },
       ],
     });
-    service.setActive(false);
     await schedulerTask()();
 
-    const updates = worker.send.mock.calls.filter(
-      ([msg]) => msg.type === "updateLobby" && msg.gameID === "QUEUED01",
+    const updates = worker.send.mock.calls
+      .map(([msg]) => msg)
+      .filter((msg) => msg.type === "updateLobby");
+    expect(updates).toEqual([
+      expect.objectContaining({
+        gameID: "QUEUED02",
+        startsAt: 1_000_000 + 1000 + rate,
+      }),
+      expect.objectContaining({
+        gameID: "QUEUED03",
+        startsAt: 1_000_000 + 1000 + 2 * rate,
+      }),
+    ]);
+    // The queue is full, so nothing new is created for ffa.
+    const ffaCreates = createGameMessages(worker).filter(
+      ([msg]) => msg.publicGameType === "ffa",
     );
-    expect(updates).toHaveLength(0);
-    expect(createGameMessages(worker)).toHaveLength(0);
+    expect(ffaCreates).toHaveLength(0);
+
+    // The next pass, before a worker reports them, sends nothing again.
+    await schedulerTask()();
+    expect(
+      worker.send.mock.calls.filter(([msg]) => msg.type === "updateLobby"),
+    ).toHaveLength(2);
+  });
+
+  it("creates a queued lobby with its countdown already set", async () => {
+    vi.stubEnv("DOMAIN", "localhost");
+    vi.spyOn(ServerEnv, "numWorkers").mockReturnValue(1);
+    vi.spyOn(Date, "now").mockReturnValue(1_000_000);
+    const rate = ServerEnv.gameCreationRate();
+    const playlist = {
+      gameConfig: vi.fn(async () => ({})),
+      openLobbyConfig: vi.fn(async () => ({})),
+    };
+    const log = { info: vi.fn(), error: vi.fn() } as any;
+    const service = new MasterLobbyService(playlist as any, log);
+    const worker = createMockWorker();
+    service.registerWorker(0, worker as any);
+    worker.emit("message", { type: "workerReady", workerId: 0 });
+
+    await schedulerTask()();
+    await schedulerTask()();
+    const ffaStarts = createGameMessages(worker)
+      .map(([msg]) => msg)
+      .filter((msg) => msg.publicGameType === "ffa")
+      .map((msg) => msg.startsAt);
+    expect(ffaStarts).toEqual([1_000_000 + rate, 1_000_000 + 2 * rate]);
   });
 });
 

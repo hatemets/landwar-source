@@ -16,20 +16,33 @@ function internals(playlist: MapPlaylist): Internals {
 }
 
 describe("MapPlaylist weight overrides", () => {
-  // Pangaea, not World: the real-world maps have a rotation of their own.
+  // Japan, not World: the real-world maps have a rotation of their own.
   it("spreads an override over the build frequency", () => {
     const p = internals(new MapPlaylist());
     const count = (overrides: object) =>
       p
         .buildMapsList("ffa", undefined, overrides)
-        .filter((m) => m === GameMapType.Pangaea).length;
+        .filter((m) => m === GameMapType.Japan).length;
 
-    expect(count({ [GameMapType.Pangaea]: { ffaFrequency: 37 } })).toBe(37);
-    expect(count({ [GameMapType.Pangaea]: { ffaFrequency: 0 } })).toBe(0);
+    expect(count({ [GameMapType.Japan]: { ffaFrequency: 37 } })).toBe(37);
+    expect(count({ [GameMapType.Japan]: { ffaFrequency: 0 } })).toBe(0);
     // A field for another queue leaves ffa on the build's value.
-    expect(count({ [GameMapType.Pangaea]: { teamFrequency: 37 } })).toBe(
+    expect(count({ [GameMapType.Japan]: { teamFrequency: 37 } })).toBe(
       count({}),
     );
+  });
+
+  it("never queues arcade, space, made-up or tournament maps", () => {
+    const p = internals(new MapPlaylist());
+    for (const type of ["ffa", "team", "special"]) {
+      const maps = p.buildMapsList(type, undefined, {
+        [GameMapType.BranchingPaths]: { ffaFrequency: 9, teamFrequency: 9 },
+      });
+      expect(maps).not.toContain(GameMapType.BranchingPaths);
+      expect(maps).not.toContain(GameMapType.Pangaea);
+      expect(maps).not.toContain(GameMapType.Mars);
+      expect(maps).not.toContain(GameMapType.Tourney1);
+    }
   });
 
   it("drops queued playlists when the overrides change", async () => {
@@ -45,7 +58,7 @@ describe("MapPlaylist weight overrides", () => {
     expect(p.playlists.ffa.length).toBeGreaterThan(0);
 
     playlist.setWeightOverrides({
-      [GameMapType.Pangaea]: { ffaFrequency: 0 },
+      [GameMapType.Japan]: { ffaFrequency: 0 },
     });
     expect(p.playlists.ffa).toEqual([]);
   });
