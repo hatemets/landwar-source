@@ -23,9 +23,7 @@ describe("ShellPageMeta", () => {
     expect(html).toContain(
       '<meta property="og:url" content="https://kleopolis.io/" >',
     );
-    expect(html).toContain(
-      "<title>Kleopolis - Real-Time Territory Strategy Game</title>",
-    );
+    expect(html).toContain("<title>Kleopolis</title>");
     expect(html).not.toContain("data-i18n");
     expect(html).not.toContain('content="old"');
     // The shell's image and its size stay.

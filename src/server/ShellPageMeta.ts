@@ -16,7 +16,7 @@ export function shellPageMeta(
   switch (pathname) {
     case "/":
       return {
-        title: "Kleopolis - Real-Time Territory Strategy Game",
+        title: "Kleopolis",
         description: DESCRIPTION,
         canonical: url,
         ogType: "website",
