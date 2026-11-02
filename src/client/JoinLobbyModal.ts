@@ -53,6 +53,7 @@ export class JoinLobbyModal extends BaseModal {
   @property({ attribute: false }) eventBus: EventBus | null = null;
 
   @state() private players: ClientInfo[] = [];
+  @state() private fillerClientIDs: string[] = [];
   @state() private playerCount: number = 0;
   @state() private gameConfig: GameConfig | null = null;
   @state() private currentLobbyId: string = "";
@@ -239,6 +240,7 @@ export class JoinLobbyModal extends BaseModal {
                         .tableLayout=${true}
                         .gameMode=${this.gameConfig?.gameMode ?? GameMode.FFA}
                         .clients=${this.players}
+                        .fillerClientIDs=${this.fillerClientIDs}
                         .lobbyCreatorClientID=${hostClientID}
                         .currentClientID=${this.currentClientID}
                         .anonymizeNames=${this.gameConfig?.anonymizeNames ??
@@ -670,6 +672,7 @@ export class JoinLobbyModal extends BaseModal {
 
   private updateFromLobby(lobby: GameInfo | PublicGameInfo) {
     this.players = "clients" in lobby ? (lobby.clients ?? []) : [];
+    this.fillerClientIDs = "fillers" in lobby ? (lobby.fillers ?? []) : [];
     if ("serverTime" in lobby && typeof lobby.serverTime === "number") {
       this.serverTimeOffset = calculateServerTimeOffset(lobby.serverTime);
     }

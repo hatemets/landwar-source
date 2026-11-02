@@ -286,6 +286,9 @@ export const GameInfoSchema = z.object({
   // Listed lobbies only: the host paid to put it in the public Special
   // queue, so the queue's countdown starts it.
   queued: z.boolean().optional(),
+  // The clientIDs in `clients` that are server fillers (LobbyFillers.ts),
+  // not people.
+  fillers: z.array(z.string()).optional(),
 });
 
 // Browser-facing lobby info. Master/worker-internal fields (the creator hash

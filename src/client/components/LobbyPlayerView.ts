@@ -32,6 +32,7 @@ export class LobbyTeamView extends LitElement {
   @property({ type: Boolean }) tableLayout = false;
   @property({ type: String }) gameMode: GameMode = GameMode.FFA;
   @property({ type: Array }) clients: ClientInfo[] = [];
+  @property({ type: Array }) fillerClientIDs: string[] = [];
   @state() private teamPreview: TeamPreviewData[] = [];
   @state() private teamMaxSize: number = 0;
   @property({ type: String }) lobbyCreatorClientID: string = "";
@@ -322,6 +323,7 @@ export class LobbyTeamView extends LitElement {
         >${displayName} ${this.renderVerifiedBadge(client)}
         ${this.renderFriendBadge(client)}</span
       >
+      ${this.renderPresenceDot(client)}
       ${this.renderRevealToggle(client.clientID)}
       ${client.clientID === this.lobbyCreatorClientID
         ? html`<span class="host-badge"
@@ -600,6 +602,18 @@ export class LobbyTeamView extends LitElement {
         stroke-linejoin="round"
       ></path>
     </svg>`;
+  }
+
+  // Roster table only: gray for server fillers, gray-green for people.
+  private renderPresenceDot(client: ClientInfo) {
+    if (!this.tableLayout) return html``;
+    const filler = this.fillerClientIDs.includes(client.clientID);
+    return html`<span
+      aria-hidden="true"
+      class="inline-block w-2 h-2 rounded-full shrink-0 ${filler
+        ? "bg-gray-500"
+        : "bg-[#6f9a7c]"}"
+    ></span>`;
   }
 
   // A mark for players on the viewer's friends list

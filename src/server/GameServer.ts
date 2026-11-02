@@ -1635,11 +1635,12 @@ export class GameServer {
     // Goes out over the unauthenticated /api/game/:id route and the per-second
     // lobby_info broadcast, so strip the pool secrets (see configWithoutPool).
     const gameConfig = configWithoutPool(this.gameConfig);
+    const fillers = this.seatedFillers();
     return {
       gameID: this.id,
       clients: [
         ...this.names.lobbyClients(viewer, this.clients.active()),
-        ...this.seatedFillers().map((f) => ({
+        ...fillers.map((f) => ({
           username: f.username,
           clanTag: null,
           clientID: f.clientID,
@@ -1656,6 +1657,7 @@ export class GameServer {
       accent: this.listing.lobbyAccent(),
       featured: this.listing.isFeatured() ? true : undefined,
       queued: this.listing.isQueued() ? true : undefined,
+      fillers: fillers.length > 0 ? fillers.map((f) => f.clientID) : undefined,
     };
   }
 

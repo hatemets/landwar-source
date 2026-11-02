@@ -1832,6 +1832,7 @@ exports[`GameServer wire transcript > matches the golden transcript for a script
       },
     ],
     "featured": undefined,
+    "fillers": undefined,
     "gameConfig": {
       "bots": 5,
       "difficulty": "Medium",
