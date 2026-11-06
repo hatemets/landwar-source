@@ -83,7 +83,7 @@ describe("MapPlaylist economy rotation", () => {
           ]),
         );
       } else {
-        expect(config.disabledUnits).toEqual([]);
+        expect(config.disabledUnits).toEqual([UnitType.Reactor]);
       }
     }
   });
@@ -167,7 +167,7 @@ describe("MapPlaylist team and special mix", () => {
       const config = await playlist.gameConfig("team");
       expect(config.gameMap).toBe(twoSide);
       expect(config.publicGameModifiers?.isNukesDisabled).toBeUndefined();
-      expect(config.disabledUnits).toEqual([]);
+      expect(config.disabledUnits).toEqual([UnitType.Reactor]);
     }
   });
 });

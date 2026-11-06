@@ -3,6 +3,8 @@ import {
   GameMapSize,
   GameMode,
   GameType,
+  OFF_BY_DEFAULT_UNITS,
+  UnitType,
 } from "@openfront/engine-api/game/GameTypes";
 import { GameConfig } from "@openfront/engine-api/Schemas";
 import { html, TemplateResult } from "lit";
@@ -226,18 +228,26 @@ export function lobbySettingsTable(
   `;
 }
 
+/** The units this lobby turned off, without the ones off by default. */
+export function notableDisabledUnits(c: GameConfig): UnitType[] {
+  return (c.disabledUnits ?? []).filter(
+    (unit) => !OFF_BY_DEFAULT_UNITS.includes(unit),
+  );
+}
+
 /** Disabled units in the join view, beside the game settings. */
 export function disabledUnitsTable(c: GameConfig): TemplateResult | null {
-  if (!c.disabledUnits?.length) return null;
+  const units = notableDisabledUnits(c);
+  if (units.length === 0) return null;
   return html`
     <table data-disabled-units class="lobby-briefing__units w-full text-sm">
       <caption>
         ${translateText("private_lobby.disabled_units")}<span
-          >${c.disabledUnits.length}</span
+          >${units.length}</span
         >
       </caption>
       <tbody>
-        ${c.disabledUnits.map(
+        ${units.map(
           (unit) => html`
             <tr>
               <th scope="row">
@@ -259,7 +269,8 @@ export function disabledUnitsBox(
   c: GameConfig,
   className: string,
 ): TemplateResult | null {
-  if (!c.disabledUnits?.length) return null;
+  const units = notableDisabledUnits(c);
+  if (units.length === 0) return null;
   return html`
     <div
       data-disabled-units
@@ -269,7 +280,7 @@ export function disabledUnitsBox(
         ${translateText("private_lobby.disabled_units")}
       </div>
       <div class="flex flex-wrap gap-2">
-        ${c.disabledUnits.map((unit) => {
+        ${units.map((unit) => {
           const key = DISABLED_UNIT_KEYS[unit];
           return html`<span
             class="rounded-sm bg-[var(--field-raised)] px-2 py-1 text-xs text-[var(--field-paper)]"

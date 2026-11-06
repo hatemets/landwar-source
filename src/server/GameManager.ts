@@ -4,6 +4,7 @@ import {
   GameMapType,
   GameMode,
   GameType,
+  OFF_BY_DEFAULT_UNITS,
 } from "@openfront/engine-api/game/GameTypes";
 import { GameConfig, GameID } from "@openfront/engine-api/Schemas";
 import {
@@ -99,7 +100,7 @@ export class GameManager {
           randomSpawn: false,
           gameMode: GameMode.FFA,
           bots: 400,
-          disabledUnits: [],
+          disabledUnits: [...OFF_BY_DEFAULT_UNITS],
           ...gameConfig,
         },
         creatorPersistentID,

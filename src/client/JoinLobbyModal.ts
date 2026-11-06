@@ -43,6 +43,7 @@ import {
   hostCheatsBox,
   lobbySettingsTable,
   lobbySettingTagText,
+  notableDisabledUnits,
   notableLobbySettings,
 } from "./utilities/LobbySettingsSummary";
 
@@ -404,7 +405,7 @@ export class JoinLobbyModal extends BaseModal {
           ? { icon: "immunity", text: s.value, label: lobbySettingTagText(s) }
           : lobbySettingTagText(s),
       );
-    const disabledUnitCount = c.disabledUnits?.length ?? 0;
+    const disabledUnitCount = notableDisabledUnits(c).length;
     // A struck-out modifier ("Nukes") already says which units are off.
     const unitsTagged = modifiers.some(
       (m) =>

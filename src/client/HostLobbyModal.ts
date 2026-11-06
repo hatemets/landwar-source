@@ -3,6 +3,7 @@ import {
   GameMapSize,
   GameMapType,
   GameMode,
+  OFF_BY_DEFAULT_UNITS,
   UnitType,
 } from "@openfront/engine-api/game/GameTypes";
 import {
@@ -98,7 +99,7 @@ export class HostLobbyModal extends BaseModal {
   @state() private creationError: "login" | "failed" | null = null;
   @state() private lobbyUrlSuffix = "";
   @state() private clients: ClientInfo[] = [];
-  @state() private disabledUnits: UnitType[] = [];
+  @state() private disabledUnits: UnitType[] = [...OFF_BY_DEFAULT_UNITS];
   @state() private hostCheatsEnabled: boolean = false;
   @state() private hostCheatInfiniteGold: boolean = false;
   @state() private hostCheatInfiniteTroops: boolean = false;
@@ -867,7 +868,7 @@ export class HostLobbyModal extends BaseModal {
     this.instantBuild = false;
     this.randomSpawn = false;
     this.compactMap = false;
-    this.disabledUnits = [];
+    this.disabledUnits = [...OFF_BY_DEFAULT_UNITS];
     this.lobbyId = "";
     this.creationError = null;
     this.clients = [];

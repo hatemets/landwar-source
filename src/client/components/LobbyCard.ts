@@ -2,7 +2,10 @@ import { GameMapType } from "@openfront/engine-api/game/GameTypes";
 import { PublicGameInfo } from "@openfront/shared/WireSchemas";
 import { html, nothing, TemplateResult } from "lit";
 import { terrainMapFileLoader } from "../TerrainMapFileLoader";
-import { notableLobbySettings } from "../utilities/LobbySettingsSummary";
+import {
+  notableDisabledUnits,
+  notableLobbySettings,
+} from "../utilities/LobbySettingsSummary";
 import {
   getActiveModifiers,
   getMapName,
@@ -335,9 +338,10 @@ function customInfoIcon(lobby: PublicGameInfo): TemplateResult {
       const label = s.label.replace(/[:\uFF1A\s]+$/u, "");
       lines.push(s.value === enabled ? label : `${label}: ${s.value}`);
     }
-    if ((c.disabledUnits?.length ?? 0) > 0) {
+    const disabledUnitCount = notableDisabledUnits(c).length;
+    if (disabledUnitCount > 0) {
       lines.push(
-        `${translateText("private_lobby.disabled_units")}: ${c.disabledUnits!.length}`,
+        `${translateText("private_lobby.disabled_units")}: ${disabledUnitCount}`,
       );
     }
   }

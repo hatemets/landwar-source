@@ -51,7 +51,7 @@ describe("MapPlaylist open lobbies", () => {
         expect(config.disabledUnits).toContain(UnitType.MissileSilo);
         expect(config.disabledUnits).toContain(UnitType.AtomBomb);
       } else {
-        expect(config.disabledUnits).toEqual([]);
+        expect(config.disabledUnits).toEqual([UnitType.Reactor]);
       }
     }
     expect(noMissiles * 2).toBe(OPEN_LOBBY_ECONOMIES.length);

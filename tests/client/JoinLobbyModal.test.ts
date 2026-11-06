@@ -323,6 +323,16 @@ describe("JoinLobbyModal map preview", () => {
     expect(container.querySelectorAll("[data-disabled-units]")).toHaveLength(1);
   });
 
+  it("does not list a unit that is off by default", () => {
+    const hidden = renderConfig({ disabledUnits: ["Reactor"], bots: 400 });
+    expect(hidden.querySelector("[data-disabled-units]")).toBeNull();
+
+    const mixed = renderConfig({ disabledUnits: ["Reactor", "MIRV"] });
+    expect(
+      mixed.querySelectorAll("[data-disabled-units] tbody tr"),
+    ).toHaveLength(1);
+  });
+
   it("lists each notable setting as one table row next to the preview", () => {
     const rows = (config: Record<string, unknown>) =>
       renderConfig(config).querySelectorAll(`${SETTINGS} tbody tr`).length;

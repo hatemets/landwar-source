@@ -52,6 +52,17 @@ describe("SinglePlayerModal start", () => {
     expect(config.disabledUnits).toEqual([UnitType.Warship]);
   });
 
+  it("starts with reactors off, and counts turning them on as a changed option", () => {
+    const modal = createModal();
+    modal.nations = modal.defaultNationCount;
+
+    expect(modal.disabledUnits).toEqual([UnitType.Reactor]);
+    expect(modal.hasOptionsChanged()).toBe(false);
+
+    modal.disabledUnits = [];
+    expect(modal.hasOptionsChanged()).toBe(true);
+  });
+
   it("starts a practice 1v1 against one hard nation on a ranked map", async () => {
     const modal = createModal();
     const events: any[] = [];
@@ -74,5 +85,6 @@ describe("SinglePlayerModal start", () => {
     expect(config.maxTimerValue).toBe(RANKED_TIME_LIMIT_MINUTES);
     // Unranked: a practice match never touches the ladder.
     expect(config.rankedType).toBeUndefined();
+    expect(config.disabledUnits).toEqual([UnitType.Reactor]);
   });
 });

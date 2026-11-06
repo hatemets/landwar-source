@@ -5,6 +5,7 @@ import {
   GameMode,
   GameType,
   maps,
+  OFF_BY_DEFAULT_UNITS,
   UnitType,
 } from "@openfront/engine-api/game/GameTypes";
 import { GameConfig, TeamCountConfig } from "@openfront/engine-api/Schemas";
@@ -104,7 +105,7 @@ const DEFAULT_OPTIONS = {
   goldMultiplierValue: 3 as number | undefined,
   startingGold: true,
   startingGoldValue: 5 as number | undefined,
-  disabledUnits: [] as UnitType[],
+  disabledUnits: [...OFF_BY_DEFAULT_UNITS] as UnitType[],
   customAlliances: false,
   customAllianceMinutes: undefined as number | undefined,
   waterNukes: false,
@@ -615,7 +616,10 @@ export class SinglePlayerModal extends BaseModal {
       (this.doomsdayClock &&
         this.doomsdayClockSpeed !== DEFAULT_OPTIONS.doomsdayClockSpeed) ||
       this.overtime !== DEFAULT_OPTIONS.overtime ||
-      this.disabledUnits.length > 0
+      this.disabledUnits.length !== DEFAULT_OPTIONS.disabledUnits.length ||
+      this.disabledUnits.some(
+        (unit) => !DEFAULT_OPTIONS.disabledUnits.includes(unit),
+      )
     );
   }
 
@@ -1028,7 +1032,7 @@ export class SinglePlayerModal extends BaseModal {
       randomSpawn: false,
       donateGold: false,
       donateTroops: false,
-      disabledUnits: [],
+      disabledUnits: [...OFF_BY_DEFAULT_UNITS],
     });
   }
 

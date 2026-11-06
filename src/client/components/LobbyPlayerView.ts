@@ -604,14 +604,14 @@ export class LobbyTeamView extends LitElement {
     </svg>`;
   }
 
-  // Roster table only: gray for server fillers, gray-green for people.
+  // Roster table only: blue for server fillers, gray-green for people.
   private renderPresenceDot(client: ClientInfo) {
     if (!this.tableLayout) return html``;
     const filler = this.fillerClientIDs.includes(client.clientID);
     return html`<span
       aria-hidden="true"
       class="inline-block w-2 h-2 rounded-full shrink-0 ${filler
-        ? "bg-gray-500"
+        ? "bg-blue-500"
         : "bg-[#6f9a7c]"}"
     ></span>`;
   }

@@ -1,4 +1,8 @@
-import { GameMode, RankedType } from "@openfront/engine-api/game/GameTypes";
+import {
+  GameMode,
+  RankedType,
+  UnitType,
+} from "@openfront/engine-api/game/GameTypes";
 import { GameConfigSchema } from "@openfront/engine-api/Schemas";
 import {
   RANKED_1V1_MAPS,
@@ -25,6 +29,12 @@ const group = (n: number): Ticket[] =>
   }));
 
 describe("matchGameConfig", () => {
+  it("keeps reactors out of ranked games", () => {
+    const [match] = findMatches(group(2), "1v1", 0);
+    const config = matchGameConfig("1v1", match!, () => 0);
+    expect(config.disabledUnits).toEqual([UnitType.Reactor]);
+  });
+
   it("makes a 1v1 a free-for-all of two", () => {
     const [match] = findMatches(group(2), "1v1", 0);
     const config = matchGameConfig("1v1", match!, () => 0);

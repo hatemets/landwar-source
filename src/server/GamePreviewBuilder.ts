@@ -2,6 +2,7 @@ import {
   formatPlayerDisplayName,
   GameMode,
   maps,
+  OFF_BY_DEFAULT_UNITS,
 } from "@openfront/engine-api/game/GameTypes";
 import { ClanTagSchema, UsernameSchema } from "@openfront/engine-api/Schemas";
 import { buildAssetUrl } from "@openfront/shared/AssetPaths";
@@ -272,9 +273,12 @@ export async function buildPreview(
         sections.push(`Game Options: ${gameOptions.join(" | ")}`);
       }
 
-      if (Array.isArray(gc?.disabledUnits) && gc.disabledUnits.length > 0) {
+      const disabledUnits = (gc?.disabledUnits ?? []).filter(
+        (unit) => !OFF_BY_DEFAULT_UNITS.includes(unit),
+      );
+      if (disabledUnits.length > 0) {
         sections.push(
-          `Disabled Units: ${gc.disabledUnits.map(String).join(" | ")}`,
+          `Disabled Units: ${disabledUnits.map(String).join(" | ")}`,
         );
       }
 

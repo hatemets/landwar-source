@@ -71,7 +71,7 @@ describe("MapPlaylist gold rush games", () => {
 
     const withNations = await playlist.gameConfig("goldrush");
     expect(withNations.publicGameModifiers?.isNukesDisabled).toBeUndefined();
-    expect(withNations.disabledUnits).toEqual([]);
+    expect(withNations.disabledUnits).toEqual([UnitType.Reactor]);
     expect(withNations.nations).toBe("default");
     expect(GOLD_RUSH_NATION_DIFFICULTIES).toContain(withNations.difficulty);
 

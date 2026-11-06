@@ -276,6 +276,9 @@ export const PlayerBuildable = unitTypeGroup([
 
 export type PlayerBuildableUnitType = (typeof PlayerBuildable.types)[number];
 
+// Niche units: a new game has them off unless its creator turns them on.
+export const OFF_BY_DEFAULT_UNITS: readonly UnitType[] = [UnitType.Reactor];
+
 export type TrajectoryTile = {
   tile: TileRef;
   targetable: boolean;

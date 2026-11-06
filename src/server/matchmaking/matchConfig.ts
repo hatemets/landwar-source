@@ -4,6 +4,7 @@ import {
   GameMapType,
   GameMode,
   GameType,
+  OFF_BY_DEFAULT_UNITS,
   RankedType,
 } from "@openfront/engine-api/game/GameTypes";
 import type { GameConfig } from "@openfront/engine-api/Schemas";
@@ -54,7 +55,7 @@ export function matchGameConfig(
     infiniteTroops: false,
     instantBuild: false,
     randomSpawn: false,
-    disabledUnits: [],
+    disabledUnits: [...OFF_BY_DEFAULT_UNITS],
     maxTimerValue: RANKED_TIME_LIMIT_MINUTES,
     ...(teams
       ? { gameMode: GameMode.Team, playerTeams: TEAMS_PER_MATCH }

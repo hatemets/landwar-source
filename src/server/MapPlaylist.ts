@@ -8,6 +8,7 @@ import {
   GameType,
   HumansVsNations,
   MapCategory,
+  OFF_BY_DEFAULT_UNITS,
   PublicGameModifiers,
   Quads,
   Trios,
@@ -351,7 +352,10 @@ export class MapPlaylist {
         playerTeams,
         startingGold,
       ),
-      disabledUnits: isNukesDisabled ? [...MISSILE_UNITS] : [],
+      disabledUnits: [
+        ...OFF_BY_DEFAULT_UNITS,
+        ...(isNukesDisabled ? MISSILE_UNITS : []),
+      ],
       disableClanTags: mode === GameMode.FFA ? true : undefined,
       // Public FFA is solo: each player sees other humans under a fake name
       // of their own (NameVisibility), so friends cannot find each other to
@@ -395,7 +399,7 @@ export class MapPlaylist {
       gameMode: GameMode.FFA,
       bots: 400,
       spawnImmunityDuration: this.getSpawnImmunityDuration(),
-      disabledUnits: [],
+      disabledUnits: [...OFF_BY_DEFAULT_UNITS],
       disableClanTags: true,
       anonymizeNames: true,
       overtime: { enabled: true },
@@ -446,7 +450,10 @@ export class MapPlaylist {
         undefined,
         startingGold,
       ),
-      disabledUnits: noMissiles ? [...MISSILE_UNITS] : [],
+      disabledUnits: [
+        ...OFF_BY_DEFAULT_UNITS,
+        ...(noMissiles ? MISSILE_UNITS : []),
+      ],
       disableClanTags: true,
       anonymizeNames: true,
       overtime: { enabled: true },
@@ -495,7 +502,10 @@ export class MapPlaylist {
         undefined,
         startingGold,
       ),
-      disabledUnits: noMissiles ? [...MISSILE_UNITS] : [],
+      disabledUnits: [
+        ...OFF_BY_DEFAULT_UNITS,
+        ...(noMissiles ? MISSILE_UNITS : []),
+      ],
       disableClanTags: true,
       anonymizeNames: true,
       overtime: { enabled: true },
@@ -691,7 +701,8 @@ export class MapPlaylist {
         ? "disabled"
         : "default";
 
-    // Build disabledUnits from modifiers
+    // Build disabledUnits from modifiers. Special games are the one public
+    // queue that keeps OFF_BY_DEFAULT_UNITS on.
     const disabledUnits: UnitType[] = [];
     if (isNukesDisabled) {
       disabledUnits.push(...MISSILE_UNITS);
