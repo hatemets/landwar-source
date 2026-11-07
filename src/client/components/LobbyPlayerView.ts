@@ -611,8 +611,8 @@ export class LobbyTeamView extends LitElement {
     return html`<span
       aria-hidden="true"
       class="inline-block w-2 h-2 rounded-full shrink-0 ${filler
-        ? "bg-blue-500"
-        : "bg-[#6f9a7c]"}"
+        ? "bg-[#2f4f8f]"
+        : "bg-[#44604e]"}"
     ></span>`;
   }
 
